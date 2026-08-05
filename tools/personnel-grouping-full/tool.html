@@ -1,0 +1,685 @@
+<style>
+/* Personnel Grouping Frequency — full grid
+   Every selector is scoped under .pt-root. See docs/avada-embed-rules.md. */
+.pt-root.pt-pgf *{box-sizing:border-box;margin:0;padding:0}
+.pt-root.pt-pgf{
+  --red:#cc0000; --ink:#111; --g1:#7f8c9a; --g2:#b0bec5;
+  --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --w:#fff;
+  font-family:'Interstate Condensed','Interstate','Helvetica Neue',Arial,sans-serif;
+  color:var(--ink); background:var(--w);
+  border:1px solid var(--b1); line-height:1.25;
+  display:flex; flex-direction:column; max-height:85svh; overflow:hidden;
+  font-variant-numeric:tabular-nums;
+}
+.pt-root.pt-pgf input,.pt-root.pt-pgf select,.pt-root.pt-pgf button,.pt-root.pt-pgf textarea{font-family:inherit;color:inherit}
+.pt-root.pt-pgf button{background:none;border:0;cursor:pointer}
+.pt-root.pt-pgf :focus-visible{outline:2px solid var(--red);outline-offset:1px}
+
+/* ---------- header ---------- */
+.pt-root.pt-pgf .pt-head{flex:0 0 auto;padding:12px 12px 10px;border-bottom:2px solid var(--ink);background:var(--w)}
+.pt-root.pt-pgf .pt-title{font-size:20px;font-weight:700;letter-spacing:.01em;text-transform:uppercase}
+.pt-root.pt-pgf .pt-sub{margin-top:3px;font-size:13px;color:var(--g1)}
+.pt-root.pt-pgf .pt-sub b{color:var(--ink);font-weight:700}
+
+/* ---------- filter bar ---------- */
+.pt-root.pt-pgf .pt-bar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  padding:10px 12px;background:var(--bg);border-bottom:1px solid var(--b1)}
+.pt-root.pt-pgf .pt-tog{min-height:44px;padding:0 14px;border:1px solid var(--b1);background:var(--w);
+  font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;
+  display:inline-flex;align-items:center;gap:8px}
+.pt-root.pt-pgf .pt-tog[aria-expanded="true"]{border-color:var(--ink)}
+.pt-root.pt-pgf .pt-tog .pt-n{background:var(--red);color:var(--w);border-radius:999px;
+  font-size:12px;padding:1px 7px;min-width:20px;text-align:center}
+.pt-root.pt-pgf .pt-tog .pt-n[hidden]{display:none}
+.pt-root.pt-pgf .pt-neu{min-height:44px;display:inline-flex;align-items:center;gap:8px;
+  padding:0 12px;border:1px solid var(--b1);background:var(--w);font-size:14px;cursor:pointer}
+.pt-root.pt-pgf .pt-neu input{width:18px;height:18px;accent-color:var(--red)}
+.pt-root.pt-pgf .pt-neu.on{border-color:var(--red);background:#fff5f5}
+.pt-root.pt-pgf .pt-clear{min-height:44px;padding:0 10px;font-size:13px;color:var(--g1);
+  text-decoration:underline;text-underline-offset:2px;margin-left:auto}
+
+/* ---------- filter panel ---------- */
+.pt-root.pt-pgf .pt-panel{flex:0 0 auto;display:none;padding:12px;gap:16px;background:var(--bg2);
+  border-bottom:1px solid var(--b1);overflow-y:auto;max-height:56svh}
+.pt-root.pt-pgf .pt-panel.open{display:grid}
+.pt-root.pt-pgf .pt-fld{min-width:0}
+.pt-root.pt-pgf .pt-lab{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--g1);margin-bottom:6px}
+.pt-root.pt-pgf .pt-chips{display:flex;flex-wrap:wrap;gap:5px}
+.pt-root.pt-pgf .pt-chip{min-height:36px;min-width:36px;padding:0 9px;border:1px solid var(--b1);
+  background:var(--w);font-size:13px;font-weight:600;display:inline-flex;
+  align-items:center;justify-content:center}
+.pt-root.pt-pgf .pt-chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--w)}
+.pt-root.pt-pgf .pt-chips.wide .pt-chip{flex:1 0 auto}
+
+/* dual range */
+.pt-root.pt-pgf .pt-rng{padding-top:2px}
+.pt-root.pt-pgf .pt-rval{font-size:13px;font-weight:700;margin-bottom:4px}
+.pt-root.pt-pgf .pt-slot{position:relative;height:40px}
+.pt-root.pt-pgf .pt-track{position:absolute;top:18px;left:0;right:0;height:4px;background:var(--b2)}
+.pt-root.pt-pgf .pt-fill{position:absolute;top:18px;height:4px;background:var(--red)}
+.pt-root.pt-pgf .pt-slot input[type=range]{position:absolute;top:0;left:0;width:100%;height:40px;
+  margin:0;background:none;-webkit-appearance:none;appearance:none;pointer-events:none}
+.pt-root.pt-pgf .pt-slot input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;
+  width:24px;height:24px;border-radius:50%;background:var(--w);border:2px solid var(--ink);
+  cursor:grab;margin-top:0}
+.pt-root.pt-pgf .pt-slot input[type=range]::-moz-range-thumb{pointer-events:auto;width:24px;height:24px;
+  border-radius:50%;background:var(--w);border:2px solid var(--ink);cursor:grab}
+.pt-root.pt-pgf .pt-slot input[type=range]::-webkit-slider-runnable-track{height:40px;background:none}
+.pt-root.pt-pgf .pt-slot input[type=range]::-moz-range-track{height:40px;background:none}
+
+/* ---------- table ---------- */
+.pt-root.pt-pgf .pt-body{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
+.pt-root.pt-pgf .pt-grid{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+.pt-root.pt-pgf .pt-grid caption{text-align:left;padding:8px 12px;font-size:12px;color:var(--g1);
+  caption-side:top}
+.pt-root.pt-pgf .pt-grid th,.pt-root.pt-pgf .pt-grid td{border-right:1px solid var(--b2);border-bottom:1px solid var(--b2);
+  padding:0;text-align:center;white-space:nowrap}
+.pt-root.pt-pgf .pt-grid thead th{position:sticky;top:0;z-index:3;background:var(--w);
+  border-bottom:2px solid var(--ink);padding:7px 6px;
+  font-size:12px;font-weight:700;color:var(--ink);vertical-align:bottom}
+.pt-root.pt-pgf .pt-grid thead th button{width:100%;font:inherit;padding:2px 0;text-align:center}
+.pt-root.pt-pgf .pt-code{display:block;font-size:16px;letter-spacing:.02em}
+.pt-root.pt-pgf .pt-mini{display:block;font-size:10px;font-weight:600;color:var(--g1);
+  text-transform:uppercase;letter-spacing:.04em}
+.pt-root.pt-pgf .pt-grid thead th[aria-sort] .pt-code{color:var(--red)}
+.pt-root.pt-pgf .pt-team{position:sticky;left:0;z-index:2;background:var(--w);
+  border-right:2px solid var(--ink) !important;text-align:left}
+.pt-root.pt-pgf .pt-grid thead .pt-team{z-index:4}
+.pt-root.pt-pgf .pt-team button{width:100%;min-height:40px;padding:0 8px;font:inherit;font-weight:700;
+  font-size:14px;text-align:left;display:flex;align-items:center;gap:6px}
+.pt-root.pt-pgf .pt-team button::after{content:'+';color:var(--g2);font-weight:700;margin-left:auto}
+.pt-root.pt-pgf .pt-row.open .pt-team button::after{content:'–';color:var(--red)}
+.pt-root.pt-pgf .pt-cell{padding:5px 6px !important;min-width:52px}
+.pt-root.pt-pgf .pt-pc{display:block;font-size:14px;font-weight:700}
+.pt-root.pt-pgf .pt-ct{display:block;font-size:10px;opacity:.62}
+.pt-root.pt-pgf .pt-nil{background:var(--bg2)}
+.pt-root.pt-pgf .pt-tot{border-left:2px solid var(--ink) !important;min-width:64px}
+.pt-root.pt-pgf .pt-rk{font-size:10px;color:var(--g1);font-weight:600}
+.pt-root.pt-pgf .pt-grid tfoot th,.pt-root.pt-pgf .pt-grid tfoot td{position:sticky;bottom:0;z-index:3;background:var(--w);
+  border-top:2px solid var(--ink);font-weight:700;padding:6px}
+.pt-root.pt-pgf .pt-grid tfoot .pt-team{z-index:4;font-size:12px;text-transform:uppercase}
+.pt-root.pt-pgf .pt-row:nth-child(even) .pt-team{background:var(--bg2)}
+.pt-root.pt-pgf .pt-det td{text-align:left;padding:10px 12px !important;background:var(--bg2);
+  border-bottom:2px solid var(--b1);white-space:normal}
+.pt-root.pt-pgf .pt-det h4{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--g1);
+  margin-bottom:8px;font-weight:700}
+.pt-root.pt-pgf .pt-brs{display:grid;gap:5px;max-width:520px}
+.pt-root.pt-pgf .pt-br{display:grid;grid-template-columns:60px 1fr 74px;gap:8px;align-items:center;font-size:12px}
+.pt-root.pt-pgf .pt-br i{font-style:normal;font-weight:700}
+.pt-root.pt-pgf .pt-brt{background:var(--b2);height:12px;position:relative}
+.pt-root.pt-pgf .pt-brt span{position:absolute;inset:0 auto 0 0;background:var(--red)}
+.pt-root.pt-pgf .pt-brv{text-align:right;color:var(--g1)}
+
+/* ---------- footer ---------- */
+.pt-root.pt-pgf .pt-foot{flex:0 0 auto;padding:10px 12px;border-top:1px solid var(--b1);background:var(--bg2);
+  font-size:11px;color:var(--g1);display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.pt-root.pt-pgf .pt-leg{display:flex;align-items:center;gap:6px}
+.pt-root.pt-pgf .pt-legbar{width:96px;height:9px;background:linear-gradient(90deg,#f7f8fa,#f6e0dd,#eeb4ac,#e07a70,#cc0000,#7a0000);
+  border:1px solid var(--b1)}
+.pt-root.pt-pgf .pt-note{flex:1 0 100%;line-height:1.45}
+.pt-root.pt-pgf .pt-msg{padding:28px 16px;text-align:center;font-size:14px;color:var(--g1)}
+.pt-root.pt-pgf .pt-msg b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+
+/* ---------- crawlable preload ---------- */
+.pt-root.pt-pgf .pt-seo table{border-collapse:collapse;width:100%;font-size:12px}
+.pt-root.pt-pgf .pt-seo caption{text-align:left;padding:10px 12px;color:var(--g1);font-size:12px}
+.pt-root.pt-pgf .pt-seo th,.pt-root.pt-pgf .pt-seo td{border:1px solid var(--b2);padding:5px 7px;text-align:center}
+.pt-root.pt-pgf .pt-seo th[scope=row]{text-align:left;font-weight:700}
+
+@media (min-width:641px){
+  .pt-root.pt-pgf .pt-head{padding:16px 18px 14px}
+  .pt-root.pt-pgf .pt-title{font-size:26px}
+  .pt-root.pt-pgf .pt-bar{padding:12px 18px}
+  .pt-root.pt-pgf .pt-panel{padding:16px 18px;max-height:none;
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .pt-root.pt-pgf .pt-panel.open{display:grid}
+  .pt-root.pt-pgf .pt-body{overflow:auto}
+  .pt-root.pt-pgf .pt-cell{min-width:64px}
+  .pt-root.pt-pgf .pt-ct{font-size:11px}
+  .pt-root.pt-pgf .pt-foot{padding:12px 18px;font-size:12px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .pt-root.pt-pgf .pt-chip,.pt-root.pt-pgf .pt-tog,.pt-root.pt-pgf .pt-neu{transition:background-color .12s,border-color .12s,color .12s}
+}
+</style>
+
+<div class="pt-root pt-pgf" id="pgf">
+  <div class="pt-head">
+    <div class="pt-title">Personnel Grouping Frequency</div>
+    <div class="pt-sub" id="pgf-sub">Loading play-by-play data&hellip;</div>
+  </div>
+
+  <div class="pt-bar">
+    <button class="pt-tog" id="pgf-tog" aria-expanded="false" aria-controls="pgf-panel">
+      Filters <span class="pt-n" id="pgf-cnt" hidden>0</span>
+    </button>
+    <label class="pt-neu" id="pgf-neuwrap">
+      <input type="checkbox" id="pgf-neu"> Neutral game script
+    </label>
+    <button class="pt-clear" id="pgf-clear">Clear filters</button>
+  </div>
+
+  <div class="pt-panel" id="pgf-panel"></div>
+
+  <div class="pt-body" id="pgf-body">
+    <div class="pt-seo" id="pgf-seo">
+<!-- SFA:PRELOAD:START -->
+<table class="pt-pre"><caption>2025 personnel grouping frequency by offense, all offensive plays, no filters applied. Groupings use the standard code: the first digit is running backs, the second is tight ends (so "12" is 1 RB and 2 TE).</caption><thead><tr><th scope="col">Offense</th><th scope="col">11</th><th scope="col">12</th><th scope="col">21</th><th scope="col">13</th><th scope="col">22</th><th scope="col">10</th><th scope="col">20</th><th scope="col">01</th><th scope="col">Plays</th></tr></thead><tbody><tr><th scope="row">ARI</th><td>51%</td><td>36%</td><td>0%</td><td>11%</td><td>0%</td><td>2%</td><td>0%</td><td>0%</td><td>1,059</td></tr><tr><th scope="row">ATL</th><td>46%</td><td>38%</td><td>9%</td><td>7%</td><td>0%</td><td>0%</td><td>0%</td><td>0%</td><td>1,032</td></tr><tr><th scope="row">BAL</th><td>30%</td><td>35%</td><td>18%</td><td>6%</td><td>9%</td><td>0%</td><td>0%</td><td>0%</td><td>954</td></tr><tr><th scope="row">BUF</th><td>62%</td><td>12%</td><td>9%</td><td>5%</td><td>12%</td><td>0%</td><td>0%</td><td>0%</td><td>1,056</td></tr><tr><th scope="row">CAR</th><td>67%</td><td>21%</td><td>2%</td><td>8%</td><td>1%</td><td>0%</td><td>0%</td><td>1%</td><td>987</td></tr><tr><th scope="row">CHI</th><td>53%</td><td>36%</td><td>0%</td><td>8%</td><td>0%</td><td>0%</td><td>0%</td><td>2%</td><td>1,086</td></tr><tr><th scope="row">CIN</th><td>66%</td><td>30%</td><td>2%</td><td>1%</td><td>0%</td><td>1%</td><td>0%</td><td>0%</td><td>1,041</td></tr><tr><th scope="row">CLE</th><td>46%</td><td>45%</td><td>2%</td><td>4%</td><td>2%</td><td>0%</td><td>0%</td><td>0%</td><td>1,013</td></tr><tr><th scope="row">DAL</th><td>68%</td><td>17%</td><td>8%</td><td>2%</td><td>3%</td><td>0%</td><td>0%</td><td>1%</td><td>1,100</td></tr><tr><th scope="row">DEN</th><td>65%</td><td>14%</td><td>8%</td><td>2%</td><td>8%</td><td>0%</td><td>1%</td><td>2%</td><td>1,072</td></tr><tr><th scope="row">DET</th><td>62%</td><td>25%</td><td>3%</td><td>5%</td><td>0%</td><td>2%</td><td>2%</td><td>0%</td><td>1,049</td></tr><tr><th scope="row">GB</th><td>61%</td><td>33%</td><td>3%</td><td>1%</td><td>0%</td><td>1%</td><td>0%</td><td>0%</td><td>990</td></tr><tr><th scope="row">HOU</th><td>72%</td><td>12%</td><td>7%</td><td>1%</td><td>1%</td><td>4%</td><td>3%</td><td>0%</td><td>1,072</td></tr><tr><th scope="row">IND</th><td>64%</td><td>26%</td><td>1%</td><td>9%</td><td>0%</td><td>0%</td><td>0%</td><td>0%</td><td>1,002</td></tr><tr><th scope="row">JAX</th><td>71%</td><td>22%</td><td>4%</td><td>1%</td><td>0%</td><td>1%</td><td>0%</td><td>0%</td><td>1,070</td></tr><tr><th scope="row">KC</th><td>58%</td><td>31%</td><td>4%</td><td>7%</td><td>0%</td><td>0%</td><td>0%</td><td>0%</td><td>1,042</td></tr><tr><th scope="row">LAC</th><td>58%</td><td>6%</td><td>15%</td><td>2%</td><td>7%</td><td>5%</td><td>7%</td><td>1%</td><td>1,075</td></tr><tr><th scope="row">LAR</th><td>60%</td><td>9%</td><td>0%</td><td>31%</td><td>0%</td><td>0%</td><td>0%</td><td>0%</td><td>1,056</td></tr><tr><th scope="row">LV</th><td>58%</td><td>35%</td><td>0%</td><td>6%</td><td>0%</td><td>0%</td><td>0%</td><td>0%</td><td>936</td></tr><tr><th scope="row">MIA</th><td>42%</td><td>12%</td><td>30%</td><td>1%</td><td>8%</td><td>1%</td><td>5%</td><td>0%</td><td>939</td></tr><tr><th scope="row">MIN</th><td>65%</td><td>20%</td><td>8%</td><td>3%</td><td>4%</td><td>0%</td><td>0%</td><td>0%</td><td>939</td></tr><tr><th scope="row">NE</th><td>52%</td><td>21%</td><td>19%</td><td>0%</td><td>6%</td><td>0%</td><td>1%</td><td>0%</td><td>1,013</td></tr><tr><th scope="row">NO</th><td>69%</td><td>19%</td><td>0%</td><td>7%</td><td>0%</td><td>0%</td><td>0%</td><td>0%</td><td>1,030</td></tr><tr><th scope="row">NYG</th><td>61%</td><td>33%</td><td>1%</td><td>5%</td><td>0%</td><td>0%</td><td>0%</td><td>0%</td><td>1,073</td></tr><tr><th scope="row">NYJ</th><td>68%</td><td>20%</td><td>9%</td><td>0%</td><td>2%</td><td>0%</td><td>0%</td><td>0%</td><td>997</td></tr><tr><th scope="row">PHI</th><td>63%</td><td>29%</td><td>1%</td><td>6%</td><td>0%</td><td>0%</td><td>0%</td><td>0%</td><td>988</td></tr><tr><th scope="row">PIT</th><td>49%</td><td>33%</td><td>2%</td><td>13%</td><td>1%</td><td>0%</td><td>0%</td><td>0%</td><td>971</td></tr><tr><th scope="row">SEA</th><td>42%</td><td>28%</td><td>14%</td><td>3%</td><td>9%</td><td>0%</td><td>0%</td><td>1%</td><td>994</td></tr><tr><th scope="row">SF</th><td>43%</td><td>11%</td><td>37%</td><td>0%</td><td>7%</td><td>0%</td><td>0%</td><td>0%</td><td>1,060</td></tr><tr><th scope="row">TB</th><td>70%</td><td>21%</td><td>5%</td><td>3%</td><td>0%</td><td>1%</td><td>0%</td><td>0%</td><td>1,056</td></tr><tr><th scope="row">TEN</th><td>73%</td><td>23%</td><td>3%</td><td>1%</td><td>0%</td><td>0%</td><td>0%</td><td>0%</td><td>982</td></tr><tr><th scope="row">WAS</th><td>59%</td><td>30%</td><td>2%</td><td>5%</td><td>1%</td><td>1%</td><td>0%</td><td>1%</td><td>969</td></tr></tbody></table>
+<!-- SFA:PRELOAD:END -->
+    </div>
+  </div>
+
+  <div class="pt-foot">
+    <span class="pt-leg"><b>Share of plays</b> <span>low</span>
+      <span class="pt-legbar"></span> <span>high</span></span>
+    <span id="pgf-stamp"></span>
+    <span class="pt-note">Groupings use the standard code: first digit is running backs,
+      second is tight ends, so <b>12</b> is 1 RB and 2 TE. Percentages are each grouping's
+      share of that offense's plays; the count in parentheses is snaps. Tap an offense for
+      its full breakdown. Kneels, spikes and plays with incomplete personnel data are
+      excluded.</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var ROOT = document.getElementById('pgf');
+  if (!ROOT || ROOT.dataset.init) return;
+  ROOT.dataset.init = '1';
+
+  var BASE = 'https://rmsummerlin.github.io/SFAStatsPages/data/';
+  var MAXCOLS = 12;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var el = function(tag, cls, html){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (html != null) n.innerHTML = html;
+    return n;
+  };
+  var fmt = function(n){ return n.toLocaleString('en-US'); };
+  var pct = function(part, whole){ return whole ? Math.round(1000*part/whole)/10 : 0; };
+
+  /* ---------- colour ---------- */
+  var RAMP = [[247,248,250],[246,224,221],[238,180,172],[224,122,112],[204,0,0],[122,0,0]];
+  function heat(t){
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    var x = t*(RAMP.length-1), i = Math.floor(x), f = x-i;
+    var a = RAMP[i], b = RAMP[Math.min(i+1, RAMP.length-1)];
+    return 'rgb('+Math.round(a[0]+(b[0]-a[0])*f)+','+Math.round(a[1]+(b[1]-a[1])*f)+','+
+           Math.round(a[2]+(b[2]-a[2])*f)+')';
+  }
+  var SLATE = ['#f4f5f7','#e3e8ee','#cdd5de','#b0bec5'];
+  function slate(t){
+    var x = (t<0?0:t>1?1:t)*(SLATE.length-1);
+    return SLATE[Math.round(x)];
+  }
+
+  /* ---------- state ---------- */
+  var S = {
+    seasons:new Set(), weeks:new Set(), qtrs:new Set(), downs:new Set(), zones:new Set(),
+    rbs:new Set(), tes:new Set(), wrs:new Set(), play:'all',
+    dist:[null,null], margin:[null,null], neutral:false,
+    sort:'team', dir:1, open:null
+  };
+  var DB = {};          /* season -> decoded columns */
+  var META = null;      /* index.json */
+  var LIMITS = { distMax:40, marginMin:-45, marginMax:45, weeks:[] };
+
+  /* ---------- load ---------- */
+  function decode(d){
+    var inv = new Int16Array(128).fill(-1), i;
+    for (i=0;i<d.alphabet.length;i++) inv[d.alphabet.charCodeAt(i)] = i;
+    function col(s){
+      var a = new Int16Array(s.length);
+      for (var j=0;j<s.length;j++) a[j] = inv[s.charCodeAt(j)];
+      return a;
+    }
+    var B = d.alphabet.length, n = d.plays;
+    var mh = col(d.cols.mh), ml = col(d.cols.ml);
+    var margin = new Int16Array(n);
+    for (i=0;i<n;i++) margin[i] = mh[i]*B + ml[i] - d.margin_offset;
+    var pi = col(d.cols.p);
+    var rb = new Int8Array(n), te = new Int8Array(n), wr = new Int8Array(n),
+        grp = new Int8Array(n);
+    for (i=0;i<n;i++){
+      var v = d.pers[pi[i]];
+      rb[i] = (v/100)|0; te[i] = ((v/10)|0)%10; wr[i] = v%10;
+      grp[i] = rb[i]*10 + te[i];
+    }
+    return {
+      season:d.season, n:n, stamp:d.generated_utc, teams:d.teams,
+      distMax:d.dist_max, mMin:d.margin_min, mMax:d.margin_max, weeks:d.weeks,
+      t:col(d.cols.t), w:col(d.cols.w), q:col(d.cols.q), d:col(d.cols.d),
+      dist:col(d.cols.n), z:col(d.cols.z), b:col(d.cols.b),
+      m:margin, rb:rb, te:te, wr:wr, grp:grp
+    };
+  }
+
+  function getJSON(url){
+    return fetch(url, {cache:'no-cache'}).then(function(r){
+      if (!r.ok) throw new Error(url+' → '+r.status);
+      return r.json();
+    });
+  }
+
+  function loadSeason(y){
+    if (DB[y]) return Promise.resolve(DB[y]);
+    return getJSON(BASE+'personnel_grouping_'+y+'.json').then(function(d){
+      DB[y] = decode(d);
+      return DB[y];
+    });
+  }
+
+  function boot(){
+    getJSON(BASE+'personnel_grouping_index.json').then(function(ix){
+      META = ix;
+      if (!ix.seasons || !ix.seasons.length) throw new Error('no seasons published');
+      var y = ix.default || Math.max.apply(null, ix.seasons);
+      S.seasons.add(y);
+      return loadSeason(y);
+    }).then(function(){
+      buildPanel();
+      render();
+    }).catch(function(err){
+      $('pgf-sub').textContent = 'Live data unavailable — showing season totals.';
+      var b = $('pgf-body');
+      var m = el('div','pt-msg','<b>Couldn\u2019t load the live data</b>'+
+        'The season table below is still accurate for all plays with no filters. '+
+        'Reload the page to try the interactive version again.');
+      b.insertBefore(m, b.firstChild);
+      if (window.console) console.error('[personnel-grouping]', err);
+    });
+  }
+
+  /* ---------- filter panel ---------- */
+  var FIELDS = [];
+
+  function chipGroup(field, label, values, texts, wide){
+    var fld = el('div','pt-fld');
+    fld.appendChild(el('div','pt-lab',label));
+    var box = el('div','pt-chips'+(wide?' wide':''));
+    values.forEach(function(v,i){
+      var b = el('button','pt-chip',texts[i]);
+      b.type = 'button';
+      b.setAttribute('aria-pressed','false');
+      b.addEventListener('click', function(){
+        var set = S[field];
+        if (set instanceof Set){
+          if (set.has(v)) set.delete(v); else set.add(v);
+        } else {
+          S[field] = (S[field] === v) ? 'all' : v;
+        }
+        if (field === 'qtrs') S.neutral = false;
+        syncChips(); render();
+      });
+      b.dataset.v = String(v);
+      box.appendChild(b);
+    });
+    fld.appendChild(box);
+    FIELDS.push({field:field, box:box, values:values});
+    return fld;
+  }
+
+  function rangeText(field, lo, hi, unit, full){
+    if (full) return 'Any';
+    return unit === 'pts'
+      ? (lo>0?'+':'')+lo+' to '+(hi>0?'+':'')+hi+' pts'
+      : lo+' to '+hi+(unit?' '+unit:'');
+  }
+
+  function rangeGroup(field, label, lo, hi, unit){
+    var fld = el('div','pt-fld');
+    fld.appendChild(el('div','pt-lab',label));
+    var wrap = el('div','pt-rng');
+    var val = el('div','pt-rval','Any');
+    var slot = el('div','pt-slot');
+    slot.appendChild(el('div','pt-track'));
+    var fill = el('div','pt-fill');
+    slot.appendChild(fill);
+    var a = document.createElement('input'), b = document.createElement('input');
+    [a,b].forEach(function(inp,i){
+      inp.type='range'; inp.min=lo; inp.max=hi; inp.step=1;
+      inp.value = i ? hi : lo;
+      inp.setAttribute('aria-label', label+(i?' maximum':' minimum'));
+      slot.appendChild(inp);
+    });
+    var f = {field:field, range:[a,b], val:val, fill:fill, lo:lo, hi:hi, unit:unit};
+    function onIn(){
+      var x = Math.min(+a.value, +b.value), y = Math.max(+a.value, +b.value);
+      S[field] = (x===lo && y===hi) ? [null,null] : [x,y];
+      if (field === 'margin' || field === 'qtrs') S.neutral = false;
+      syncChips(); render();
+    }
+    a.addEventListener('input', onIn);
+    b.addEventListener('input', onIn);
+    wrap.appendChild(val); wrap.appendChild(slot);
+    fld.appendChild(wrap);
+    FIELDS.push(f);
+    paintRange(f);
+    return fld;
+  }
+
+  function paintRange(f){
+    var r = S[f.field], full = (r[0] === null);
+    var x = full ? f.lo : r[0], y = full ? f.hi : r[1];
+    f.range[0].value = x;
+    f.range[1].value = y;
+    var span = f.hi - f.lo || 1;
+    f.fill.style.left = (100*(x-f.lo)/span)+'%';
+    f.fill.style.width = (100*(y-x)/span)+'%';
+    f.val.textContent = rangeText(f.field, x, y, f.unit, full);
+  }
+
+  function buildPanel(){
+    var p = $('pgf-panel');
+    p.innerHTML = '';
+    FIELDS = [];
+
+    var first = DB[Array.from(S.seasons)[0]];
+    LIMITS.weeks = (first.weeks && first.weeks.length) ? first.weeks.slice() : [];
+    LIMITS.distMax = Math.max(20, first.distMax || 40);
+    LIMITS.marginMin = Math.min(-14, first.mMin || -45);
+    LIMITS.marginMax = Math.max(14, first.mMax || 45);
+
+    var yrs = (META && META.seasons ? META.seasons.slice() : [first.season]).sort(function(x,y){return y-x;});
+    p.appendChild(chipGroup('seasons','Season', yrs, yrs.map(String)));
+    p.appendChild(chipGroup('qtrs','Quarter',[1,2,3,4,5],['1','2','3','4','OT']));
+    p.appendChild(chipGroup('downs','Down',[1,2,3,4],['1st','2nd','3rd','4th']));
+    p.appendChild(chipGroup('play','Play type',['drop','run'],['Dropback','Designed run'],true));
+    p.appendChild(chipGroup('zones','Field zone',[0,1,2],
+      ['Red zone','20 to 50','Own territory'],true));
+    p.appendChild(rangeGroup('dist','Yards to go',1,LIMITS.distMax,'yds'));
+    p.appendChild(rangeGroup('margin','Score margin',LIMITS.marginMin,LIMITS.marginMax,'pts'));
+    p.appendChild(chipGroup('rbs','Running backs',[0,1,2,3],['0','1','2','3+']));
+    p.appendChild(chipGroup('tes','Tight ends',[0,1,2,3],['0','1','2','3+']));
+    p.appendChild(chipGroup('wrs','Receivers',[0,1,2,3,4],['0','1','2','3','4+']));
+    p.appendChild(chipGroup('weeks','Week', LIMITS.weeks, LIMITS.weeks.map(String)));
+
+    $('pgf-tog').addEventListener('click', function(){
+      var open = p.classList.toggle('open');
+      this.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    $('pgf-clear').addEventListener('click', clearAll);
+    $('pgf-neu').addEventListener('change', function(){
+      S.neutral = this.checked;
+      if (S.neutral){
+        S.qtrs = new Set([1,2,3]);
+        S.margin = [-14,14];
+      } else {
+        S.qtrs = new Set();
+        S.margin = [null,null];
+      }
+      syncChips(); render();
+    });
+    syncChips();
+  }
+
+  function clearAll(){
+    ['weeks','qtrs','downs','zones','rbs','tes','wrs'].forEach(function(k){ S[k] = new Set(); });
+    S.play = 'all'; S.dist = [null,null]; S.margin = [null,null];
+    S.neutral = false; S.open = null;
+    var keep = Array.from(S.seasons);
+    S.seasons = new Set(keep.length ? [Math.max.apply(null, keep)] : []);
+    syncChips(); render();
+  }
+
+  function activeCount(){
+    var n = 0;
+    ['weeks','qtrs','downs','zones','rbs','tes','wrs'].forEach(function(k){ if (S[k].size) n++; });
+    if (S.play !== 'all') n++;
+    if (S.dist[0] !== null) n++;
+    if (S.margin[0] !== null) n++;
+    if (S.seasons.size > 1) n++;
+    return n;
+  }
+
+  function syncChips(){
+    FIELDS.forEach(function(f){
+      if (f.box){
+        Array.prototype.forEach.call(f.box.children, function(b, i){
+          var v = f.values[i], on;
+          if (S[f.field] instanceof Set) on = S[f.field].has(v);
+          else on = (S[f.field] === v);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      }
+      if (f.range) paintRange(f);
+    });
+    var c = $('pgf-cnt'), n = activeCount();
+    c.textContent = n; c.hidden = !n;
+    $('pgf-neu').checked = S.neutral;
+    $('pgf-neuwrap').classList.toggle('on', S.neutral);
+    var need = Array.from(S.seasons).filter(function(y){ return !DB[y]; });
+    if (need.length){
+      Promise.all(need.map(loadSeason)).then(render);
+    }
+  }
+
+  /* ---------- aggregate ---------- */
+  function keep(D, i){
+    if (S.weeks.size && !S.weeks.has(D.w[i])) return false;
+    if (S.qtrs.size && !S.qtrs.has(D.q[i])) return false;
+    if (S.downs.size && !S.downs.has(D.d[i])) return false;
+    if (S.zones.size && !S.zones.has(D.z[i])) return false;
+    if (S.play === 'drop' && D.b[i] !== 1) return false;
+    if (S.play === 'run'  && D.b[i] !== 0) return false;
+    if (S.dist[0] !== null && (D.dist[i] < S.dist[0] || D.dist[i] > S.dist[1])) return false;
+    if (S.margin[0] !== null && (D.m[i] < S.margin[0] || D.m[i] > S.margin[1])) return false;
+    if (S.rbs.size && !(S.rbs.has(D.rb[i]) || (S.rbs.has(3) && D.rb[i] >= 3))) return false;
+    if (S.tes.size && !(S.tes.has(D.te[i]) || (S.tes.has(3) && D.te[i] >= 3))) return false;
+    if (S.wrs.size && !(S.wrs.has(D.wr[i]) || (S.wrs.has(4) && D.wr[i] >= 4))) return false;
+    return true;
+  }
+
+  function aggregate(){
+    var teams = {}, league = {}, total = 0;
+    Array.from(S.seasons).forEach(function(y){
+      var D = DB[y];
+      if (!D) return;
+      for (var i=0;i<D.n;i++){
+        if (!keep(D, i)) continue;
+        var code = D.teams[D.t[i]];
+        var row = teams[code] || (teams[code] = {plays:0, g:{}, exact:{}, rb2:0, te2:0, wr3:0});
+        row.plays++; total++;
+        var g = D.grp[i];
+        row.g[g] = (row.g[g]||0)+1;
+        league[g] = (league[g]||0)+1;
+        var ex = D.rb[i]+'-'+D.te[i]+'-'+D.wr[i];
+        row.exact[ex] = (row.exact[ex]||0)+1;
+        if (D.rb[i] >= 2) row.rb2++;
+        if (D.te[i] >= 2) row.te2++;
+        if (D.wr[i] >= 3) row.wr3++;
+      }
+    });
+    return {teams:teams, league:league, total:total};
+  }
+
+  /* ---------- render ---------- */
+  function render(){
+    var A = aggregate();
+    var codes = Object.keys(A.league).map(Number)
+      .sort(function(a,b){ return A.league[b]-A.league[a] || a-b; });
+    var shown = codes.slice(0, MAXCOLS), rest = codes.slice(MAXCOLS);
+
+    var names = Object.keys(A.teams).sort();
+    var sub = $('pgf-sub');
+    var yrs = Array.from(S.seasons).sort();
+    var scope = yrs.length > 1 ? yrs[0]+'\u2013'+yrs[yrs.length-1] : String(yrs[0] || '');
+    sub.innerHTML = '<b>'+fmt(A.total)+'</b> plays \u00b7 '+names.length+' offenses \u00b7 '+scope+
+      (activeCount() ? ' \u00b7 filtered' : ' \u00b7 all plays');
+
+    var body = $('pgf-body');
+    if (!A.total){
+      body.innerHTML = '';
+      body.appendChild(el('div','pt-msg','<b>No plays match those filters</b>'+
+        'Widen the score margin or clear a filter to bring rows back.'));
+      return;
+    }
+
+    var maxPct = 0, maxTot = 0, minTot = Infinity;
+    names.forEach(function(t){
+      var r = A.teams[t];
+      shown.forEach(function(c){ maxPct = Math.max(maxPct, (r.g[c]||0)/r.plays); });
+      maxTot = Math.max(maxTot, r.plays); minTot = Math.min(minTot, r.plays);
+    });
+
+    var ranks = names.slice().sort(function(a,b){ return A.teams[b].plays - A.teams[a].plays; });
+    var rank = {};
+    ranks.forEach(function(t,i){ rank[t] = i+1; });
+
+    if (S.sort === 'team') names.sort(function(a,b){ return S.dir*a.localeCompare(b); });
+    else if (S.sort === 'plays') names.sort(function(a,b){ return S.dir*(A.teams[b].plays-A.teams[a].plays); });
+    else {
+      var c = +S.sort;
+      names.sort(function(a,b){
+        return S.dir*(((A.teams[b].g[c]||0)/A.teams[b].plays) - ((A.teams[a].g[c]||0)/A.teams[a].plays));
+      });
+    }
+
+    var tbl = el('table','pt-grid');
+    tbl.appendChild(el('caption', null,
+      'Personnel grouping frequency by offense. Each cell is that grouping\u2019s share of '+
+      'the offense\u2019s filtered plays, with snap count beneath.'));
+
+    function sortBtn(key, inner){
+      var th = el('th');
+      th.scope = 'col';
+      var b = el('button', null, inner);
+      b.type = 'button';
+      /* dir 1 is the natural first click: A-Z for the offense column, highest first
+         for anything numeric. */
+      if (String(S.sort) === String(key)){
+        var asc = (key === 'team') ? S.dir > 0 : S.dir < 0;
+        th.setAttribute('aria-sort', asc ? 'ascending' : 'descending');
+      }
+      b.addEventListener('click', function(){
+        if (String(S.sort) === String(key)) S.dir = -S.dir;
+        else { S.sort = key; S.dir = 1; }
+        render();
+      });
+      th.appendChild(b);
+      return th;
+    }
+
+    var thead = el('thead'), hr = el('tr');
+    var th0 = sortBtn('team','<span class="pt-code">Offense</span>');
+    th0.className = 'pt-team';
+    hr.appendChild(th0);
+    shown.forEach(function(c){
+      var rb = (c/10)|0, te = c%10;
+      hr.appendChild(sortBtn(c,'<span class="pt-code">'+(rb+''+te)+'</span>'+
+        '<span class="pt-mini">'+rb+' RB \u00b7 '+te+' TE</span>'));
+    });
+    if (rest.length) hr.appendChild(el('th','pt-cell','<span class="pt-code">Other</span>'+
+      '<span class="pt-mini">'+rest.length+' groupings</span>'));
+    var thT = sortBtn('plays','<span class="pt-code">Plays</span><span class="pt-mini">rank</span>');
+    thT.className = 'pt-tot';
+    hr.appendChild(thT);
+    thead.appendChild(hr);
+    tbl.appendChild(thead);
+
+    var tb = el('tbody');
+    names.forEach(function(t){
+      var r = A.teams[t], tr = el('tr','pt-row');
+      if (S.open === t) tr.classList.add('open');
+      var th = el('th','pt-team');
+      th.scope = 'row';
+      var btn = el('button', null, t);
+      btn.type = 'button';
+      btn.setAttribute('aria-expanded', S.open === t ? 'true' : 'false');
+      btn.addEventListener('click', function(){ S.open = (S.open === t) ? null : t; render(); });
+      th.appendChild(btn);
+      tr.appendChild(th);
+
+      shown.forEach(function(c){
+        var n = r.g[c]||0, p = pct(n, r.plays);
+        var td = el('td','pt-cell'+(n?'':' pt-nil'));
+        if (n){
+          var frac = (n/r.plays)/(maxPct||1);
+          td.style.background = heat(frac);
+          if (frac > 0.6) td.style.color = '#fff';
+          td.innerHTML = '<span class="pt-pc">'+(p<10?p.toFixed(1):Math.round(p))+'%</span>'+
+                         '<span class="pt-ct">'+fmt(n)+'</span>';
+        }
+        tr.appendChild(td);
+      });
+      if (rest.length){
+        var on = 0;
+        rest.forEach(function(c){ on += r.g[c]||0; });
+        var otd = el('td','pt-cell'+(on?'':' pt-nil'));
+        if (on) otd.innerHTML = '<span class="pt-pc">'+Math.round(pct(on,r.plays))+'%</span>'+
+          '<span class="pt-ct">'+fmt(on)+'</span>';
+        tr.appendChild(otd);
+      }
+      var tot = el('td','pt-cell pt-tot');
+      tot.style.background = slate(maxTot===minTot?0:(r.plays-minTot)/(maxTot-minTot));
+      tot.innerHTML = '<span class="pt-pc">'+fmt(r.plays)+'</span>'+
+                      '<span class="pt-rk">#'+rank[t]+'</span>';
+      tr.appendChild(tot);
+      tb.appendChild(tr);
+
+      if (S.open === t) tb.appendChild(detailRow(t, r, shown.length + (rest.length?1:0) + 2));
+    });
+    tbl.appendChild(tb);
+
+    var tf = el('tfoot'), fr = el('tr');
+    var fth = el('th','pt-team','League');
+    fth.scope = 'row';
+    fr.appendChild(fth);
+    shown.forEach(function(c){
+      var n = A.league[c]||0;
+      fr.appendChild(el('td','pt-cell','<span class="pt-pc">'+
+        Math.round(pct(n,A.total))+'%</span><span class="pt-ct">'+fmt(n)+'</span>'));
+    });
+    if (rest.length){
+      var rn = 0;
+      rest.forEach(function(c){ rn += A.league[c]||0; });
+      fr.appendChild(el('td','pt-cell','<span class="pt-pc">'+Math.round(pct(rn,A.total))+
+        '%</span><span class="pt-ct">'+fmt(rn)+'</span>'));
+    }
+    fr.appendChild(el('td','pt-cell pt-tot','<span class="pt-pc">'+fmt(A.total)+'</span>'));
+    tf.appendChild(fr);
+    tbl.appendChild(tf);
+
+    body.innerHTML = '';
+    body.appendChild(tbl);
+
+    var st = $('pgf-stamp');
+    var D = DB[Math.max.apply(null, Array.from(S.seasons))];
+    if (D && D.stamp) st.textContent = 'Data updated ' + D.stamp.replace('T',' ').replace('Z',' UTC');
+  }
+
+  function detailRow(team, r, span){
+    var tr = el('tr','pt-det'), td = el('td');
+    td.colSpan = span;
+    td.appendChild(el('h4', null, team + ' \u2014 exact personnel, ' + fmt(r.plays) + ' plays'));
+    var keys = Object.keys(r.exact).sort(function(a,b){ return r.exact[b]-r.exact[a]; });
+    var top = Math.max.apply(null, keys.map(function(k){ return r.exact[k]; }));
+    var box = el('div','pt-brs');
+    keys.slice(0,10).forEach(function(k){
+      var p = k.split('-'), n = r.exact[k];
+      var six = (+p[0] + +p[1] + +p[2]) === 4 ? ' <span class="pt-mini" style="display:inline">6 OL</span>' : '';
+      var row = el('div','pt-br');
+      row.innerHTML = '<i>'+p[0]+p[1]+' \u00b7 '+p[2]+'WR'+'</i>'+
+        '<span class="pt-brt"><span style="width:'+(100*n/top)+'%"></span></span>'+
+        '<span class="pt-brv">'+Math.round(pct(n,r.plays))+'% ('+fmt(n)+')'+six+'</span>';
+      box.appendChild(row);
+    });
+    td.appendChild(box);
+    var sum = el('div','pt-br');
+    sum.style.marginTop = '10px';
+    sum.style.gridTemplateColumns = '1fr';
+    sum.innerHTML = '<span><i>'+Math.round(pct(r.rb2,r.plays))+'%</i> of plays with 2+ RB \u00b7 '+
+      '<i>'+Math.round(pct(r.te2,r.plays))+'%</i> with 2+ TE \u00b7 '+
+      '<i>'+Math.round(pct(r.wr3,r.plays))+'%</i> with 3+ WR</span>';
+    td.appendChild(sum);
+    tr.appendChild(td);
+    return tr;
+  }
+
+  boot();
+})();
+</script>

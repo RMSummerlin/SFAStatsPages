@@ -4,48 +4,73 @@ Steps to follow whenever a new tool is added to this repo.
 
 ## 1. Data pipeline (if the tool needs new/different data)
 
-All tools pull from the same **current-season** public Google Sheet, but each may need different columns, tabs, or transformations. The workflow auto-discovers and runs any script matching `scripts/pull_*.py` — no changes to `.github/workflows/update-data.yml` are needed for a normal new tool.
+All tools pull from the **season Google Sheets** listed in `scripts/config.py`, but each
+may need different columns, tabs, or transformations. The workflow auto-discovers and runs
+any script matching `scripts/pull_*.py` — no changes to `.github/workflows/update-data.yml`
+are needed for a normal new tool.
 
 - [ ] Name the new pull script `scripts/pull_<tool-or-data-name>.py` (must match the `pull_*.py` pattern to be picked up automatically)
-- [ ] Script imports `SHEET_ID` from `scripts/config.py` rather than hardcoding the sheet URL — see `scripts/config.py` for the pattern
-- [ ] Script reads from the shared Google Sheet (CSV export URL) and writes its own output to `data/<tool-or-data-name>.json`
-- [ ] If the script needs a **new Python package**, add it to `scripts/requirements.txt`
-- [ ] Test the script locally before committing — confirm it produces valid JSON in `data/`
+- [ ] Script imports from `scripts/config.py` rather than hardcoding a sheet URL — use `config.csv_url(season)` and `config.CURRENT_SEASON`
+- [ ] Read columns **by header name**, never by position — new columns get appended to the right of these sheets over time
+- [ ] Fail loudly if a required column is missing, rather than silently producing empty output
+- [ ] Script writes its own output to `data/<tool-or-data-name>.json` (one file per season if the tool is season-aware)
+- [ ] Compare against the existing file before writing so a 30-minute run with no new games produces no commit
+- [ ] If the script needs a **new Python package**, add it to `scripts/requirements.txt`. Prefer the standard library — it keeps CI fast
+- [ ] Test locally before committing. Pull scripts should take a `--csv` flag so they can run against a downloaded export without hitting the sheet
 - [ ] **Only touch `update-data.yml` directly if:** the schedule itself needs to change, the script needs to write outside `data/`, or something needs to run in a fundamentally different way than "pull → write JSON → commit if changed"
+
+Helper scripts that should *not* run on the schedule must not be named `pull_*` — that is
+why the linter is `lint_embed.py` and the preload refresher is `refresh_preload.py`.
 
 ## 2. Tool build (HTML/CSS/JS fragment)
 
 - [ ] New folder under `tools/<tool-name>/`
 - [ ] `tool.html` — the finished fragment, following every rule in `docs/avada-embed-rules.md`
 - [ ] `tools/<tool-name>/README.md` — what it does, which `data/*.json` file(s) it fetches, and any embed-specific notes
-- [ ] Fetches data via the GitHub Pages URL, e.g. `fetch('https://<username>.github.io/SFAStatsPages/data/<tool-or-data-name>.json')`
+- [ ] Fetches data via the GitHub Pages URL, e.g. `fetch('https://rmsummerlin.github.io/SFAStatsPages/data/<tool-or-data-name>.json')`
+- [ ] Root element carries a tool-specific class alongside `.pt-root` (e.g. `.pt-root.pt-pgf`) and **every** CSS selector is scoped to it, so two tools can be previewed on one page without clashing
+- [ ] Ships a static HTML table between `<!-- SFA:PRELOAD:START -->` / `<!-- SFA:PRELOAD:END -->` markers so the page is crawlable with JavaScript off
 
-## 3. Avada embed rules — quick check
-(Full detail in `docs/avada-embed-rules.md`)
+## 3. Avada embed rules — automated check
 
-- [ ] Fragment only — no doc-level tags (`<!DOCTYPE>`, `<html>`, `<head>`, `<body>`, `<meta>`, `<title>`)
-- [ ] All CSS scoped under `.pt-root` — no bare `*`, `body`, `input`, etc.
-- [ ] No semantic landmark elements (`<header>`, `<footer>`, `<nav>`, `<main>`, `<section>`) — use `.pt-` prefixed divs
-- [ ] No `position: fixed` outside of an intentional full-screen modal
-- [ ] Long/scrollable lists use the bounded flex-column + internal scroll pattern, not page-level scroll
-- [ ] Brand font (Interstate Condensed) and brand colors applied
+Run the linter instead of eyeballing it:
+
+```
+python scripts/lint_embed.py tools/<tool-name>/tool.html
+```
+
+It fails on document-level tags, semantic landmark elements, unscoped CSS selectors,
+missing `font-family: inherit`, a missing brand font, browser storage APIs and anything
+that looks like a credential. It warns on `position: fixed`, missing 44px tap targets, an
+unbounded root panel, no `min-width: 641px` enhancement, off-brand colors and a missing
+preload block. Full detail in `docs/avada-embed-rules.md`.
+
+- [ ] `lint_embed.py` passes with no failures, and every warning is understood
 - [ ] Mobile layout designed and verified first, before desktop enhancement at `min-width: 641px`
-- [ ] Tap targets ≥44x44px
 
 ## 4. Start of season (annual, not per-tool)
 
-Play-by-play data lives in a **new Google Sheet each season** (not a new tab in an ongoing sheet) to avoid Google Sheets' 10-million-cell-per-file limit and to keep each season as a clean, frozen archive once it ends.
+Play-by-play data lives in a **new Google Sheet each season** (not a new tab in an ongoing
+sheet) to avoid Google Sheets' 10-million-cell-per-file limit and to keep each season as a
+clean, frozen archive once it ends.
 
 - [ ] Create a new Google Sheet for the upcoming season (e.g. "NFL PBP 2026")
 - [ ] Confirm it's public / viewable the same way the prior season's sheet was
-- [ ] Update `SHEET_ID` in `scripts/config.py` to point at the new season's sheet
-- [ ] Leave the prior season's sheet untouched — it's now a frozen archive, not a live pull source
-- [ ] Confirm all `pull_*.py` scripts still reference the shared `SHEET_ID` from `config.py` (not a hardcoded old ID) so this one edit updates every script at once
+- [ ] **Add** the new season to `SEASON_SHEETS` in `scripts/config.py` — add, don't replace. `CURRENT_SEASON` is `max(SEASON_SHEETS)`, so the newest season becomes the default everywhere at once
+- [ ] Leave the prior season's entry and its `data/*.json` in place — it's now a frozen archive. Scheduled runs only re-pull the current season
+- [ ] Confirm all `pull_*.py` scripts still go through `config.csv_url(season)` (no hardcoded old ID) so this one edit updates every script
 - [ ] Run a manual `workflow_dispatch` trigger after the change to confirm the pipeline pulls from the new sheet correctly before the season's first real game
+- [ ] Before Week 1 the new sheet is empty — confirm each tool shows a sensible empty state rather than an error, and that the season picker still offers last season
+
+Backfilling an old season works the same way: add it to `SEASON_SHEETS`, run
+`python scripts/pull_personnel_grouping.py --all` once, commit the new JSON.
 
 ## 5. Before calling it done
 
 - [ ] Pull script runs cleanly and produces the expected JSON
+- [ ] Numbers spot-checked against the raw sheet, not just against the tool's own output
 - [ ] Tool fetches and renders that JSON correctly
+- [ ] Static preload table refreshed (`python scripts/refresh_preload.py`) and present with JavaScript disabled
 - [ ] Tested inside an actual Avada custom code block on a staging page, not just standalone
+- [ ] Tested at phone width first, then desktop
 - [ ] Confirmed whether `update-data.yml` needed any changes (usually: no)

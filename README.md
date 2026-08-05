@@ -5,7 +5,7 @@ Embeddable HTML/CSS/JS stat tools for Sharp Football Analysis, built for the Ava
 ## Pipeline overview
 
 ```
-Google Sheet (public, CSV export)
+Google Sheet (public, CSV export)   — one sheet per season
         ↓
 Python scripts (scripts/)  — run on a schedule via GitHub Actions
         ↓
@@ -24,22 +24,31 @@ Update cadence: checked every 30 minutes, all week (actual source data changes ~
 SFAStatsPages/
 ├── README.md
 ├── docs/
-│   └── avada-embed-rules.md   ← constraints for building embeds (see below)
-├── data/                       ← generated JSON, served via GitHub Pages
-├── scripts/                    ← Python scripts that pull/transform sheet data
+│   ├── avada-embed-rules.md        ← constraints for building embeds (see below)
+│   ├── tool-checklist.md           ← end-to-end steps for adding a tool
+│   └── personnel-grouping-data.md  ← data decisions behind the personnel tools
+├── data/                           ← generated JSON, served via GitHub Pages
+├── scripts/
+│   ├── config.py                   ← season → Google Sheet ID map
+│   ├── requirements.txt
+│   ├── pull_personnel_grouping.py  ← pull + transform (auto-run by the workflow)
+│   ├── lint_embed.py               ← checks a fragment against the embed rules
+│   └── refresh_preload.py          ← injects the crawlable static table into tools
 ├── tools/
-│   └── example-tool-name/
-│       ├── tool.html           ← full fragment pasted into Avada's custom code block
-│       └── README.md           ← what it does, data source, embed instructions
+│   ├── personnel-grouping-full/    ← option A: full grid, closest to the old dashboard
+│   └── personnel-grouping-compact/ ← option B: three columns + per-team slide-out
 └── .github/
     └── workflows/
-        └── update-data.yml     ← scheduled Action that runs the Python pipeline
+        └── update-data.yml         ← scheduled Action that runs the Python pipeline
 ```
+
+Anything named `pull_*.py` is picked up and run automatically by the workflow. Helper
+scripts are deliberately named otherwise so they stay manual.
 
 ## Embedding rules (summary — full detail in docs/avada-embed-rules.md)
 
 - Deliver a fragment only: one `<style>` block, one root `<div class="pt-root">`, one `<script>`. No `<!DOCTYPE>`, `<html>`, `<head>`, `<body>`, `<meta>`, `<title>`.
-- Scope every CSS selector under `.pt-root` — never bare `*`, `body`, `header`, `input`, etc.
+- Scope every CSS selector under `.pt-root` — never bare `*`, `body`, `header`, `input`, etc. Give each tool its own root class too (e.g. `.pt-root.pt-pgf`) so two tools can share a page.
 - No semantic landmark elements (`<header>`, `<footer>`, `<nav>`, `<main>`, `<section>`) — use prefixed divs like `.pt-header`.
 - No `position: fixed` for in-flow UI (only for intentional full-screen modals).
 - Long scrollable lists get their own bounded scroll panel, not page-level scroll.
@@ -47,6 +56,33 @@ SFAStatsPages/
 - Brand colors: black `#000`, Sharp red `#cc0000`, backgrounds `#f4f5f7` / `#fff` / `#f9fafb`, text `#111`, grays `#7f8c9a` / `#b0bec5`, borders `#cdd5de` / `#dde2e8`.
 - Audience is ~75% mobile — design mobile-first, enhance at `min-width: 641px`.
 
+Run `python scripts/lint_embed.py` to check every tool against these mechanically.
+
+## Local development
+
+```
+# rebuild data from the live sheet
+python scripts/pull_personnel_grouping.py
+
+# or from a downloaded CSV export, without touching the sheet
+python scripts/pull_personnel_grouping.py --csv ~/Downloads/export.csv --season 2025
+
+# refresh the crawlable static tables inside the tool fragments
+python scripts/refresh_preload.py
+
+# check the fragments against the embed rules
+python scripts/lint_embed.py
+```
+
 ## Status
 
-Repo setup in progress. No tools built yet.
+First tool built, in two competing layouts for review:
+
+| Tool | Data | Notes |
+|------|------|-------|
+| `personnel-grouping-full` | `data/personnel_grouping_<season>.json` | Offense × grouping grid, heat-shaded |
+| `personnel-grouping-compact` | same | 2+ RB / 2+ TE / 3+ WR, expandable per team |
+
+Both read the same JSON, so whichever wins, the pipeline is unchanged. 2025 is the only
+season loaded so far; add earlier seasons to `SEASON_SHEETS` in `scripts/config.py` when
+their sheets exist.
