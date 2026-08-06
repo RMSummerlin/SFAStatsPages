@@ -7,9 +7,6 @@ and adds efficiency.
 - **Data:** `data/personnel_grouping_<season>.json`, listed by `data/personnel_grouping_index.json`.
 - **Root class:** `.pt-root.pt-pg`. All CSS is scoped to it.
 
-Supersedes `personnel-grouping-full/` and `personnel-grouping-compact/`, which are kept
-only so this can be diffed against them. Delete both once you're happy.
-
 ## Table
 
 `# · Offense · 11 · 12 · 13 · 21 · 22 ‖ 2+ TE · 2+ RB · 3+ WR · Plays`
@@ -39,8 +36,10 @@ personnel you stay sorted by 12, just by a different metric.
 
 ## Grouping descriptions
 
-Hovering a column header explains that grouping. Hover is mouse-only, so **What do the
-groupings mean?** in the footer expands the same descriptions inline for touch users.
+Hovering a column header gives the personnel for that grouping — `12` is "1 RB, 2 TE,
+2 WR", nothing more. Hover is mouse-only, so **What do the groupings mean?** in the footer
+expands the same list inline for touch users, with a single footnote there (rather than in
+every tooltip) noting that six-lineman looks are folded in and run one receiver lighter.
 
 ## Hover / tap
 
@@ -78,15 +77,16 @@ Tap an offense for personnel mix (donut), week by week (three lines, applying ev
 except week), and grouping breakdown against league average — three cards on one row at
 `min-width: 641px`, stacking below that.
 
-All three charts share a single 300×180 viewBox and are capped at 340px wide, so they
-render at identical size beside each other and can't balloon on a large screen. They still
-scale down together on narrow screens; pinning them to fixed pixels would force horizontal
-scrolling on a phone, which is the worse trade for a mostly-mobile audience.
+All three charts share a single 300×180 viewBox, and each one's SVG, legend and caption sit
+inside a `.pt-chart` block capped at 460px and centred as a unit. Capping the SVG alone
+was a bug: the chart centred itself while the legend stayed full-width, so the two only
+lined up when the column happened to match the cap. Charts fill the column on ordinary
+screens and stop growing on an ultrawide.
 
-The league comparison plots share of plays along the X axis with groupings down the Y, the
-gap to league above each bar, and a dashed connector out to the league tick when an offense
-is a long way off average. Groupings with fewer than five snaps are dropped rather than
-given a row reading 0%.
+The league comparison is a vertical bar chart — groupings across the X axis, share of plays
+up the Y, the gap to league on top of each bar, and a dashed connector to the league tick
+when an offense is well clear of average. Groupings with fewer than five snaps are dropped
+rather than given a bar reading 0%. Codes are zero-padded, so 0 RB / 2 TE reads `02`.
 
 ## Height
 

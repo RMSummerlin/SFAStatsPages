@@ -142,8 +142,8 @@
 .pt-root.pt-pg .pt-card{min-width:0}
 .pt-root.pt-pg .pt-ctitle{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
   color:var(--g1);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--b1)}
-.pt-root.pt-pg .pt-svg{display:block;width:100%;max-width:340px;height:auto;margin:0 auto;
-  overflow:visible}
+.pt-root.pt-pg .pt-chart{max-width:460px;margin:0 auto}
+.pt-root.pt-pg .pt-svg{display:block;width:100%;height:auto;overflow:visible}
 .pt-root.pt-pg .pt-key{display:flex;flex-wrap:wrap;gap:3px 12px;margin-top:8px;font-size:11.5px}
 .pt-root.pt-pg .pt-key span{display:inline-flex;align-items:center;gap:5px}
 .pt-root.pt-pg .pt-key i{width:10px;height:10px;display:inline-block;flex:0 0 auto}
@@ -238,23 +238,19 @@
     {k:'wr3', l:'3+ WR'}
   ];
   var MIN_EPA_PLAYS = 20;
-  var SIX_OL = 'Six-lineman versions are counted here too, so the receiver count is '
-             + 'sometimes one lower.';
   var INFO = {
-    g11: '1 RB, 1 TE, 3 WR. The standard modern look and the most common grouping in the '
-       + 'league by a wide margin. ' + SIX_OL,
-    g12: '1 RB, 2 TE, 2 WR. Balanced — run-capable without announcing it, which is why it '
-       + 'is the usual second choice. ' + SIX_OL,
-    g13: '1 RB, 3 TE, 1 WR. Heavy. Mostly short yardage, goal line and clock-killing. '
-       + SIX_OL,
-    g21: '2 RB, 1 TE, 2 WR. Two backs, often a fullback or a back split out wide. ' + SIX_OL,
-    g22: '2 RB, 2 TE, 1 WR. The heaviest grouping any offense runs with real frequency. '
-       + SIX_OL,
-    te2: 'Every snap with two or more tight ends, whatever the backfield looks like. '
-       + 'Overlaps with 2+ RB.',
-    rb2: 'Every snap with two or more running backs. Overlaps with 2+ TE.',
-    wr3: 'Every snap with three or more receivers.'
+    g11: '1 RB, 1 TE, 3 WR',
+    g12: '1 RB, 2 TE, 2 WR',
+    g13: '1 RB, 3 TE, 1 WR',
+    g21: '2 RB, 1 TE, 2 WR',
+    g22: '2 RB, 2 TE, 1 WR',
+    te2: 'Two or more tight ends',
+    rb2: 'Two or more running backs',
+    wr3: 'Three or more receivers'
   };
+  /* One footnote under the expanded legend rather than repeated in every tooltip. */
+  var SIX_OL = 'Six-lineman looks are folded into their grouping, so the receiver count '
+             + 'is one lower on those snaps.';
   var C_RED = '#cc0000', C_INK = '#111', C_G1 = '#7f8c9a', C_G2 = '#b0bec5', C_B2 = '#dde2e8';
 
   var $ = function(id){ return document.getElementById(id); };
@@ -285,6 +281,9 @@
 
   /* ---------- colour ---------- */
   var RAMP = [[247,248,250],[246,224,221],[238,180,172],[224,122,112],[204,0,0],[122,0,0]];
+  /* 0 RB / 2 TE is code 2, which must read as "02" not "2". */
+  function code2(c){ return (c < 10 ? '0' : '') + c; }
+
   function mix(stops, t){
     t = t < 0 ? 0 : t > 1 ? 1 : t;
     var x = t*(stops.length-1), i = Math.floor(x), f = x-i;
@@ -624,7 +623,7 @@
       .concat(SUMS.map(function(sm){ return [sm.k, sm.l]; }));
     box.innerHTML = rows.map(function(r){
       return '<div class="pt-legrow"><b>'+r[1]+'</b><span>'+INFO[r[0]]+'</span></div>';
-    }).join('');
+    }).join('') + '<div class="pt-legrow"><b></b><span>'+SIX_OL+'</span></div>';
     tog.addEventListener('click', function(){
       var open = box.hasAttribute('hidden');
       if (open) box.removeAttribute('hidden'); else box.setAttribute('hidden','');
@@ -859,15 +858,16 @@
         '<text x="175" y="'+(y+16)+'" font-size="15" font-weight="700" fill="'+C_INK+'">'+
         r0(pct(sl.n,row.plays))+'%</text>';
     });
-    return svg(CW, CH, g) +
+    return '<div class="pt-chart">' + svg(CW, CH, g) +
       '<div class="pt-thin">Three mutually exclusive buckets, so these total 100% \u2014 '+
-      'unlike the table columns, which overlap.</div>';
+      'unlike the table columns, which overlap.</div></div>';
   }
 
   function trend(pts, team){
     var live = pts.filter(function(p){ return p.row && p.row.plays >= 5; });
     if (live.length < 2){
-      return '<div class="pt-thin">Not enough weeks match these filters to draw a trend.</div>';
+      return '<div class="pt-chart"><div class="pt-thin">Not enough weeks match these '+
+        'filters to draw a trend.</div></div>';
     }
     var L = 26, R = 8, T = 10, B = 26, iw = CW-L-R, ih = CH-T-B;
     var x = function(i){ return pts.length < 2 ? L : L + iw*i/(pts.length-1); };
@@ -911,66 +911,74 @@
     var key = series.map(function(sr){
       return '<span><i style="background:'+sr.c+'"></i>'+sr.l+'</span>';
     }).join('');
-    return svg(CW, CH, g) + '<div class="pt-key">'+key+'</div>' +
-      '<div class="pt-thin">Every filter except week. Weeks under 5 plays are skipped.</div>';
+    return '<div class="pt-chart">' + svg(CW, CH, g) + '<div class="pt-key">'+key+'</div>' +
+      '<div class="pt-thin">Every filter except week. Weeks under 5 plays are skipped.'+
+      '</div></div>';
   }
 
   /* Horizontal bars: groupings down the Y axis, share of plays along X, and the
+     gap to league average called out above each bar. */
+  /* Vertical bars: groupings across the X axis, share of plays up the Y, with the
      gap to league average called out above each bar. */
   function groupBars(row, league){
     var ranked = Object.keys(row.g).map(Number)
       .sort(function(a,b){ return row.g[b]-row.g[a]; });
     /* A grouping with three snaps is a rounding error, not a tendency — it would
-       occupy a row reading "0%". Keep it out unless there is nothing else. */
+       occupy a slot reading "0%". Keep it out unless there is nothing else. */
     var codes = ranked.filter(function(c){ return row.g[c] >= 5; }).slice(0, 6);
     if (codes.length < 3) codes = ranked.slice(0, 3);
     if (!codes.length) return '<div class="pt-thin">No plays match these filters.</div>';
 
-    var L = 30, R = 36, T = 8, B = 24;
-    var plotW = CW - L - R, rowH = (CH - T - B) / codes.length;
+    var L = 28, R = 8, T = 26, B = 26;
+    var plotW = CW - L - R, plotH = CH - T - B;
     var top = Math.max.apply(null, codes.map(function(c){
       return Math.max(pct(row.g[c], row.plays), pct(league.g[c]||0, league.plays));
     }));
     var step = niceStep(top), axisMax = Math.max(step, Math.ceil(top/step)*step);
-    var x = function(v){ return L + plotW * v / axisMax; };
+    var y = function(v){ return T + plotH * (1 - v/axisMax); };
+    var slot = plotW / codes.length, barW = Math.min(38, slot * 0.56);
     var g = '';
 
     for (var v = 0; v <= axisMax + 0.001; v += step){
-      g += '<line x1="'+x(v).toFixed(1)+'" y1="'+T+'" x2="'+x(v).toFixed(1)+'" y2="'+(CH-B)+
+      g += '<line x1="'+L+'" y1="'+y(v).toFixed(1)+'" x2="'+(CW-R)+'" y2="'+y(v).toFixed(1)+
         '" stroke="'+(v?C_B2:C_G2)+'" stroke-width="1"/>'+
-        '<text x="'+x(v).toFixed(1)+'" y="'+(CH-B+13)+'" text-anchor="middle" font-size="8.5" '+
+        '<text x="'+(L-5)+'" y="'+(y(v)+3).toFixed(1)+'" text-anchor="end" font-size="8.5" '+
         'fill="'+C_G1+'">'+v+'</text>';
     }
 
     codes.forEach(function(c, i){
       var p = pct(row.g[c], row.plays), lp = pct(league.g[c]||0, league.plays);
-      var diff = p - lp, y0 = T + i*rowH;
-      var barY = y0 + rowH/2 - 4, barH = 11;
-      g += '<text x="'+(L-5)+'" y="'+(barY+9)+'" text-anchor="end" font-size="11" '+
-        'font-weight="700" fill="'+C_INK+'">'+c+'</text>';
-      g += '<rect x="'+L+'" y="'+barY.toFixed(1)+'" width="'+(x(p)-L).toFixed(1)+
-        '" height="'+barH+'" fill="'+C_RED+'"/>';
-      /* When the offense is a long way off league average the tick floats clear of
-         the bar, so join the two — that span is the gap the label is naming. */
-      var cFrom = x(Math.min(p, lp)), cTo = x(Math.max(p, lp));
-      /* when league sits to the right of the bar, start past the value label */
-      if (lp > p) cFrom = x(p) + 30;
-      if (cTo - cFrom > 6){
-        g += '<line x1="'+cFrom.toFixed(1)+'" y1="'+(barY+barH/2).toFixed(1)+
-          '" x2="'+cTo.toFixed(1)+'" y2="'+(barY+barH/2).toFixed(1)+
+      var diff = p - lp;
+      var cx = L + slot*(i + 0.5), x0 = cx - barW/2;
+      var barTop = y(p), base = y(0);
+
+      g += '<rect x="'+x0.toFixed(1)+'" y="'+barTop.toFixed(1)+'" width="'+barW.toFixed(1)+
+        '" height="'+Math.max(1, base-barTop).toFixed(1)+'" fill="'+C_RED+'"/>';
+
+      /* dashed link when the league mark sits clear of the bar top */
+      if (Math.abs(y(lp) - barTop) > 8){
+        g += '<line x1="'+cx.toFixed(1)+'" y1="'+Math.min(y(lp), barTop).toFixed(1)+
+          '" x2="'+cx.toFixed(1)+'" y2="'+Math.max(y(lp), barTop).toFixed(1)+
           '" stroke="'+C_G2+'" stroke-width="1" stroke-dasharray="2 2"/>';
       }
-      g += '<line x1="'+x(lp).toFixed(1)+'" y1="'+(barY-2.5).toFixed(1)+'" x2="'+x(lp).toFixed(1)+
-        '" y2="'+(barY+barH+2.5).toFixed(1)+'" stroke="'+C_INK+'" stroke-width="2"/>';
-      g += '<text x="'+(x(p)+4).toFixed(1)+'" y="'+(barY+9)+'" font-size="10" '+
-        'font-weight="700" fill="'+C_INK+'">'+r0(p)+'%</text>';
-      g += '<text x="'+L+'" y="'+(barY-4).toFixed(1)+'" font-size="8.5" font-weight="700" '+
-        'fill="'+(Math.abs(diff) < 1 ? C_G2 : (diff > 0 ? C_RED : C_INK))+'">'+
-        (diff > 0 ? '+' : '')+r0(diff)+' vs league</text>';
+      g += '<line x1="'+(x0-3).toFixed(1)+'" y1="'+y(lp).toFixed(1)+'" x2="'+(x0+barW+3).toFixed(1)+
+        '" y2="'+y(lp).toFixed(1)+'" stroke="'+C_INK+'" stroke-width="2"/>';
+
+      var lab = Math.min(barTop, y(lp));
+      g += '<text x="'+cx.toFixed(1)+'" y="'+(lab-14).toFixed(1)+'" text-anchor="middle" '+
+        'font-size="9" font-weight="700" fill="'+
+        (Math.abs(diff) < 1 ? C_G2 : (diff > 0 ? C_RED : C_INK))+'">'+
+        (diff > 0 ? '+' : '')+r0(diff)+'%</text>';
+      g += '<text x="'+cx.toFixed(1)+'" y="'+(lab-4).toFixed(1)+'" text-anchor="middle" '+
+        'font-size="10.5" font-weight="700" fill="'+C_INK+'">'+r0(p)+'%</text>';
+
+      g += '<text x="'+cx.toFixed(1)+'" y="'+(CH-B+14)+'" text-anchor="middle" '+
+        'font-size="11" font-weight="700" fill="'+C_INK+'">'+code2(c)+'</text>';
     });
-    return svg(CW, CH, g) +
-      '<div class="pt-thin">Share of plays along the bottom. Bar is this offense, '+
-      'the black tick is the league average.</div>';
+
+    return '<div class="pt-chart">' + svg(CW, CH, g) +
+      '<div class="pt-thin">Share of plays up the side. Bar is this offense, the black '+
+      'tick is the league average, and the figure on top is the gap between them.</div></div>';
   }
 
   /* ---------- render ---------- */

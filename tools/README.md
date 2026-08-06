@@ -24,12 +24,6 @@ previewed on the same page without their styles colliding.
 
 ## Built so far
 
-| Folder | What it is | Status |
-|--------|------------|--------|
-| `personnel-grouping/` | The shipped tool: fixed 11/12/13/21/22 columns plus 2+ TE / 2+ RB / 3+ WR, a usage/efficiency toggle, and EPA / yards / success on hover | **Live** |
-| `personnel-grouping-full/` | First layout option — full offense × grouping grid | Superseded |
-| `personnel-grouping-compact/` | Second layout option — three columns with a per-team slide-out | Superseded |
-
-The two superseded folders are kept only for diffing against the merged tool. Delete both
-once the shipped version is settled; all three read the same JSON, so retiring them costs
-nothing.
+| Folder | What it is |
+|--------|------------|
+| `personnel-grouping/` | Fixed 11/12/13/21/22 columns plus 2+ TE / 2+ RB / 3+ WR, a usage/efficiency toggle, and EPA / yards / success rate on hover |

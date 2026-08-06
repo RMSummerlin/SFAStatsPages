@@ -41,9 +41,7 @@ SFAStatsPages/
 │   └── refresh_preload.py          ← injects the crawlable static table into tools
 ├── index.html                      ← endpoint health check, served at the Pages root
 ├── tools/
-│   ├── personnel-grouping/         ← the shipped tool
-│   ├── personnel-grouping-full/    ← superseded layout option A
-│   └── personnel-grouping-compact/ ← superseded layout option B
+│   └── personnel-grouping/         ← the shipped tool
 └── .github/
     └── workflows/
         └── update-data.yml         ← scheduled Action that runs the Python pipeline
@@ -85,9 +83,6 @@ python scripts/lint_embed.py
 
 First tool shipped: **`tools/personnel-grouping/`** — personnel grouping frequency with a
 usage/efficiency toggle and EPA per play, yards per play and success rate on hover.
-
-The two earlier layout options (`personnel-grouping-full`, `personnel-grouping-compact`)
-are kept for diffing and can be deleted once the shipped version is settled.
 
 2025 is the only season loaded so far; add earlier seasons to `SEASON_SHEETS` in
 `scripts/config.py` when their sheets exist.

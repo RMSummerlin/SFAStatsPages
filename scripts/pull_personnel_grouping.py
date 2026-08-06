@@ -6,8 +6,6 @@ Personnel Grouping Frequency tools need.
 Outputs (all under data/):
   personnel_grouping_<season>.json          encoded play-level data, one file per season
   personnel_grouping_index.json             which seasons exist + which is the default
-  personnel_grouping_preload_compact.html   crawlable static table for the compact tool
-  personnel_grouping_preload_full.html      crawlable static table for the full-grid tool
 
 Why play-level instead of pre-aggregated: every filter (distance, score margin,
 week, down, quarter, zone, personnel counts) is independent and combinable, so
@@ -370,28 +368,6 @@ def pct(part, whole):
     return "0%" if not whole else f"{round(100 * part / whole)}%"
 
 
-def preload_compact(summary, season):
-    rows = []
-    for t in summary["teams"]:
-        c = summary["totals"][t]
-        n = c.get("plays", 0)
-        rows.append(
-            "<tr><th scope=\"row\">{t}</th><td>{rb}</td><td>{te}</td>"
-            "<td>{wr}</td><td>{n:,}</td></tr>".format(
-                t=t, rb=pct(c.get("rb2", 0), n), te=pct(c.get("te2", 0), n),
-                wr=pct(c.get("wr3", 0), n), n=n)
-        )
-    return (
-        f'<table class="pt-pre"><caption>{season} personnel grouping frequency, '
-        "all offensive plays, no filters applied</caption><thead><tr>"
-        "<th scope=\"col\">Offense</th><th scope=\"col\">2+ RB</th>"
-        "<th scope=\"col\">2+ TE</th><th scope=\"col\">3+ WR</th>"
-        "<th scope=\"col\">Plays</th></tr></thead><tbody>"
-        + "".join(rows)
-        + "</tbody></table>"
-    )
-
-
 MAIN_GROUPS = (11, 12, 13, 21, 22)
 
 
@@ -425,37 +401,6 @@ def preload_main(summary, season):
         '(so "12" is 1 RB and 2 TE).</caption>'
         f'<thead><tr><th scope="col">#</th><th scope="col">Offense</th>{head}'
         '<th scope="col">2+ TE</th><th scope="col">2+ RB</th><th scope="col">3+ WR</th>'
-        '<th scope="col">Plays</th></tr></thead><tbody>'
-        + "".join(rows)
-        + "</tbody></table>"
-    )
-
-
-def preload_full(summary, season, max_columns=8):
-    league = Counter()
-    for pers, n in summary["league"].items():
-        league[group_code(pers)] += n
-    top = [g for g, _ in league.most_common(max_columns)]
-
-    by_team = {}
-    for team, groups in summary["grouping"].items():
-        folded = Counter()
-        for pers, n in groups.items():
-            folded[group_code(pers)] += n
-        by_team[team] = folded
-
-    head = "".join(f'<th scope="col">{g:02d}</th>' for g in top)
-    rows = []
-    for t in summary["teams"]:
-        n = summary["totals"][t].get("plays", 0)
-        cells = "".join(f"<td>{pct(by_team[t].get(g, 0), n)}</td>" for g in top)
-        rows.append(f'<tr><th scope="row">{t}</th>{cells}<td>{n:,}</td></tr>')
-    return (
-        f'<table class="pt-pre"><caption>{season} personnel grouping frequency by '
-        "offense, all offensive plays, no filters applied. Groupings use the standard "
-        "code: the first digit is running backs, the second is tight ends "
-        '(so "12" is 1 RB and 2 TE).</caption>'
-        f'<thead><tr><th scope="col">Offense</th>{head}'
         '<th scope="col">Plays</th></tr></thead><tbody>'
         + "".join(rows)
         + "</tbody></table>"
@@ -544,11 +489,7 @@ def main():
         summary, season = newest_summary
         (DATA_DIR / "personnel_grouping_preload.html").write_text(
             preload_main(summary, season) + "\n", encoding="utf-8")
-        (DATA_DIR / "personnel_grouping_preload_compact.html").write_text(
-            preload_compact(summary, season) + "\n", encoding="utf-8")
-        (DATA_DIR / "personnel_grouping_preload_full.html").write_text(
-            preload_full(summary, season) + "\n", encoding="utf-8")
-        print("Refreshed crawlable preload tables in data/.")
+        print("Refreshed the crawlable preload table in data/.")
 
 
 if __name__ == "__main__":
