@@ -67,7 +67,7 @@
   align-items:center;justify-content:center}
 .pt-root.pt-pg .pt-chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--w)}
 .pt-root.pt-pg .pt-chips.wide .pt-chip{flex:1 0 auto}
-.pt-root.pt-pg .pt-rval{font-size:14px;font-weight:700;margin-bottom:6px}
+.pt-root.pt-pg .pt-rval{font-size:14px;font-weight:700;margin-top:8px}
 .pt-root.pt-pg .pt-slot{position:relative;height:40px;width:270px;max-width:100%}
 .pt-root.pt-pg .pt-track{position:absolute;top:18px;left:0;right:0;height:4px;background:var(--b2)}
 .pt-root.pt-pg .pt-fill{position:absolute;top:18px;height:4px;background:var(--red)}
@@ -142,26 +142,26 @@
 .pt-root.pt-pg .pt-card{min-width:0}
 .pt-root.pt-pg .pt-ctitle{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
   color:var(--g1);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--b1)}
-.pt-root.pt-pg .pt-svg{width:100%;height:auto;display:block;overflow:visible}
-.pt-root.pt-pg .pt-donut{max-width:148px;margin:0 auto}
+.pt-root.pt-pg .pt-svg{display:block;width:100%;max-width:340px;height:auto;margin:0 auto;
+  overflow:visible}
 .pt-root.pt-pg .pt-key{display:flex;flex-wrap:wrap;gap:3px 12px;margin-top:8px;font-size:11.5px}
 .pt-root.pt-pg .pt-key span{display:inline-flex;align-items:center;gap:5px}
 .pt-root.pt-pg .pt-key i{width:10px;height:10px;display:inline-block;flex:0 0 auto}
 .pt-root.pt-pg .pt-key b{font-weight:700}
-.pt-root.pt-pg .pt-brs{display:grid;gap:5px}
-.pt-root.pt-pg .pt-br{display:grid;grid-template-columns:34px 1fr 72px;gap:7px;align-items:center;font-size:12px}
-.pt-root.pt-pg .pt-br b{font-weight:700}
-.pt-root.pt-pg .pt-brt{position:relative;height:13px;background:var(--w);border:1px solid var(--b2)}
-.pt-root.pt-pg .pt-brt i{position:absolute;inset:0 auto 0 0;background:var(--red);display:block}
-.pt-root.pt-pg .pt-brt u{position:absolute;top:-1px;bottom:-1px;width:2px;background:var(--ink);
-  text-decoration:none;opacity:.5}
-.pt-root.pt-pg .pt-brv{text-align:right;color:var(--g1)}
 .pt-root.pt-pg .pt-thin{font-size:11px;color:var(--g1);margin-top:6px;line-height:1.4}
 
 /* ---------- footer / states ---------- */
 .pt-root.pt-pg .pt-foot{flex:0 0 auto;padding:10px 12px;border-top:1px solid var(--b1);background:var(--bg2);
   font-size:11px;color:var(--g1);line-height:1.45}
 .pt-root.pt-pg .pt-foot b{color:var(--ink)}
+.pt-root.pt-pg .pt-legtog{font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--ink);text-decoration:underline;text-underline-offset:2px;
+  min-height:32px;padding:0}
+.pt-root.pt-pg .pt-legend{margin:8px 0 10px;display:grid;gap:5px;max-width:620px}
+.pt-root.pt-pg .pt-legend[hidden]{display:none}
+.pt-root.pt-pg .pt-legrow{display:grid;grid-template-columns:44px 1fr;gap:9px;
+  align-items:baseline;font-size:11.5px;line-height:1.4}
+.pt-root.pt-pg .pt-legrow b{font-size:13px;font-weight:700;color:var(--ink)}
 .pt-root.pt-pg .pt-msg{padding:28px 16px;text-align:center;font-size:14px;color:var(--g1)}
 .pt-root.pt-pg .pt-msg b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
 
@@ -178,7 +178,7 @@
   .pt-root.pt-pg .pt-modes{margin-top:0}
   .pt-root.pt-pg .pt-bar{padding:11px 18px;gap:7px}
   .pt-root.pt-pg .pt-g{min-width:64px}
-  .pt-root.pt-pg .pt-dwrap{padding:18px;grid-template-columns:minmax(160px,0.8fr) minmax(260px,1.4fr) minmax(220px,1.1fr);
+  .pt-root.pt-pg .pt-dwrap{padding:18px;grid-template-columns:repeat(3,minmax(0,1fr));
     gap:24px;align-items:start}
   .pt-root.pt-pg .pt-dhead{grid-column:1 / -1}
   .pt-root.pt-pg .pt-foot{padding:12px 18px;font-size:12px}
@@ -211,6 +211,9 @@
   </div>
 
   <div class="pt-foot">
+    <button class="pt-legtog" type="button" id="pg-legtog" aria-expanded="false"
+      aria-controls="pg-legend">What do the groupings mean?</button>
+    <div class="pt-legend" id="pg-legend" hidden></div>
     Hover or tap any cell for EPA per play, yards per play and success rate with league
     ranks. Efficiency needs 20+ plays to show. Kneels, spikes and plays with incomplete
     personnel data are excluded.
@@ -235,6 +238,23 @@
     {k:'wr3', l:'3+ WR'}
   ];
   var MIN_EPA_PLAYS = 20;
+  var SIX_OL = 'Six-lineman versions are counted here too, so the receiver count is '
+             + 'sometimes one lower.';
+  var INFO = {
+    g11: '1 RB, 1 TE, 3 WR. The standard modern look and the most common grouping in the '
+       + 'league by a wide margin. ' + SIX_OL,
+    g12: '1 RB, 2 TE, 2 WR. Balanced — run-capable without announcing it, which is why it '
+       + 'is the usual second choice. ' + SIX_OL,
+    g13: '1 RB, 3 TE, 1 WR. Heavy. Mostly short yardage, goal line and clock-killing. '
+       + SIX_OL,
+    g21: '2 RB, 1 TE, 2 WR. Two backs, often a fullback or a back split out wide. ' + SIX_OL,
+    g22: '2 RB, 2 TE, 1 WR. The heaviest grouping any offense runs with real frequency. '
+       + SIX_OL,
+    te2: 'Every snap with two or more tight ends, whatever the backfield looks like. '
+       + 'Overlaps with 2+ RB.',
+    rb2: 'Every snap with two or more running backs. Overlaps with 2+ TE.',
+    wr3: 'Every snap with three or more receivers.'
+  };
   var C_RED = '#cc0000', C_INK = '#111', C_G1 = '#7f8c9a', C_G2 = '#b0bec5', C_B2 = '#dde2e8';
 
   var $ = function(id){ return document.getElementById(id); };
@@ -347,7 +367,7 @@
       S.seasons.add(y);
       return loadSeason(y);
     }).then(function(){
-      buildBar(); wireModes(); wireDismiss(); render();
+      buildBar(); wireModes(); wireLegend(); wireDismiss(); render();
     }).catch(function(err){
       $('pg-sub').textContent = 'Live data unavailable \u2014 showing season totals.';
       var b = $('pg-body');
@@ -581,8 +601,9 @@
     }
     a.addEventListener('input', onIn);
     b.addEventListener('input', onIn);
-    wrap.appendChild(val);
+    /* Readout sits below the track so the drag thumbs never cover it. */
     wrap.appendChild(slot);
+    wrap.appendChild(val);
     paint();
     return wrap;
   }
@@ -597,6 +618,21 @@
     });
     $('pg-body').addEventListener('scroll', function(){ hideTip(); });
   }
+  function wireLegend(){
+    var box = $('pg-legend'), tog = $('pg-legtog');
+    var rows = GROUPS.map(function(c){ return ['g'+c, String(c)]; })
+      .concat(SUMS.map(function(sm){ return [sm.k, sm.l]; }));
+    box.innerHTML = rows.map(function(r){
+      return '<div class="pt-legrow"><b>'+r[1]+'</b><span>'+INFO[r[0]]+'</span></div>';
+    }).join('');
+    tog.addEventListener('click', function(){
+      var open = box.hasAttribute('hidden');
+      if (open) box.removeAttribute('hidden'); else box.setAttribute('hidden','');
+      tog.setAttribute('aria-expanded', open ? 'true' : 'false');
+      tog.textContent = open ? 'Hide grouping descriptions' : 'What do the groupings mean?';
+    });
+  }
+
   function wireModes(){
     Array.prototype.forEach.call($('pg-modes').children, function(b){
       b.addEventListener('click', function(){
@@ -715,10 +751,30 @@
     t.classList.remove('open','tap');
     TIPPED = null;
   }
+  function placeTip(anchor, html, tap){
+    var t = $('pg-tip');
+    t.innerHTML = html;
+    t.classList.add('open');
+    if (tap) t.classList.add('tap');
+    var rr = ROOT.getBoundingClientRect(), cr = anchor.getBoundingClientRect();
+    var w = t.offsetWidth, h = t.offsetHeight;
+    var left = cr.left - rr.left + cr.width/2 - w/2;
+    t.style.left = Math.max(6, Math.min(left, ROOT.clientWidth - w - 6)) + 'px';
+    var top = cr.top - rr.top - h - 7;
+    t.style.top = (top < 4 ? cr.bottom - rr.top + 7 : top) + 'px';
+    TIPPED = anchor;
+  }
+
+  function showInfo(anchor, label, key){
+    if (!INFO[key]) return;
+    placeTip(anchor, '<div class="pt-tiph">'+label+'</div>'+
+      '<div class="pt-tipn">'+INFO[key]+'</div>', false);
+  }
+
   function showTip(cell, team, key, label, tap){
     var A = LAST;
     if (!A) return;
-    var b = A.teams[team].cell[key], t = $('pg-tip');
+    var b = A.teams[team].cell[key];
     var html = '<div class="pt-tiph">'+team+' \u00b7 '+label+'</div>';
     if (b.n < MIN_EPA_PLAYS){
       html += '<div class="pt-tipn">Only '+b.n+' play'+(b.n===1?'':'s')+
@@ -736,19 +792,7 @@
       if (R.size < 32) html += '<div class="pt-tipn">Ranked among the '+R.size+
         ' offenses with '+MIN_EPA_PLAYS+'+ plays here.</div>';
     }
-    t.innerHTML = html;
-    t.classList.add('open');
-    if (tap) t.classList.add('tap');
-
-    var rr = ROOT.getBoundingClientRect(), cr = cell.getBoundingClientRect();
-    var w = t.offsetWidth, h = t.offsetHeight;
-    var left = cr.left - rr.left + cr.width/2 - w/2;
-    left = Math.max(6, Math.min(left, ROOT.clientWidth - w - 6));
-    var top = cr.top - rr.top - h - 7;
-    if (top < 4) top = cr.bottom - rr.top + 7;
-    t.style.left = left + 'px';
-    t.style.top = top + 'px';
-    TIPPED = cell;
+    placeTip(cell, html, tap);
   }
   function wireCell(td, team, key, label){
     td.classList.add('pt-hascell');
@@ -777,30 +821,47 @@
   }
 
   /* ---------- charts ---------- */
+  /* All three charts share a 300x180 viewBox so they render at identical size
+     next to each other, and the CSS caps them at 340px so they cannot balloon
+     on a very wide screen. */
+  var CW = 300, CH = 180;
+
+  function niceStep(max){
+    var steps = [2, 5, 10, 20, 25, 50];
+    for (var i = 0; i < steps.length; i++) if (max / steps[i] <= 4) return steps[i];
+    return 100;
+  }
+
   function donut(row){
     var slices = [
-      {k:'heavy',  n:row.heavy,  c:C_RED, l:'Heavy (2+ RB or 2+ TE)'},
-      {k:'spread', n:row.spread, c:C_G1,  l:'3+ WR, no extra back or TE'},
+      {k:'heavy',  n:row.heavy,  c:C_RED, l:'Heavy (2+ RB/TE)'},
+      {k:'spread', n:row.spread, c:C_G1,  l:'3+ WR'},
       {k:'other',  n:row.other,  c:C_G2,  l:'Other'}
     ];
-    var R = 44, CX = 56, CY = 56, SW = 19, CIRC = 2*Math.PI*R, off = 0, arcs = '';
-    slices.forEach(function(s){
-      if (!s.n) return;
-      var len = CIRC * s.n / row.plays;
-      arcs += '<circle cx="'+CX+'" cy="'+CY+'" r="'+R+'" fill="none" stroke="'+s.c+
+    var R = 52, CX = 76, CY = 88, SW = 21, CIRC = 2*Math.PI*R, off = 0, g = '';
+    slices.forEach(function(sl){
+      if (!sl.n) return;
+      var len = CIRC * sl.n / row.plays;
+      g += '<circle cx="'+CX+'" cy="'+CY+'" r="'+R+'" fill="none" stroke="'+sl.c+
         '" stroke-width="'+SW+'" stroke-dasharray="'+len.toFixed(2)+' '+(CIRC-len).toFixed(2)+
         '" stroke-dashoffset="'+(-off).toFixed(2)+'" transform="rotate(-90 '+CX+' '+CY+')"/>';
       off += len;
     });
     var big = slices.slice().sort(function(a,b){ return b.n-a.n; })[0];
-    var mid = '<text x="'+CX+'" y="'+(CY-1)+'" text-anchor="middle" font-size="20" '+
+    g += '<text x="'+CX+'" y="'+(CY+2)+'" text-anchor="middle" font-size="23" '+
       'font-weight="700" fill="'+C_INK+'">'+r0(pct(big.n,row.plays))+'%</text>'+
-      '<text x="'+CX+'" y="'+(CY+13)+'" text-anchor="middle" font-size="8.5" fill="'+C_G1+
+      '<text x="'+CX+'" y="'+(CY+17)+'" text-anchor="middle" font-size="8.5" fill="'+C_G1+
       '" letter-spacing="1">'+(big.k==='heavy'?'HEAVY':big.k==='spread'?'3+ WR':'OTHER')+'</text>';
-    var key = slices.map(function(s){
-      return '<span><i style="background:'+s.c+'"></i>'+s.l+' <b>'+r0(pct(s.n,row.plays))+'%</b></span>';
-    }).join('');
-    return svg(112, 112, arcs+mid, 'pt-donut') + '<div class="pt-key">'+key+'</div>';
+    slices.forEach(function(sl, i){
+      var y = 52 + i*38;
+      g += '<rect x="158" y="'+(y-10)+'" width="11" height="11" fill="'+sl.c+'"/>'+
+        '<text x="175" y="'+y+'" font-size="10" fill="'+C_G1+'">'+sl.l+'</text>'+
+        '<text x="175" y="'+(y+16)+'" font-size="15" font-weight="700" fill="'+C_INK+'">'+
+        r0(pct(sl.n,row.plays))+'%</text>';
+    });
+    return svg(CW, CH, g) +
+      '<div class="pt-thin">Three mutually exclusive buckets, so these total 100% \u2014 '+
+      'unlike the table columns, which overlap.</div>';
   }
 
   function trend(pts, team){
@@ -808,85 +869,126 @@
     if (live.length < 2){
       return '<div class="pt-thin">Not enough weeks match these filters to draw a trend.</div>';
     }
-    var W = 330, H = 138, L = 24, R = 6, T = 8, B = 22;
-    var iw = W-L-R, ih = H-T-B;
+    var L = 26, R = 8, T = 10, B = 26, iw = CW-L-R, ih = CH-T-B;
     var x = function(i){ return pts.length < 2 ? L : L + iw*i/(pts.length-1); };
     var y = function(v){ return T + ih*(1 - v/100); };
     var g = '';
     [0,25,50,75,100].forEach(function(v){
-      g += '<line x1="'+L+'" y1="'+y(v)+'" x2="'+(W-R)+'" y2="'+y(v)+'" stroke="'+
+      g += '<line x1="'+L+'" y1="'+y(v)+'" x2="'+(CW-R)+'" y2="'+y(v)+'" stroke="'+
         (v?C_B2:C_G2)+'" stroke-width="1"/>'+
         '<text x="'+(L-4)+'" y="'+(y(v)+3)+'" text-anchor="end" font-size="8.5" fill="'+
         C_G1+'">'+v+'</text>';
     });
-    var series = [
-      {k:'te2', c:C_INK, l:'2+ TE'},
-      {k:'rb2', c:C_RED, l:'2+ RB'},
-      {k:'wr3', c:C_G1,  l:'3+ WR'}
-    ];
-    var lines = '';
-    series.forEach(function(s){
+    var series = [{k:'te2',c:C_INK,l:'2+ TE'},{k:'rb2',c:C_RED,l:'2+ RB'},{k:'wr3',c:C_G1,l:'3+ WR'}];
+    series.forEach(function(sr){
       var run = [], segs = [];
       pts.forEach(function(p, i){
-        if (p.row && p.row.plays >= 5) run.push([x(i), y(pct(p.row.cell[s.k].n, p.row.plays))]);
+        if (p.row && p.row.plays >= 5) run.push([x(i), y(pct(p.row.cell[sr.k].n, p.row.plays))]);
         else { if (run.length > 1) segs.push(run); run = []; }
       });
       if (run.length > 1) segs.push(run);
       segs.forEach(function(seg){
-        lines += '<polyline fill="none" stroke="'+s.c+'" stroke-width="2" '+
-          'stroke-linejoin="round" points="'+seg.map(function(p){
-            return p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' ')+'"/>';
-        seg.forEach(function(p){
-          lines += '<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+
-            '" r="2.2" fill="'+s.c+'"/>';
+        g += '<polyline fill="none" stroke="'+sr.c+'" stroke-width="2" stroke-linejoin="round" '+
+          'points="'+seg.map(function(q){ return q[0].toFixed(1)+','+q[1].toFixed(1); }).join(' ')+'"/>';
+        seg.forEach(function(q){
+          g += '<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="2.2" fill="'+sr.c+'"/>';
         });
       });
     });
-    var ticks = '';
     pts.forEach(function(p, i){
       if (pts.length <= 10 || i === 0 || i === pts.length-1 || (i+1) % 3 === 0)
-        ticks += '<text x="'+x(i)+'" y="'+(H-8)+'" text-anchor="middle" font-size="8.5" fill="'+
+        g += '<text x="'+x(i)+'" y="'+(CH-12)+'" text-anchor="middle" font-size="8.5" fill="'+
           C_G1+'">'+p.week+'</text>';
     });
     var order = [];
     pts.forEach(function(p){ if (order.indexOf(p.season) < 0) order.push(p.season); });
-    var bands = '';
-    if (order.length > 1){
-      order.forEach(function(yr){
-        var idx = [];
-        pts.forEach(function(p, i){ if (p.season === yr) idx.push(i); });
-        bands += '<text x="'+((x(idx[0])+x(idx[idx.length-1]))/2)+'" y="'+H+
-          '" text-anchor="middle" font-size="8.5" font-weight="700" fill="'+C_INK+'">'+yr+'</text>';
-      });
-    }
-    var key = series.map(function(s){
-      return '<span><i style="background:'+s.c+'"></i>'+s.l+'</span>';
+    if (order.length > 1) order.forEach(function(yr){
+      var idx = [];
+      pts.forEach(function(p, i){ if (p.season === yr) idx.push(i); });
+      g += '<text x="'+((x(idx[0])+x(idx[idx.length-1]))/2)+'" y="'+(CH-2)+
+        '" text-anchor="middle" font-size="8.5" font-weight="700" fill="'+C_INK+'">'+yr+'</text>';
+    });
+    var key = series.map(function(sr){
+      return '<span><i style="background:'+sr.c+'"></i>'+sr.l+'</span>';
     }).join('');
-    return svg(W, H + (order.length>1?10:0), g+lines+ticks+bands) +
-      '<div class="pt-key">'+key+'</div>' +
+    return svg(CW, CH, g) + '<div class="pt-key">'+key+'</div>' +
       '<div class="pt-thin">Every filter except week. Weeks under 5 plays are skipped.</div>';
   }
 
+  /* Horizontal bars: groupings down the Y axis, share of plays along X, and the
+     gap to league average called out above each bar. */
   function groupBars(row, league){
-    var codes = Object.keys(row.g).map(Number).sort(function(a,b){ return row.g[b]-row.g[a]; });
-    var scale = Math.max.apply(null, codes.slice(0,7).map(function(c){
+    var ranked = Object.keys(row.g).map(Number)
+      .sort(function(a,b){ return row.g[b]-row.g[a]; });
+    /* A grouping with three snaps is a rounding error, not a tendency — it would
+       occupy a row reading "0%". Keep it out unless there is nothing else. */
+    var codes = ranked.filter(function(c){ return row.g[c] >= 5; }).slice(0, 6);
+    if (codes.length < 3) codes = ranked.slice(0, 3);
+    if (!codes.length) return '<div class="pt-thin">No plays match these filters.</div>';
+
+    var L = 30, R = 36, T = 8, B = 24;
+    var plotW = CW - L - R, rowH = (CH - T - B) / codes.length;
+    var top = Math.max.apply(null, codes.map(function(c){
       return Math.max(pct(row.g[c], row.plays), pct(league.g[c]||0, league.plays));
-    }).concat([1]));
-    var out = codes.slice(0,7).map(function(c){
+    }));
+    var step = niceStep(top), axisMax = Math.max(step, Math.ceil(top/step)*step);
+    var x = function(v){ return L + plotW * v / axisMax; };
+    var g = '';
+
+    for (var v = 0; v <= axisMax + 0.001; v += step){
+      g += '<line x1="'+x(v).toFixed(1)+'" y1="'+T+'" x2="'+x(v).toFixed(1)+'" y2="'+(CH-B)+
+        '" stroke="'+(v?C_B2:C_G2)+'" stroke-width="1"/>'+
+        '<text x="'+x(v).toFixed(1)+'" y="'+(CH-B+13)+'" text-anchor="middle" font-size="8.5" '+
+        'fill="'+C_G1+'">'+v+'</text>';
+    }
+
+    codes.forEach(function(c, i){
       var p = pct(row.g[c], row.plays), lp = pct(league.g[c]||0, league.plays);
-      var diff = p - lp;
-      return '<div class="pt-br"><b>'+c+'</b>'+
-        '<span class="pt-brt"><i style="width:'+(100*p/scale).toFixed(1)+'%"></i>'+
-        '<u style="left:'+(100*lp/scale).toFixed(1)+'%"></u></span>'+
-        '<span class="pt-brv">'+r0(p)+'% <em style="font-style:normal;color:'+
-        (Math.abs(diff)<1?C_G1:(diff>0?C_RED:C_G1))+'">'+(diff>0?'+':'')+r0(diff)+'</em></span></div>';
-    }).join('');
-    return '<div class="pt-brs">'+out+'</div>'+
-      '<div class="pt-thin">Bar is this offense, tick is the league average, '+
-      'number after the percentage is the gap to league.</div>';
+      var diff = p - lp, y0 = T + i*rowH;
+      var barY = y0 + rowH/2 - 4, barH = 11;
+      g += '<text x="'+(L-5)+'" y="'+(barY+9)+'" text-anchor="end" font-size="11" '+
+        'font-weight="700" fill="'+C_INK+'">'+c+'</text>';
+      g += '<rect x="'+L+'" y="'+barY.toFixed(1)+'" width="'+(x(p)-L).toFixed(1)+
+        '" height="'+barH+'" fill="'+C_RED+'"/>';
+      /* When the offense is a long way off league average the tick floats clear of
+         the bar, so join the two — that span is the gap the label is naming. */
+      var cFrom = x(Math.min(p, lp)), cTo = x(Math.max(p, lp));
+      /* when league sits to the right of the bar, start past the value label */
+      if (lp > p) cFrom = x(p) + 30;
+      if (cTo - cFrom > 6){
+        g += '<line x1="'+cFrom.toFixed(1)+'" y1="'+(barY+barH/2).toFixed(1)+
+          '" x2="'+cTo.toFixed(1)+'" y2="'+(barY+barH/2).toFixed(1)+
+          '" stroke="'+C_G2+'" stroke-width="1" stroke-dasharray="2 2"/>';
+      }
+      g += '<line x1="'+x(lp).toFixed(1)+'" y1="'+(barY-2.5).toFixed(1)+'" x2="'+x(lp).toFixed(1)+
+        '" y2="'+(barY+barH+2.5).toFixed(1)+'" stroke="'+C_INK+'" stroke-width="2"/>';
+      g += '<text x="'+(x(p)+4).toFixed(1)+'" y="'+(barY+9)+'" font-size="10" '+
+        'font-weight="700" fill="'+C_INK+'">'+r0(p)+'%</text>';
+      g += '<text x="'+L+'" y="'+(barY-4).toFixed(1)+'" font-size="8.5" font-weight="700" '+
+        'fill="'+(Math.abs(diff) < 1 ? C_G2 : (diff > 0 ? C_RED : C_INK))+'">'+
+        (diff > 0 ? '+' : '')+r0(diff)+' vs league</text>';
+    });
+    return svg(CW, CH, g) +
+      '<div class="pt-thin">Share of plays along the bottom. Bar is this offense, '+
+      'the black tick is the league average.</div>';
   }
 
   /* ---------- render ---------- */
+  /* Rank always means "position when this column is ordered best-first", so it
+     stays correct when the table is sorted ascending. Ties share a rank. */
+  function rankBy(names, valueOf){
+    var pool = names.filter(function(t){ return valueOf(t) !== null; })
+      .sort(function(a, b){ return valueOf(b) - valueOf(a); });
+    var map = {}, prevVal = null, prevRank = 0;
+    pool.forEach(function(t, i){
+      var v = valueOf(t);
+      if (prevVal !== null && v === prevVal) map[t] = prevRank;
+      else { map[t] = i + 1; prevRank = i + 1; }
+      prevVal = v;
+    });
+    return map;
+  }
+
   function cellValue(b, teamPlays){
     if (S.mode === 'epa') return b.n >= MIN_EPA_PLAYS ? b.epa/b.n : null;
     return pct(b.n, teamPlays);
@@ -911,6 +1013,10 @@
     }
 
     var epaMode = S.mode === 'epa';
+    function metricOf(t, c){
+      var r = A.teams[t];
+      return cellValue(r.cell[c.key], r.plays);
+    }
     var COLS = GROUPS.map(function(c){
       return {key:'g'+c, label:String(c), sort:c, cls:'pt-g'};
     }).concat(SUMS.map(function(s, i){
@@ -929,17 +1035,17 @@
     });
     if (!maxE) maxE = 0.1;
 
-    function metricOf(t, c){
-      var r = A.teams[t];
-      return cellValue(r.cell[c.key], r.plays);
-    }
+    var sortCol = null;
+    COLS.forEach(function(c){ if (String(c.sort) === String(S.sort)) sortCol = c; });
+    var rank = (S.sort === 'team' || S.sort === 'plays' || !sortCol)
+      ? rankBy(names, function(t){ return A.teams[t].plays; })
+      : rankBy(names, function(t){ return metricOf(t, sortCol); });
+
     if (S.sort === 'team') names.sort(function(a,b){ return S.dir*a.localeCompare(b); });
     else if (S.sort === 'plays') names.sort(function(a,b){
       return S.dir*(A.teams[b].plays - A.teams[a].plays); });
     else {
-      var col = null;
-      COLS.forEach(function(c){ if (String(c.sort) === String(S.sort)) col = c; });
-      if (!col) col = COLS[0];
+      var col = sortCol || COLS[0];
       names.sort(function(a,b){
         var va = metricOf(a, col), vb = metricOf(b, col);
         if (va === null && vb === null) return a.localeCompare(b);
@@ -977,17 +1083,34 @@
     var thead = el('thead'), hr = el('tr');
     hr.appendChild(el('th','pt-rank','#'));
     hr.appendChild(sortBtn('team','Offense','pt-team'));
-    COLS.forEach(function(c){ hr.appendChild(sortBtn(c.sort, c.label, c.cls)); });
+    COLS.forEach(function(c){
+      var th = sortBtn(c.sort, c.label, c.cls);
+      if (INFO[c.key]){
+        th.classList.add('pt-hascell');
+        if (window.PointerEvent){
+          th.addEventListener('pointerenter', function(e){
+            if (e.pointerType === 'mouse') showInfo(th, c.label, c.key);
+          });
+          th.addEventListener('pointerleave', function(e){
+            if (e.pointerType === 'mouse') hideTip();
+          });
+        } else {
+          th.addEventListener('mouseenter', function(){ showInfo(th, c.label, c.key); });
+          th.addEventListener('mouseleave', hideTip);
+        }
+      }
+      hr.appendChild(th);
+    });
     hr.appendChild(sortBtn('plays','Plays','pt-plays'));
     thead.appendChild(hr);
     tbl.appendChild(thead);
 
     var ncols = COLS.length + 3;
     var tb = el('tbody');
-    names.forEach(function(t, idx){
+    names.forEach(function(t){
       var r = A.teams[t], tr = el('tr','pt-row');
       if (S.open === t) tr.classList.add('open');
-      tr.appendChild(el('td','pt-rank', String(idx+1)));
+      tr.appendChild(el('td','pt-rank', rank[t] ? String(rank[t]) : '\u2013'));
 
       var th = el('th','pt-team');
       th.scope = 'row';

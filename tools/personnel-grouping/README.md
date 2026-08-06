@@ -24,7 +24,10 @@ does not total 100% across them. They render identically to the grouping columns
 3px rule carrying the separation; the League row at the foot of the table gives the league
 average for each.
 
-The rank column is a shaded gutter down the left, and follows the current sort, so sorting by 2+ TE renumbers 1–32. Sorted
+The rank column is a shaded gutter down the left. It means "position when this column is
+ordered best first", so sorting ascending reverses the row order without renumbering —
+the worst 11-personnel team reads 32 whether it appears at the top or the bottom. Ties
+share a rank. It follows the current sort, so sorting by 2+ TE renumbers 1–32. Sorted
 alphabetically it falls back to total plays. Default sort is 11 personnel, descending.
 
 ## Usage / Efficiency toggle
@@ -33,6 +36,11 @@ Top right. **Usage** shows each grouping as a share of the offense's plays.
 **Efficiency** swaps every cell to EPA per play, shaded on a diverging scale — slate below
 zero, Sharp red above. Sorting persists across the switch, so if you're sorted by 12
 personnel you stay sorted by 12, just by a different metric.
+
+## Grouping descriptions
+
+Hovering a column header explains that grouping. Hover is mouse-only, so **What do the
+groupings mean?** in the footer expands the same descriptions inline for touch users.
 
 ## Hover / tap
 
@@ -68,8 +76,17 @@ Popovers are absolutely positioned inside `.pt-root` and clamped to its width �
 
 Tap an offense for personnel mix (donut), week by week (three lines, applying every filter
 except week), and grouping breakdown against league average — three cards on one row at
-`min-width: 641px`, stacking below that. The donut is capped at 148px so it can't stretch
-to fill its column.
+`min-width: 641px`, stacking below that.
+
+All three charts share a single 300×180 viewBox and are capped at 340px wide, so they
+render at identical size beside each other and can't balloon on a large screen. They still
+scale down together on narrow screens; pinning them to fixed pixels would force horizontal
+scrolling on a phone, which is the worse trade for a mostly-mobile audience.
+
+The league comparison plots share of plays along the X axis with groupings down the Y, the
+gap to league above each bar, and a dashed connector out to the league tick when an offense
+is a long way off average. Groupings with fewer than five snaps are dropped rather than
+given a row reading 0%.
 
 ## Height
 
