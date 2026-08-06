@@ -467,7 +467,7 @@ def preload_full(summary, season, max_columns=8):
 
 def write_json(path: Path, obj) -> bool:
     """Write minified JSON. Returns True if the file content changed."""
-    text = json.dumps(obj, separators=(",", ":"), sort_keys=False)
+    text = json.dumps(obj, separators=(",", ":"), sort_keys=False) + "\n"
     if path.exists() and path.read_text(encoding="utf-8") == text:
         return False
     path.write_text(text, encoding="utf-8")
@@ -531,10 +531,13 @@ def main():
         for p in DATA_DIR.glob("personnel_grouping_*.json")
         if p.stem.rsplit("_", 1)[1].isdigit()
     )
+    # Deliberately no build timestamp here. Every consumer reads generated_utc
+    # from the season file it actually loaded, so a timestamp in the index would
+    # be unused — and it would change on every run, making the file differ every
+    # time and defeating the "only commit when data changed" guard downstream.
     write_json(DATA_DIR / "personnel_grouping_index.json", {
         "seasons": known,
         "default": max(known) if known else None,
-        "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     })
 
     if newest_summary:
