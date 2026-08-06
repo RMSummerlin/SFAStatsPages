@@ -34,9 +34,11 @@ SFAStatsPages/
 │   ├── pull_personnel_grouping.py  ← pull + transform (auto-run by the workflow)
 │   ├── lint_embed.py               ← checks a fragment against the embed rules
 │   └── refresh_preload.py          ← injects the crawlable static table into tools
+├── index.html                      ← endpoint health check, served at the Pages root
 ├── tools/
-│   ├── personnel-grouping-full/    ← option A: full grid, closest to the old dashboard
-│   └── personnel-grouping-compact/ ← option B: three columns + per-team slide-out
+│   ├── personnel-grouping/         ← the shipped tool
+│   ├── personnel-grouping-full/    ← superseded layout option A
+│   └── personnel-grouping-compact/ ← superseded layout option B
 └── .github/
     └── workflows/
         └── update-data.yml         ← scheduled Action that runs the Python pipeline
@@ -76,13 +78,11 @@ python scripts/lint_embed.py
 
 ## Status
 
-First tool built, in two competing layouts for review:
+First tool shipped: **`tools/personnel-grouping/`** — personnel grouping frequency with a
+usage/efficiency toggle and EPA per play, yards per play and success rate on hover.
 
-| Tool | Data | Notes |
-|------|------|-------|
-| `personnel-grouping-full` | `data/personnel_grouping_<season>.json` | Offense × grouping grid, heat-shaded |
-| `personnel-grouping-compact` | same | 2+ RB / 2+ TE / 3+ WR, expandable per team |
+The two earlier layout options (`personnel-grouping-full`, `personnel-grouping-compact`)
+are kept for diffing and can be deleted once the shipped version is settled.
 
-Both read the same JSON, so whichever wins, the pipeline is unchanged. 2025 is the only
-season loaded so far; add earlier seasons to `SEASON_SHEETS` in `scripts/config.py` when
-their sheets exist.
+2025 is the only season loaded so far; add earlier seasons to `SEASON_SHEETS` in
+`scripts/config.py` when their sheets exist.

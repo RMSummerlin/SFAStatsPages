@@ -48,6 +48,7 @@ DATA_DIR = REPO_ROOT / "data"
 REQUIRED_COLUMNS = [
     "team", "week", "qtr", "down", "dist", "los",
     "PlayType", "PlayDesc", "Scramble?", "RBs", "TEs", "WRs", "ScoreDiff",
+    "EPA", "yds", "SuccessPlay",
 ]
 
 # Encoding alphabet: printable ASCII 35..126 minus backslash. 91 symbols, all
@@ -56,6 +57,9 @@ ALPHABET = "".join(chr(c) for c in range(35, 127) if c != 92)
 BASE = len(ALPHABET)
 
 MARGIN_OFFSET = 100  # margin is stored base-91 across two columns as margin + 100
+EPA_OFFSET = 400     # EPA is stored as round(EPA * 10) + 400, base-91 across two columns
+EPA_SCALE = 10       # EPA in the sheet is always one decimal place, so this is lossless
+YDS_OFFSET = 100     # yards gained is stored as yds + 100, base-91 across two columns
 
 FIELD_ZONES = ("Red zone", "20 to 50", "Own territory")
 
@@ -98,6 +102,18 @@ def read_rows(text: str):
 
 
 # ---------------------------------------------------------------------- parsing
+
+
+def as_float(value):
+    if value is None:
+        return None
+    value = value.strip()
+    if not value:
+        return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
 
 
 def as_int(value):
@@ -166,6 +182,13 @@ def build_season(rows, season):
             dropped["situation out of range"] += 1
             continue
 
+        epa = as_float(row.get("EPA"))
+        yards = as_int(row.get("yds"))
+        success = as_int(row.get("SuccessPlay"))
+        if epa is None or yards is None or success not in (0, 1):
+            dropped["missing efficiency data"] += 1
+            continue
+
         scramble = as_int(row.get("Scramble?")) == 1
         # Sacks are already coded PASS in the sheet; scrambles are coded RUSH.
         dropback = 1 if (play_type == "PASS" or scramble) else 0
@@ -180,6 +203,9 @@ def build_season(rows, season):
             "db": dropback,
             "pers": rb * 100 + te * 10 + wr,
             "margin": margin,
+            "epa": round(epa * EPA_SCALE),
+            "yards": yards,
+            "succ": success,
         })
 
     if not plays:
@@ -193,10 +219,17 @@ def build_season(rows, season):
     def enc(values):
         return "".join(ALPHABET[v] for v in values)
 
-    margins = [p["margin"] for p in plays]
-    m_shifted = [m + MARGIN_OFFSET for m in margins]
-    if min(m_shifted) < 0 or max(m_shifted) >= BASE * BASE:
-        raise SystemExit("Score margin outside the encodable range.")
+    def shift(key, offset, label):
+        raw = [p[key] for p in plays]
+        out = [v + offset for v in raw]
+        if min(out) < 0 or max(out) >= BASE * BASE:
+            raise SystemExit(f"{label} outside the encodable range: "
+                             f"{min(raw)} to {max(raw)}")
+        return raw, out
+
+    margins, m_shifted = shift("margin", MARGIN_OFFSET, "Score margin")
+    epas, e_shifted = shift("epa", EPA_OFFSET, "EPA")
+    yards, y_shifted = shift("yards", YDS_OFFSET, "Yards gained")
 
     payload = {
         "schema": 1,
@@ -211,9 +244,12 @@ def build_season(rows, season):
         "dist_max": max(p["dist"] for p in plays),
         "margin_min": min(margins),
         "margin_max": max(margins),
+        "margin_offset": MARGIN_OFFSET,
+        "epa_offset": EPA_OFFSET,
+        "epa_scale": EPA_SCALE,
+        "yds_offset": YDS_OFFSET,
         "zones": list(FIELD_ZONES),
         "alphabet": ALPHABET,
-        "margin_offset": MARGIN_OFFSET,
         "cols": {
             "t": enc(team_ix[p["team"]] for p in plays),
             "w": enc(p["week"] for p in plays),
@@ -225,6 +261,11 @@ def build_season(rows, season):
             "p": enc(pers_ix[p["pers"]] for p in plays),
             "mh": enc(m // BASE for m in m_shifted),
             "ml": enc(m % BASE for m in m_shifted),
+            "eh": enc(v // BASE for v in e_shifted),
+            "el": enc(v % BASE for v in e_shifted),
+            "yh": enc(v // BASE for v in y_shifted),
+            "yl": enc(v % BASE for v in y_shifted),
+            "sc": enc(p["succ"] for p in plays),
         },
     }
 
@@ -290,6 +331,45 @@ def preload_compact(summary, season):
         "<th scope=\"col\">Offense</th><th scope=\"col\">2+ RB</th>"
         "<th scope=\"col\">2+ TE</th><th scope=\"col\">3+ WR</th>"
         "<th scope=\"col\">Plays</th></tr></thead><tbody>"
+        + "".join(rows)
+        + "</tbody></table>"
+    )
+
+
+MAIN_GROUPS = (11, 12, 13, 21, 22)
+
+
+def preload_main(summary, season):
+    """Crawlable table matching the shipped tool: five groupings, then the
+    2+ TE / 2+ RB / 3+ WR summary columns."""
+    by_team = {}
+    for team, groups in summary["grouping"].items():
+        folded = Counter()
+        for pers, n in groups.items():
+            folded[group_code(pers)] += n
+        by_team[team] = folded
+
+    head = "".join(f'<th scope="col">{g}</th>' for g in MAIN_GROUPS)
+    rows = []
+    for i, t in enumerate(summary["teams"], 1):
+        c = summary["totals"][t]
+        n = c.get("plays", 0)
+        cells = "".join(f"<td>{pct(by_team[t].get(g, 0), n)}</td>" for g in MAIN_GROUPS)
+        rows.append(
+            f'<tr><td>{i}</td><th scope="row">{t}</th>{cells}'
+            f'<td>{pct(c.get("te2", 0), n)}</td>'
+            f'<td>{pct(c.get("rb2", 0), n)}</td>'
+            f'<td>{pct(c.get("wr3", 0), n)}</td>'
+            f'<td>{n:,}</td></tr>'
+        )
+    return (
+        f'<table class="pt-pre"><caption>{season} personnel grouping frequency by '
+        "offense, all offensive plays, no filters applied. Groupings use the standard "
+        "code: the first digit is running backs, the second is tight ends "
+        '(so "12" is 1 RB and 2 TE).</caption>'
+        f'<thead><tr><th scope="col">#</th><th scope="col">Offense</th>{head}'
+        '<th scope="col">2+ TE</th><th scope="col">2+ RB</th><th scope="col">3+ WR</th>'
+        '<th scope="col">Plays</th></tr></thead><tbody>'
         + "".join(rows)
         + "</tbody></table>"
     )
@@ -403,6 +483,8 @@ def main():
 
     if newest_summary:
         summary, season = newest_summary
+        (DATA_DIR / "personnel_grouping_preload.html").write_text(
+            preload_main(summary, season) + "\n", encoding="utf-8")
         (DATA_DIR / "personnel_grouping_preload_compact.html").write_text(
             preload_compact(summary, season) + "\n", encoding="utf-8")
         (DATA_DIR / "personnel_grouping_preload_full.html").write_text(

@@ -70,6 +70,27 @@ grouping. Special teams never appear — `PlayType` is only ever `PASS` or `RUSH
 Every exclusion is counted in the `excluded` object of the output JSON, so the number is
 visible rather than silent.
 
+## Efficiency metrics
+
+Three more columns come straight from the sheet, with no derivation:
+
+| Metric | Column | Notes |
+|--------|--------|-------|
+| EPA per play | `EPA` (CO) | Offense's perspective, so positive is good for the offense |
+| Yards per play | `yds` (I) | `Yds` (X) is a byte-identical duplicate; either works |
+| Success rate | `SuccessPlay` (CQ) | Already a 0/1 flag, so success is not redefined here |
+
+All three are complete — zero nulls across the plays we keep. `EPA` is always one decimal
+place, so it encodes losslessly as `round(EPA * 10)`.
+
+Adding them roughly doubles the payload, from ~50 KB to ~104 KB gzipped. That is the price
+of arbitrary client-side filtering on efficiency; there is no aggregation that would help,
+for the same reason the play-level format was needed in the first place.
+
+The tool suppresses efficiency below **20 matching plays** and ranks only among offenses
+that clear that bar. Eight snaps of 22 personnel can read +0.9 EPA per play, which is
+noise presented as insight.
+
 ## Output format
 
 One file per season, `data/personnel_grouping_<season>.json`. Every filter is independent

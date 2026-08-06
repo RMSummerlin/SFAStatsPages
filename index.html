@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>SFAStatsPages — data endpoints</title>
+<style>
+  :root{
+    --red:#cc0000; --ink:#111; --g1:#7f8c9a; --g2:#b0bec5;
+    --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb;
+    --ok:#1a7f4b; --bad:#cc0000;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font:15px/1.45 'Helvetica Neue',Arial,sans-serif;
+    color:var(--ink);background:var(--bg);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:820px;margin:0 auto;padding:28px 18px 60px}
+  h1{font-size:22px;letter-spacing:.01em;text-transform:uppercase}
+  .lede{color:var(--g1);font-size:14px;margin-top:6px;max-width:60ch}
+  .lede b{color:var(--ink)}
+  .rule{height:3px;background:var(--ink);margin:16px 0 24px}
+  h2{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--g1);
+     margin:28px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--b1)}
+  .card{background:#fff;border:1px solid var(--b1)}
+  .ep{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+      padding:11px 13px;border-bottom:1px solid var(--b2)}
+  .ep:last-child{border-bottom:0}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--g2);flex:0 0 auto}
+  .dot.ok{background:var(--ok)} .dot.bad{background:var(--bad)}
+  .ep a{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;
+        color:var(--ink);text-decoration:none;word-break:break-all}
+  .ep a:hover{color:var(--red);text-decoration:underline}
+  .meta{font-size:12px;color:var(--g1);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .meta.bad{color:var(--bad)}
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+  caption{text-align:left;font-size:12px;color:var(--g1);padding:10px 13px}
+  th,td{padding:8px 13px;text-align:right;border-bottom:1px solid var(--b2);font-size:13px}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--g1);
+     border-bottom:1px solid var(--b1)}
+  th:first-child,td:first-child{text-align:left;font-weight:700}
+  tbody tr:last-child td{border-bottom:0}
+  .note{font-size:12.5px;color:var(--g1);margin-top:10px;line-height:1.5}
+  .note code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;
+             background:var(--bg2);border:1px solid var(--b2);padding:1px 4px}
+  .empty{padding:14px 13px;color:var(--g1);font-size:13px}
+  footer{margin-top:34px;padding-top:14px;border-top:1px solid var(--b1);
+         font-size:12px;color:var(--g1)}
+  footer a{color:var(--g1)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>SFAStatsPages</h1>
+  <p class="lede">Static JSON for the Sharp Football Analysis stat tools, rebuilt from the
+    season Google Sheets every 30 minutes and served from this repo. <b>There is no site
+    here</b> — the tools live on sharpfootballanalysis.com and fetch these files. This page
+    just confirms the pipeline is alive.</p>
+  <div class="rule"></div>
+
+  <h2>Endpoints</h2>
+  <div class="card" id="eps"><div class="empty">Checking…</div></div>
+
+  <h2>Published seasons</h2>
+  <div class="card" id="seasons"><div class="empty">Checking…</div></div>
+
+  <p class="note">If a row is red, the tools will fall back to their built-in static table
+    and log an error to the browser console. Check the <b>pages build and deployment</b>
+    run in the Actions tab first, then the <code>Update Stats Data</code> workflow.</p>
+
+  <footer>
+    Rebuilt by <code>scripts/pull_personnel_grouping.py</code> · data decisions in
+    <a href="https://github.com/RMSummerlin/SFAStatsPages/blob/main/docs/personnel-grouping-data.md">docs/personnel-grouping-data.md</a>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var INDEX = 'data/personnel_grouping_index.json';
+  var epBox = document.getElementById('eps');
+  var seasonBox = document.getElementById('seasons');
+
+  function ago(iso){
+    var t = Date.parse((iso || '').replace(' ', 'T'));
+    if (isNaN(t)) return '';
+    var mins = Math.round((Date.now() - t) / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + ' min ago';
+    var hrs = Math.round(mins / 60);
+    if (hrs < 48) return hrs + ' hr ago';
+    return Math.round(hrs / 24) + ' days ago';
+  }
+  function kb(n){ return n >= 1024 ? (n/1024).toFixed(0) + ' KB' : n + ' B'; }
+
+  function row(url, note){
+    var d = document.createElement('div');
+    d.className = 'ep';
+    d.innerHTML = '<span class="dot"></span>' +
+      '<a href="' + url + '">' + url + '</a>' +
+      '<span class="meta">' + (note || 'checking…') + '</span>';
+    return d;
+  }
+
+  function probe(node, url){
+    var t0 = (window.performance && performance.now) ? performance.now() : Date.now();
+    return fetch(url, {cache:'no-cache'}).then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text().then(function(body){
+        var t1 = (window.performance && performance.now) ? performance.now() : Date.now();
+        node.querySelector('.dot').className = 'dot ok';
+        node.querySelector('.meta').textContent =
+          kb(body.length) + ' · ' + Math.round(t1 - t0) + ' ms';
+        return body;
+      });
+    }).catch(function(err){
+      node.querySelector('.dot').className = 'dot bad';
+      var m = node.querySelector('.meta');
+      m.className = 'meta bad';
+      m.textContent = err.message || 'unreachable';
+      return null;
+    });
+  }
+
+  var idxRow = row(INDEX);
+  epBox.innerHTML = '';
+  epBox.appendChild(idxRow);
+
+  probe(idxRow, INDEX).then(function(body){
+    if (!body){
+      seasonBox.innerHTML = '<div class="empty">Index unreachable, so no seasons to list.</div>';
+      return;
+    }
+    var idx;
+    try { idx = JSON.parse(body); }
+    catch (e){
+      seasonBox.innerHTML = '<div class="empty">Index is not valid JSON.</div>';
+      return;
+    }
+    var seasons = (idx.seasons || []).slice().sort(function(a,b){ return b-a; });
+    if (!seasons.length){
+      seasonBox.innerHTML = '<div class="empty">No seasons published yet.</div>';
+      return;
+    }
+
+    var tbl = document.createElement('table');
+    tbl.innerHTML = '<caption>Live from each season file. ' +
+      'Default season is <b>' + (idx.default || seasons[0]) + '</b>.</caption>' +
+      '<thead><tr><th>Season</th><th>Plays</th><th>Excluded</th>' +
+      '<th>Size</th><th>Built</th></tr></thead><tbody></tbody>';
+    var tbody = tbl.querySelector('tbody');
+    seasonBox.innerHTML = '';
+    seasonBox.appendChild(tbl);
+
+    seasons.forEach(function(y){
+      var url = 'data/personnel_grouping_' + y + '.json';
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + y + (y === idx.default ? ' &middot; default' : '') +
+        '</td><td colspan="4" style="text-align:right;color:#7f8c9a">loading…</td>';
+      tbody.appendChild(tr);
+
+      var epRow = row(url);
+      epBox.appendChild(epRow);
+
+      probe(epRow, url).then(function(text){
+        if (!text){
+          tr.cells[1].colSpan = 4;
+          tr.cells[1].style.color = '#cc0000';
+          tr.cells[1].textContent = 'unreachable';
+          return;
+        }
+        var d = JSON.parse(text);
+        var skipped = 0;
+        Object.keys(d.excluded || {}).forEach(function(k){ skipped += d.excluded[k]; });
+        tr.innerHTML =
+          '<td>' + y + (y === idx.default ? ' &middot; default' : '') + '</td>' +
+          '<td>' + d.plays.toLocaleString('en-US') + '</td>' +
+          '<td>' + skipped.toLocaleString('en-US') + '</td>' +
+          '<td>' + kb(text.length) + '</td>' +
+          '<td title="' + (d.generated_utc || '') + '">' + ago(d.generated_utc) + '</td>';
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
