@@ -19,11 +19,12 @@ of the table by design and still appear in the team detail panel. Rows therefore
 total 100%.
 
 The three columns after the divider overlap on purpose — a 2-RB, 2-TE snap counts in both
-2+ TE and 2+ RB. They are three independent questions, not shares of a whole. They're
-styled as bars with a league-average tick rather than heat cells, so the divider isn't
-carrying the distinction alone.
+2+ TE and 2+ RB. They are three independent questions, not shares of a whole, so a row
+does not total 100% across them. They render identically to the grouping columns, with the
+3px rule carrying the separation; the League row at the foot of the table gives the league
+average for each.
 
-The rank column follows the current sort, so sorting by 2+ TE renumbers 1–32. Sorted
+The rank column is a shaded gutter down the left, and follows the current sort, so sorting by 2+ TE renumbers 1–32. Sorted
 alphabetically it falls back to total plays. Default sort is 11 personnel, descending.
 
 ## Usage / Efficiency toggle
