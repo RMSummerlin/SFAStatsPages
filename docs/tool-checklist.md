@@ -48,7 +48,28 @@ preload block. Full detail in `docs/avada-embed-rules.md`.
 - [ ] `lint_embed.py` passes with no failures, and every warning is understood
 - [ ] Mobile layout designed and verified first, before desktop enhancement at `min-width: 641px`
 
-## 4. Start of season (annual, not per-tool)
+## 4. Google Sheet access
+
+The season sheets are **Restricted** — not link-shared. A Google service account has
+Viewer access, and its key lives in the repo secret `GOOGLE_SERVICE_ACCOUNT_JSON`.
+`.github/workflows/update-data.yml` passes that secret to every `pull_*.py` run, so a new
+script inherits access with no extra work.
+
+- [ ] New pull scripts read the sheet through `fetch_csv()` (or the same pattern), so they
+      pick up the token automatically
+- [ ] When creating a **new season's sheet**, share it with the service account address as
+      a Viewer before the first run, or the pipeline will fail on a sign-in page
+- [ ] For local testing use `--csv <path>` with a downloaded export. The key is not needed
+      locally and should not be on your laptop
+- [ ] If `GOOGLE_SERVICE_ACCOUNT_JSON` is absent the scripts fall back to reading the sheet
+      anonymously, which only works if that sheet is link-shared. The run log states which
+      mode it used — check it if data stops updating
+
+Rotating the key: create a new key in Google Cloud, update the repo secret, run
+`workflow_dispatch` to confirm green, then delete the old key. The service account holds no
+project IAM role by design — its only power is what the sheets grant it.
+
+## 5. Start of season (annual, not per-tool)
 
 Play-by-play data lives in a **new Google Sheet each season** (not a new tab in an ongoing
 sheet) to avoid Google Sheets' 10-million-cell-per-file limit and to keep each season as a
@@ -65,7 +86,7 @@ clean, frozen archive once it ends.
 Backfilling an old season works the same way: add it to `SEASON_SHEETS`, run
 `python scripts/pull_personnel_grouping.py --all` once, commit the new JSON.
 
-## 5. Before calling it done
+## 6. Before calling it done
 
 - [ ] Pull script runs cleanly and produces the expected JSON
 - [ ] Numbers spot-checked against the raw sheet, not just against the tool's own output

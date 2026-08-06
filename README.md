@@ -1,11 +1,12 @@
 # SFAStatsPages
 
-Embeddable HTML/CSS/JS stat tools for Sharp Football Analysis, built for the Avada (WordPress) page builder. Data is pulled from a public Google Sheet, processed by Python, and published as static JSON via GitHub Pages for the embedded tools to fetch.
+Embeddable HTML/CSS/JS stat tools for Sharp Football Analysis, built for the Avada (WordPress) page builder. Data is pulled from a restricted Google Sheet, processed by Python, and published as static JSON via GitHub Pages for the embedded tools to fetch.
 
 ## Pipeline overview
 
 ```
-Google Sheet (public, CSV export)   — one sheet per season
+Google Sheet (restricted, CSV export)   — one sheet per season,
+        |                                  read via a service account
         ↓
 Python scripts (scripts/)  — run on a schedule via GitHub Actions
         ↓
@@ -15,6 +16,10 @@ GitHub Pages  — serves data/ as static files
         ↓
 Embedded JS on Avada  — fetch()'s the JSON, renders the tool
 ```
+
+Sheet access: the season sheets are Restricted. A Google service account has Viewer
+access and its key is stored in the repo secret `GOOGLE_SERVICE_ACCOUNT_JSON`. See
+`docs/tool-checklist.md` section 4.
 
 Update cadence: checked every 30 minutes, all week (actual source data changes ~3x/week on a variable schedule, so we poll frequently and only commit when something changes).
 

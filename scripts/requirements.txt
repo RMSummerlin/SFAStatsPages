@@ -1,3 +1,5 @@
-# No third-party packages required.
-# The personnel grouping pipeline uses the Python standard library only.
-# Add packages here (one per line) if a future pull_*.py needs them.
+# Only needed when reading a private Google Sheet. If the sheet is link-shared
+# and GOOGLE_SERVICE_ACCOUNT_JSON is unset, the pipeline runs on the standard
+# library alone and these are unused.
+google-auth>=2.28
+requests>=2.31

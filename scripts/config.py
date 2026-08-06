@@ -28,6 +28,14 @@ CURRENT_SEASON = max(SEASON_SHEETS)
 SHEET_ID = SEASON_SHEETS[CURRENT_SEASON]
 
 
+# Read-only scopes for the service account. Drive is needed as well as Sheets
+# because the CSV export endpoint is served by Drive.
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets.readonly",
+    "https://www.googleapis.com/auth/drive.readonly",
+]
+
+
 def csv_url(season: int) -> str:
     """Public CSV export URL for a season's sheet. No API key, no auth."""
     if season not in SEASON_SHEETS:

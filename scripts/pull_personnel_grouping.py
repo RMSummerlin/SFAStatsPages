@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
 import io
 import json
 import sys
@@ -67,24 +68,79 @@ FIELD_ZONES = ("Red zone", "20 to 50", "Own territory")
 # --------------------------------------------------------------------------- io
 
 
+def google_token():
+    """Mint a read-only access token from the service account key, if one is set.
+
+    Returns (token, service_account_email), or (None, None) when the secret is
+    absent — in which case the sheet is read anonymously, exactly as before.
+    That fallback is deliberate: it means the pipeline keeps working while the
+    sheet is still link-shared, so auth can be switched on without downtime.
+    """
+    raw = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
+    if not raw:
+        return None, None
+
+    try:
+        info = json.loads(raw)
+    except json.JSONDecodeError:
+        raise SystemExit(
+            "GOOGLE_SERVICE_ACCOUNT_JSON is not valid JSON. Paste the whole key "
+            "file including the outer { } braces."
+        )
+    if "client_email" not in info or "private_key" not in info:
+        raise SystemExit(
+            "GOOGLE_SERVICE_ACCOUNT_JSON is missing client_email or private_key. "
+            "It should be the JSON key file, not the service account's email."
+        )
+
+    try:
+        from google.oauth2 import service_account
+        from google.auth.transport.requests import Request
+    except ImportError:
+        raise SystemExit(
+            "google-auth and requests are needed to read a private sheet. "
+            "Confirm they are listed in scripts/requirements.txt."
+        )
+
+    creds = service_account.Credentials.from_service_account_info(
+        info, scopes=config.SCOPES)
+    creds.refresh(Request())
+    return creds.token, info["client_email"]
+
+
 def fetch_csv(season: int) -> str:
     url = config.csv_url(season)
-    req = urllib.request.Request(url, headers={"User-Agent": "SFAStatsPages/1.0"})
+    token, account = google_token()
+
+    headers = {"User-Agent": "SFAStatsPages/1.0"}
+    if token:
+        headers["Authorization"] = "Bearer " + token
+        print(f"{season}: reading sheet as {account}")
+    else:
+        print(f"{season}: reading sheet anonymously (no service account key set)")
+
+    req = urllib.request.Request(url, headers=headers)
     try:
-        with urllib.request.urlopen(req, timeout=120) as resp:
+        with urllib.request.urlopen(req, timeout=180) as resp:
             raw = resp.read()
             final_url = resp.geturl()
     except urllib.error.HTTPError as exc:
+        hint = (f'Share the sheet with {account} as a Viewer.' if account
+                else 'Confirm it is shared as "Anyone with the link can view".')
         raise SystemExit(
-            f"Sheet for {season} returned HTTP {exc.code}. Confirm it is shared as "
-            f'"Anyone with the link can view".\n  {url}'
-        )
+            f"Sheet for {season} returned HTTP {exc.code}. {hint}\n  {url}")
+
     text = raw.decode("utf-8-sig", errors="replace")
     if "accounts.google.com" in final_url or text.lstrip().startswith("<"):
+        if account:
+            raise SystemExit(
+                f"Sheet for {season} returned a sign-in page instead of CSV.\n"
+                f"  The service account {account} cannot see it.\n"
+                f"  Open the sheet, click Share, and add that address as a Viewer.\n"
+                f"  {url}")
         raise SystemExit(
-            f"Sheet for {season} did not return CSV — it is probably not public. "
-            f'Set sharing to "Anyone with the link can view".\n  {url}'
-        )
+            f"Sheet for {season} did not return CSV — it is not public and no "
+            f"service account key is set.\n  {url}")
     return text
 
 
