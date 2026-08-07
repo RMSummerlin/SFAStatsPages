@@ -84,8 +84,9 @@ lined up when the column happened to match the cap. Charts fill the column on or
 screens and stop growing on an ultrawide.
 
 The league comparison is a vertical bar chart — groupings across the X axis, share of plays
-up the Y, the gap to league on top of each bar, and a dashed connector to the league tick
-when an offense is well clear of average. Groupings with fewer than five snaps are dropped
+up the Y, the gap to league on top of each bar in grey, and a dashed connector to the
+league tick when an offense is well clear of average. The gap sits above the value
+deliberately understated — colouring it competed with the percentage it annotates. Groupings with fewer than five snaps are dropped
 rather than given a bar reading 0%. Codes are zero-padded, so 0 RB / 2 TE reads `02`.
 
 ## Height

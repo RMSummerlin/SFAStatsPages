@@ -134,7 +134,8 @@
 .pt-root.pt-pg .pt-grid tfoot .pt-rank,.pt-root.pt-pg .pt-grid tfoot .pt-team{z-index:4}
 
 /* ---------- team detail ---------- */
-.pt-root.pt-pg .pt-det td{padding:0 !important;background:var(--bg2);border-bottom:2px solid var(--ink)}
+.pt-root.pt-pg .pt-det td{padding:0 !important;background:var(--bg2);
+  border-bottom:2px solid var(--ink);white-space:normal}
 .pt-root.pt-pg .pt-dwrap{padding:14px 12px;display:grid;gap:16px}
 .pt-root.pt-pg .pt-dhead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .pt-root.pt-pg .pt-dhead b{font-size:17px}
@@ -966,8 +967,7 @@
 
       var lab = Math.min(barTop, y(lp));
       g += '<text x="'+cx.toFixed(1)+'" y="'+(lab-14).toFixed(1)+'" text-anchor="middle" '+
-        'font-size="9" font-weight="700" fill="'+
-        (Math.abs(diff) < 1 ? C_G2 : (diff > 0 ? C_RED : C_INK))+'">'+
+        'font-size="9" font-weight="700" fill="'+C_G1+'">'+
         (diff > 0 ? '+' : '')+r0(diff)+'%</text>';
       g += '<text x="'+cx.toFixed(1)+'" y="'+(lab-4).toFixed(1)+'" text-anchor="middle" '+
         'font-size="10.5" font-weight="700" fill="'+C_INK+'">'+r0(p)+'%</text>';
