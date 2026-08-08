@@ -83,8 +83,20 @@ clean, frozen archive once it ends.
 - [ ] Run a manual `workflow_dispatch` trigger after the change to confirm the pipeline pulls from the new sheet correctly before the season's first real game
 - [ ] Before Week 1 the new sheet is empty — confirm each tool shows a sensible empty state rather than an error, and that the season picker still offers last season
 
-Backfilling an old season works the same way: add it to `SEASON_SHEETS`, run
-`python scripts/pull_personnel_grouping.py --all` once, commit the new JSON.
+Backfilling an old season works the same way: add it to `SEASON_SHEETS` (and
+`SEASON_GIDS` if the sheet's play-by-play is not on the first tab — check the `gid=`
+in its URL), then rebuild once.
+
+Either run it locally:
+
+```
+python scripts/pull_personnel_grouping.py --all
+```
+
+or, with no local setup at all, trigger it from the Actions tab: **Update Stats Data**
+-> **Run workflow** -> tick **Rebuild every season**. The workflow passes `--all` to any
+pull script that advertises the flag, and commits the new JSON itself. Scheduled runs
+always leave the box unticked, so archives are never rebuilt on a timer.
 
 ## 6. Before calling it done
 

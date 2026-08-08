@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import re
 import os
 import io
 import json
@@ -61,6 +62,12 @@ EPA_SCALE = 10       # EPA in the sheet is always one decimal place, so this is 
 YDS_OFFSET = 100     # yards gained is stored as yds + 100, base-91 across two columns
 
 FIELD_ZONES = ("Red zone", "20 to 50", "Own territory")
+
+# Kneel-downs and clock-stopping spikes. Word-bounded deliberately: a plain
+# substring test for "kneel" also matches DE M. Kneeland, who appears in tackle
+# credits from 2024 on. PlayDesc carries player surnames, so any matcher on it
+# needs boundaries. See scripts/test_dead_ball.py.
+DEAD_BALL_RE = re.compile(r"\bkneels?\b|spiked the ball", re.IGNORECASE)
 
 
 # --------------------------------------------------------------------------- io
@@ -209,8 +216,7 @@ def build_season(rows, season):
             dropped["not a pass or run"] += 1
             continue
 
-        desc = (row.get("PlayDesc") or "").lower()
-        if "kneel" in desc or "spike" in desc:
+        if DEAD_BALL_RE.search(row.get("PlayDesc") or ""):
             dropped["kneel or spike"] += 1
             continue
 

@@ -11,13 +11,26 @@ so a season rollover is a one-line edit that updates every tool at once.
 # season -> Google Sheet ID (the long string in the sheet URL between /d/ and /edit)
 SEASON_SHEETS = {
     2025: "16um740-9z4_1PUvelr1JHfISOnEqtTQ3bLJl21UoM6s",
+    2024: "1s_LyoK6k2EgAOZFXmDCq5u3WNzZPQJNjfmbHENX8vUo",
+    2023: "1sa3x3IfkiAQzAaHw4swU9kgImZ9-_h543ocHMTP1DOE",
+    2022: "1LXxpvBHbgmFxxDpFMvtJC40MVzg2EpwQNGdSIZhkgKc",
+    2021: "17D8yT9Gh8WG4ijxBlWjPjWgp6ZqzgmLj0OjzTp0Dfk4",
     # 2026: "...",   # add at the start of the 2026 season
-    # 2024: "...",   # add when backfilling
 }
 
 # Tab (gid) within each sheet holding the play-by-play export.
 # 0 is the first tab. Override per season here if a sheet is ever laid out differently.
-SEASON_GIDS = {}
+#
+# The 2021-2024 sheets were copied from a common template, so the play-by-play tab
+# kept its id and is NOT the first tab. Without these overrides the pull would
+# silently read whatever sits on tab 0. Check the gid= in a new sheet's URL before
+# assuming it is 0.
+SEASON_GIDS = {
+    2024: 1392276586,
+    2023: 1392276586,
+    2022: 1392276586,
+    2021: 1392276586,
+}
 DEFAULT_GID = 0
 
 # The season the tools open on by default. Always the newest season we have a sheet for,

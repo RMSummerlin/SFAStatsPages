@@ -63,7 +63,16 @@ data that is about 66% of all plays.
 | Personnel counts missing or not summing to 4 or 5 | 99 |
 
 Kneels and spikes are clock management, not personnel decisions, and they would quietly
-inflate heavy-personnel rates for teams that led a lot. A skill-player count of 5 is
+inflate heavy-personnel rates for teams that led a lot. They are charted with real
+personnel — mostly 22 and 13 — and each carries roughly −0.23 EPA by construction, so
+leaving them in would also drag heavy-personnel efficiency down by 0.03–0.07 EPA per play.
+The neutral game-script filter would not save it: 91–128 end-of-half kneels a season sit
+inside a two-score margin in quarters 1–3.
+
+The match is **word-bounded** (`DEAD_BALL_RE` in the pull script). A plain substring test
+for `kneel` also matches DE M. Kneeland, who appears in tackle credits from 2024 on — 18
+real plays in the 2024 sheet. `PlayDesc` carries player surnames, so any future matcher on
+that column needs the same care. `scripts/test_dead_ball.py` guards the case. A skill-player count of 5 is
 standard and 4 is a six-OL look; anything else is incomplete data rather than a real
 grouping. Special teams never appear — `PlayType` is only ever `PASS` or `RUSH`.
 
@@ -110,9 +119,32 @@ default, so adding a season needs no front-end edit.
 ## Adding a season
 
 1. Add the sheet to `SEASON_SHEETS` in `scripts/config.py`.
-2. `python scripts/pull_personnel_grouping.py --all` to build the new file.
-3. Both tools pick it up from the index on their next load. `CURRENT_SEASON` is
+2. **Check the tab.** Open the sheet and read the `gid=` in the URL. If it is not `0`, add
+   it to `SEASON_GIDS` — otherwise the pull silently reads whatever sits on the first tab
+   and the failure looks like a wrong play count rather than an error. The 2021–2024 sheets
+   were copied from a common template and all sit on gid `1392276586`.
+3. `python scripts/pull_personnel_grouping.py --all` to build the new file.
+4. Both tools pick it up from the index on their next load. `CURRENT_SEASON` is
    `max(SEASON_SHEETS)`, so the newest season becomes the default automatically.
+
+Expected play counts for the seasons published so far, useful as a sanity check after a
+rebuild — a large gap usually means a wrong gid rather than a data problem:
+
+| Season | Plays kept | Kneels/spikes | Incomplete personnel |
+|--------|-----------|---------------|----------------------|
+| 2021   | 33,879    | 464           | 106                  |
+| 2022   | 33,480    | 484           | 172                  |
+| 2023   | 33,676    | 495           | 160                  |
+| 2024   | 33,271    | 476           | 65                   |
+
+All four are complete regular seasons: 32 teams x 17 games, weeks 1–18, no playoff rows.
+Team abbreviations are modern and consistent throughout (`LV`, `LAC`, `LA`, `JAX`, `WAS`),
+so no relocation mapping is needed for 2021 onward. Note that `PlayDesc` uses PFF's own
+abbreviations, e.g. `CLV` for Cleveland — read the `team` column, never the description.
+
+One open question: 2021 charts noticeably more 10 personnel than its neighbours, roughly
+1.8% of plays against 0.5–0.8% for 2022–2024. That may be a real trend or a charting
+difference in that export. Worth confirming before treating 2021 as settled.
 
 Past seasons are frozen. The scheduled workflow only re-pulls the current season, so an
 archived season's JSON is written once and then left alone.

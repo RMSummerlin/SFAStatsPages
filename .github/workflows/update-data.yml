@@ -10,7 +10,12 @@ on:
     # closer to every 1-2 hours. That is fine for a source that changes a
     # few times a week.
     - cron: '*/30 * * * *'
-  workflow_dispatch: {}  # allows manual trigger from the Actions tab
+  workflow_dispatch:
+    inputs:
+      all_seasons:
+        description: 'Rebuild every season in config.py, not just the current one'
+        type: boolean
+        default: false
 
 permissions:
   contents: write  # needed to commit updated JSON back to the repo
@@ -34,6 +39,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
 
+      - name: Run tests
+        run: |
+          shopt -s nullglob
+          for test in scripts/test_*.py; do
+            echo "Running $test"
+            python "$test"
+          done
+
       - name: Run all data pull scripts
         env:
           # Service account key that can read the season Google Sheets.
@@ -41,9 +54,19 @@ jobs:
           # sheet anonymously, which only works while it is link-shared.
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         run: |
+          # --all is only passed to scripts that advertise it, so the
+          # pull_*.py auto-discovery keeps working for scripts that have
+          # no concept of seasons.
           for script in scripts/pull_*.py; do
-            echo "Running $script"
-            python "$script"
+            args=""
+            if [ "${{ inputs.all_seasons }}" = "true" ] \
+               && python "$script" --help 2>/dev/null | grep -q -- "--all"; then
+              args="--all"
+              echo "Running $script (all seasons)"
+            else
+              echo "Running $script"
+            fi
+            python "$script" $args
           done
 
       - name: Commit updated data if changed
