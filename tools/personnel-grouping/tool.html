@@ -1,11 +1,21 @@
 <style>
 /* Personnel Grouping Frequency
    Every selector is scoped under .pt-root. See docs/avada-embed-rules.md. */
-.pt-root.pt-pg *{box-sizing:border-box;margin:0;padding:0}
+/* Scoping stops our styles leaking out; it does not stop the theme's leaking in.
+   Any property we leave undeclared falls back to inheritance, and inheritance
+   loses to any Avada rule that matches the element directly — which is why bare
+   th/td were picking up theme colours and fonts. Declare them explicitly. */
+.pt-root.pt-pg *{box-sizing:border-box;margin:0;padding:0;font-family:inherit;color:inherit}
+.pt-root.pt-pg table,.pt-root.pt-pg thead,.pt-root.pt-pg tbody,.pt-root.pt-pg tfoot,
+.pt-root.pt-pg tr,.pt-root.pt-pg th,.pt-root.pt-pg td,.pt-root.pt-pg caption{
+  font:inherit;color:inherit;background:none;border:0;text-align:inherit;
+  text-transform:none;letter-spacing:normal;text-shadow:none;box-shadow:none;
+  vertical-align:middle;width:auto;height:auto}
 .pt-root.pt-pg{
   --red:#cc0000; --ink:#111; --g1:#7f8c9a; --g2:#b0bec5;
   --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --w:#fff;
-  font-family:'Interstate Condensed','Interstate','Helvetica Neue',Arial,sans-serif;
+  font-family:'Interstate Condensed','Interstate','Roboto Condensed','Arial Narrow',
+    'Helvetica Neue',Arial,sans-serif;
   color:var(--ink); background:var(--w);
   border:1px solid var(--b1); line-height:1.25;
   position:relative;
@@ -16,7 +26,8 @@
   overflow:hidden;
   font-variant-numeric:tabular-nums;
 }
-.pt-root.pt-pg input,.pt-root.pt-pg select,.pt-root.pt-pg button,.pt-root.pt-pg textarea{font-family:inherit;color:inherit}
+.pt-root.pt-pg input,.pt-root.pt-pg select,.pt-root.pt-pg button,.pt-root.pt-pg textarea{
+  font:inherit;color:inherit;letter-spacing:inherit;text-transform:none}
 .pt-root.pt-pg button{background:none;border:0;cursor:pointer}
 .pt-root.pt-pg :focus-visible{outline:2px solid var(--red);outline-offset:1px}
 
