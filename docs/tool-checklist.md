@@ -18,6 +18,16 @@ are needed for a normal new tool.
 - [ ] If the script needs a **new Python package**, add it to `scripts/requirements.txt`. Prefer the standard library — it keeps CI fast
 - [ ] Test locally before committing. Pull scripts should take a `--csv` flag so they can run against a downloaded export without hitting the sheet
 - [ ] **Only touch `update-data.yml` directly if:** the schedule itself needs to change, the script needs to write outside `data/`, or something needs to run in a fundamentally different way than "pull → write JSON → commit if changed"
+- [ ] If the script supports multiple seasons, give it an `--all` flag. The workflow greps each script's `--help` and only passes `--all` to scripts that advertise it, so the "Rebuild every season" checkbox then works with no YAML change
+- [ ] Add a `scripts/test_<name>.py` for anything the pull script gets subtly wrong — the workflow runs every `scripts/test_*.py` before the pull step, again with no YAML change
+
+## 1b. Wiring that is NOT auto-discovered
+
+The `pull_*.py` glob covers the pull itself. These three do not happen on their own, and forgetting them fails quietly rather than loudly:
+
+- [ ] `scripts/refresh_preload.py` — add the tool to the `PAIRS` dict, or its crawlable table never gets injected and search engines see an empty embed
+- [ ] `index.html` — add the tool to the `TOOLS` array so its endpoints show on the status page
+- [ ] `docs/<tool>-data.md` — write down the data decisions while the reasoning is fresh, and link it from the tool's README
 
 Helper scripts that should *not* run on the schedule must not be named `pull_*` — that is
 why the linter is `lint_embed.py` and the preload refresher is `refresh_preload.py`.

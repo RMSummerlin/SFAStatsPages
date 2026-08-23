@@ -24,6 +24,7 @@ END = "<!-- SFA:PRELOAD:END -->"
 # tool folder -> generated snippet in data/
 PAIRS = {
     "personnel-grouping": "personnel_grouping_preload.html",
+    "pace": "pace_preload.html",
 }
 
 

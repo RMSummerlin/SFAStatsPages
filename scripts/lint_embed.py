@@ -20,6 +20,8 @@ DOC_LEVEL_TAGS = ["<!doctype", "<html", "<head", "<body", "<meta", "<title"]
 LANDMARKS = ["header", "footer", "nav", "main", "section", "article", "aside"]
 BRAND_COLORS = {"#cc0000", "#000", "#111", "#7f8c9a", "#b0bec5",
                 "#cdd5de", "#dde2e8", "#f4f5f7", "#f9fafb", "#fff"}
+# Elements Avada styles heavily enough that leaving them undeclared is a bug.
+TABLE_ELEMENTS = ["table", "thead", "tbody", "tr", "th", "td", "caption"]
 
 
 def selectors(css):
@@ -109,6 +111,40 @@ def lint(path: Path):
                          "long lists will scroll the page")
         if "min-width:641px" not in css.replace(" ", ""):
             warns.append("no min-width:641px enhancement — is this really mobile-first?")
+
+        # Scoping is one-directional. Putting every selector under .pt-root stops
+        # our styles escaping into Avada; it does nothing to stop Avada's styles
+        # reaching in. Any property left undeclared falls back to inheritance, and
+        # inheritance loses to any theme rule matching the element directly — so
+        # bare th/td pick up Avada's red condensed heading font while every div in
+        # the same tool renders correctly. The telltale is a table that looks wrong
+        # inside a tool that otherwise looks right.
+        if re.search(r"<table[\s>]", low):
+            declared = {}
+            for sel in selectors(css):
+                tag = sel.rsplit(" ", 1)[-1].split(".")[0].split(":")[0].strip()
+                if tag in TABLE_ELEMENTS:
+                    body = ""
+                    for m in re.finditer(re.escape(sel) + r"\s*[,{]", css):
+                        brace = css.find("{", m.start())
+                        if brace != -1:
+                            body += css[brace:css.find("}", brace) + 1]
+                    declared.setdefault(tag, "")
+                    declared[tag] += body
+            for tag in TABLE_ELEMENTS:
+                body = declared.get(tag)
+                if body is None:
+                    fails.append(
+                        f"fragment has a <table> but never styles <{tag}> — "
+                        f"Avada's theme rules will win by specificity")
+                    continue
+                flat = re.sub(r"\s+", "", body)
+                if not re.search(r"[;{]font(-family)?:", flat):
+                    fails.append(f"<{tag}> does not declare font or font-family — "
+                                 f"it will inherit Avada's heading font")
+                if not re.search(r"[;{]color:", flat):
+                    fails.append(f"<{tag}> does not declare color — "
+                                 f"it will inherit Avada's link/heading colour")
 
         found = set(re.findall(r"#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b", css))
         off = {c.lower() for c in found} - BRAND_COLORS

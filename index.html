@@ -24,6 +24,9 @@
   .rule{height:3px;background:var(--ink);margin:16px 0 24px}
   h2{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--g1);
      margin:28px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--b1)}
+  h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);
+     margin:18px 0 6px;font-weight:700}
+  h3:first-child{margin-top:0}
   .card{background:#fff;border:1px solid var(--b1)}
   .ep{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
       padding:11px 13px;border-bottom:1px solid var(--b2)}
@@ -64,24 +67,30 @@
   <div class="card" id="eps"><div class="empty">Checking…</div></div>
 
   <h2>Published seasons</h2>
-  <div class="card" id="seasons"><div class="empty">Checking…</div></div>
+  <div id="tools"><div class="empty">Checking…</div></div>
 
   <p class="note">If a row is red, the tools will fall back to their built-in static table
     and log an error to the browser console. Check the <b>pages build and deployment</b>
     run in the Actions tab first, then the <code>Update Stats Data</code> workflow.</p>
 
   <footer>
-    Rebuilt by <code>scripts/pull_personnel_grouping.py</code> · data decisions in
+    Rebuilt by the <code>scripts/pull_*.py</code> scripts · data decisions in
     <a href="https://github.com/RMSummerlin/SFAStatsPages/blob/main/docs/personnel-grouping-data.md">docs/personnel-grouping-data.md</a>
+    and <a href="https://github.com/RMSummerlin/SFAStatsPages/blob/main/docs/pace-data.md">docs/pace-data.md</a>
   </footer>
 </div>
 
 <script>
 (function(){
   "use strict";
-  var INDEX = 'data/personnel_grouping_index.json';
+  // One entry per tool. Adding a tool means adding a line here; nothing else on
+  // this page is tool-specific.
+  var TOOLS = [
+    {name:'Personnel grouping', prefix:'personnel_grouping'},
+    {name:'Pace', prefix:'pace'}
+  ];
   var epBox = document.getElementById('eps');
-  var seasonBox = document.getElementById('seasons');
+  var toolBox = document.getElementById('tools');
 
   function ago(iso){
     var t = Date.parse((iso || '').replace(' ', 'T'));
@@ -124,62 +133,76 @@
     });
   }
 
-  var idxRow = row(INDEX);
   epBox.innerHTML = '';
-  epBox.appendChild(idxRow);
+  toolBox.innerHTML = '';
 
-  probe(idxRow, INDEX).then(function(body){
-    if (!body){
-      seasonBox.innerHTML = '<div class="empty">Index unreachable, so no seasons to list.</div>';
-      return;
-    }
-    var idx;
-    try { idx = JSON.parse(body); }
-    catch (e){
-      seasonBox.innerHTML = '<div class="empty">Index is not valid JSON.</div>';
-      return;
-    }
-    var seasons = (idx.seasons || []).slice().sort(function(a,b){ return b-a; });
-    if (!seasons.length){
-      seasonBox.innerHTML = '<div class="empty">No seasons published yet.</div>';
-      return;
-    }
+  TOOLS.forEach(function(tool){
+    var INDEX = 'data/' + tool.prefix + '_index.json';
 
-    var tbl = document.createElement('table');
-    tbl.innerHTML = '<caption>Live from each season file. ' +
-      'Default season is <b>' + (idx.default || seasons[0]) + '</b>.</caption>' +
-      '<thead><tr><th>Season</th><th>Plays</th><th>Excluded</th>' +
-      '<th>Size</th><th>Built</th></tr></thead><tbody></tbody>';
-    var tbody = tbl.querySelector('tbody');
-    seasonBox.innerHTML = '';
-    seasonBox.appendChild(tbl);
+    var h = document.createElement('h3');
+    h.textContent = tool.name;
+    toolBox.appendChild(h);
+    var seasonBox = document.createElement('div');
+    seasonBox.className = 'card';
+    seasonBox.innerHTML = '<div class="empty">Checking…</div>';
+    toolBox.appendChild(seasonBox);
 
-    seasons.forEach(function(y){
-      var url = 'data/personnel_grouping_' + y + '.json';
-      var tr = document.createElement('tr');
-      tr.innerHTML = '<td>' + y + (y === idx.default ? ' &middot; default' : '') +
-        '</td><td colspan="4" style="text-align:right;color:#7f8c9a">loading…</td>';
-      tbody.appendChild(tr);
+    var idxRow = row(INDEX);
+    epBox.appendChild(idxRow);
 
-      var epRow = row(url);
-      epBox.appendChild(epRow);
+    probe(idxRow, INDEX).then(function(body){
+      if (!body){
+        seasonBox.innerHTML = '<div class="empty">Index unreachable, so no seasons to list.</div>';
+        return;
+      }
+      var idx;
+      try { idx = JSON.parse(body); }
+      catch (e){
+        seasonBox.innerHTML = '<div class="empty">Index is not valid JSON.</div>';
+        return;
+      }
+      var seasons = (idx.seasons || []).slice().sort(function(a,b){ return b-a; });
+      if (!seasons.length){
+        seasonBox.innerHTML = '<div class="empty">No seasons published yet.</div>';
+        return;
+      }
 
-      probe(epRow, url).then(function(text){
-        if (!text){
-          tr.cells[1].colSpan = 4;
-          tr.cells[1].style.color = '#cc0000';
-          tr.cells[1].textContent = 'unreachable';
-          return;
-        }
-        var d = JSON.parse(text);
-        var skipped = 0;
-        Object.keys(d.excluded || {}).forEach(function(k){ skipped += d.excluded[k]; });
-        tr.innerHTML =
-          '<td>' + y + (y === idx.default ? ' &middot; default' : '') + '</td>' +
-          '<td>' + d.plays.toLocaleString('en-US') + '</td>' +
-          '<td>' + skipped.toLocaleString('en-US') + '</td>' +
-          '<td>' + kb(text.length) + '</td>' +
-          '<td title="' + (d.generated_utc || '') + '">' + ago(d.generated_utc) + '</td>';
+      var tbl = document.createElement('table');
+      tbl.innerHTML = '<caption>Live from each season file. ' +
+        'Default season is <b>' + (idx.default || seasons[0]) + '</b>.</caption>' +
+        '<thead><tr><th>Season</th><th>Plays</th><th>Excluded</th>' +
+        '<th>Size</th><th>Built</th></tr></thead><tbody></tbody>';
+      var tbody = tbl.querySelector('tbody');
+      seasonBox.innerHTML = '';
+      seasonBox.appendChild(tbl);
+
+      seasons.forEach(function(y){
+        var url = 'data/' + tool.prefix + '_' + y + '.json';
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + y + (y === idx.default ? ' &middot; default' : '') +
+          '</td><td colspan="4" style="text-align:right;color:#7f8c9a">loading…</td>';
+        tbody.appendChild(tr);
+
+        var epRow = row(url);
+        epBox.appendChild(epRow);
+
+        probe(epRow, url).then(function(text){
+          if (!text){
+            tr.cells[1].colSpan = 4;
+            tr.cells[1].style.color = '#cc0000';
+            tr.cells[1].textContent = 'unreachable';
+            return;
+          }
+          var d = JSON.parse(text);
+          var skipped = 0;
+          Object.keys(d.excluded || {}).forEach(function(k){ skipped += d.excluded[k]; });
+          tr.innerHTML =
+            '<td>' + y + (y === idx.default ? ' &middot; default' : '') + '</td>' +
+            '<td>' + d.plays.toLocaleString('en-US') + '</td>' +
+            '<td>' + skipped.toLocaleString('en-US') + '</td>' +
+            '<td>' + kb(text.length) + '</td>' +
+            '<td title="' + (d.generated_utc || '') + '">' + ago(d.generated_utc) + '</td>';
+        });
       });
     });
   });

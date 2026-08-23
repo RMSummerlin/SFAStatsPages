@@ -1,0 +1,1007 @@
+<style>
+/* Pace Statistics
+   Every selector is scoped under .pt-root.pt-pc. See docs/avada-embed-rules.md.
+   .pt-pc is this tool's own namespace: .pt-root alone would let this tool and the
+   personnel tool overwrite each other if Avada ever aggregates both stylesheets. */
+/* Scoping stops our styles leaking out; it does not stop the theme's leaking in.
+   Any property we leave undeclared falls back to inheritance, and inheritance
+   loses to any Avada rule that matches the element directly — which is why bare
+   th/td were picking up theme colours and fonts. Declare them explicitly. */
+.pt-root.pt-pc *{box-sizing:border-box;margin:0;padding:0;font-family:inherit;color:inherit}
+.pt-root.pt-pc table,.pt-root.pt-pc thead,.pt-root.pt-pc tbody,.pt-root.pt-pc tfoot,
+.pt-root.pt-pc tr,.pt-root.pt-pc th,.pt-root.pt-pc td,.pt-root.pt-pc caption{
+  font:inherit;color:inherit;background:none;border:0;text-align:inherit;
+  text-transform:none;letter-spacing:normal;text-shadow:none;box-shadow:none;
+  vertical-align:middle;width:auto;height:auto}
+.pt-root.pt-pc{
+  --red:#cc0000; --ink:#111; --g1:#7f8c9a; --g2:#b0bec5;
+  --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --w:#fff;
+  font-family:'Interstate Condensed','Interstate','Roboto Condensed','Arial Narrow',
+    'Helvetica Neue',Arial,sans-serif;
+  color:var(--ink); background:var(--w);
+  border:1px solid var(--b1); line-height:1.25;
+  position:relative;
+  display:flex; flex-direction:column;
+  max-height:1000px;
+  max-height:clamp(1000px,120vh,1320px);
+  max-height:clamp(1000px,120svh,1320px);
+  overflow:hidden;
+  font-variant-numeric:tabular-nums;
+}
+.pt-root.pt-pc input,.pt-root.pt-pc select,.pt-root.pt-pc button,.pt-root.pt-pc textarea{
+  font:inherit;color:inherit;letter-spacing:inherit;text-transform:none}
+.pt-root.pt-pc button{background:none;border:0;cursor:pointer}
+.pt-root.pt-pc :focus-visible{outline:2px solid var(--red);outline-offset:1px}
+
+/* ---------- header ---------- */
+.pt-root.pt-pc .pt-head{flex:0 0 auto;padding:12px 12px 10px;border-bottom:2px solid var(--ink)}
+.pt-root.pt-pc .pt-title{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.01em}
+.pt-root.pt-pc .pt-sub{margin-top:3px;font-size:13px;color:var(--g1)}
+.pt-root.pt-pc .pt-sub b{color:var(--ink);font-weight:700}
+.pt-root.pt-pc .pt-modes{display:flex;margin-top:10px;border:1px solid var(--b1)}
+.pt-root.pt-pc .pt-mode{flex:1;min-height:44px;padding:0 14px;font-size:13px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--g1)}
+.pt-root.pt-pc .pt-mode+.pt-mode{border-left:1px solid var(--b1)}
+.pt-root.pt-pc .pt-mode[aria-pressed="true"]{background:var(--ink);color:var(--w)}
+
+/* ---------- filter bar ---------- */
+.pt-root.pt-pc .pt-bar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;
+  padding:8px 12px;border-bottom:1px solid var(--b2);background:var(--bg2)}
+.pt-root.pt-pc .pt-fb{min-height:44px;padding:4px 10px;border:1px solid var(--b1);background:var(--w);
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;text-align:left}
+.pt-root.pt-pc .pt-fb[data-on="1"]{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+.pt-root.pt-pc .pt-fb .l{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--g1)}
+.pt-root.pt-pc .pt-fb .v{font-size:13px;font-weight:700;white-space:nowrap}
+.pt-root.pt-pc .pt-reset{margin-left:auto;min-height:44px;padding:0 12px;font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--red)}
+.pt-root.pt-pc .pt-reset[hidden]{display:none}
+
+/* ---------- popover ---------- */
+.pt-root.pt-pc .pt-pop{position:absolute;z-index:40;min-width:170px;max-width:min(300px,92%);
+  background:var(--w);border:1px solid var(--ink);padding:8px;
+  box-shadow:0 6px 20px rgba(0,0,0,.16)}
+.pt-root.pt-pc .pt-pop[hidden]{display:none}
+.pt-root.pt-pc .pt-pop .h{font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--g1);margin-bottom:6px}
+.pt-root.pt-pc .pt-opts{display:flex;flex-wrap:wrap;gap:4px}
+.pt-root.pt-pc .pt-opt{min-height:38px;min-width:44px;padding:0 10px;border:1px solid var(--b1);
+  font-size:13px;font-weight:700;background:var(--w)}
+.pt-root.pt-pc .pt-opt[aria-pressed="true"]{background:var(--ink);color:var(--w);border-color:var(--ink)}
+.pt-root.pt-pc .pt-popfoot{display:flex;gap:6px;margin-top:8px;padding-top:8px;
+  border-top:1px solid var(--b2)}
+.pt-root.pt-pc .pt-popfoot button{flex:1;min-height:40px;font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--b1)}
+.pt-root.pt-pc .pt-popfoot .go{background:var(--ink);color:var(--w);border-color:var(--ink)}
+
+/* ---------- table ---------- */
+.pt-root.pt-pc .pt-wrap{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
+.pt-root.pt-pc .pt-grid{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+.pt-root.pt-pc .pt-grid th,.pt-root.pt-pc .pt-grid td{padding:0;text-align:center;white-space:nowrap;
+  border-bottom:1px solid var(--b2)}
+.pt-root.pt-pc .pt-grid thead th{position:sticky;top:0;z-index:3;background:var(--w);
+  border-bottom:2px solid var(--ink);font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--g1)}
+.pt-root.pt-pc .pt-grid thead th button{width:100%;min-height:44px;font:inherit;color:inherit;padding:3px 4px}
+.pt-root.pt-pc .pt-grid thead th[aria-sort]{color:var(--red)}
+.pt-root.pt-pc .pt-grid thead th[aria-sort]::after{content:' \25BC';font-size:8px}
+.pt-root.pt-pc .pt-grid thead th[aria-sort=ascending]::after{content:' \25B2';font-size:8px}
+/* Rank and team stay put while the numbers scroll sideways. Without this the
+   team abbreviation scrolls away and the numbers belong to nobody. Sticky cells
+   need their own opaque background or the scrolling content shows through. */
+.pt-root.pt-pc .pt-rank{position:sticky;left:0;z-index:2;width:26px;
+  background:var(--w);color:var(--g2);font-size:11px}
+.pt-root.pt-pc .pt-team{position:sticky;left:26px;z-index:2;
+  background:var(--w);text-align:left;font-weight:700}
+.pt-root.pt-pc .pt-grid thead .pt-rank,.pt-root.pt-pc .pt-grid thead .pt-team{z-index:4}
+.pt-root.pt-pc .pt-grid tfoot .pt-rank,.pt-root.pt-pc .pt-grid tfoot .pt-team{z-index:4}
+/* Striping is applied by class rather than :nth-child because an expanded detail
+   row sits between two team rows and would flip the parity of everything below. */
+.pt-root.pt-pc .pt-alt,.pt-root.pt-pc .pt-alt .pt-rank,
+.pt-root.pt-pc .pt-alt .pt-team{background:var(--bg2)}
+.pt-root.pt-pc .pt-open,.pt-root.pt-pc .pt-open .pt-rank,
+.pt-root.pt-pc .pt-open .pt-team{background:var(--ink);color:var(--w)}
+.pt-root.pt-pc .pt-open .pt-teamcell{color:var(--w)}
+.pt-root.pt-pc .pt-open .pt-teamcell::before{color:var(--w)}
+/* Data columns need a floor or long headers stretch them and the table blows
+   past the panel on a narrow screen. */
+.pt-root.pt-pc .pt-grid td:not(.pt-rank):not(.pt-team),
+.pt-root.pt-pc .pt-grid th:not(.pt-rank):not(.pt-team){min-width:56px}
+.pt-root.pt-pc .pt-teamcell{display:flex;align-items:center;gap:6px;min-height:44px;
+  width:100%;padding:0 8px;font:inherit;color:inherit;text-align:left}
+.pt-root.pt-pc .pt-teamcell::before{content:'\25B8';font-size:9px;color:var(--g2);
+  transition:transform .12s}
+.pt-root.pt-pc .pt-open .pt-teamcell::before{transform:rotate(90deg);color:var(--red)}
+.pt-root.pt-pc .pt-num{display:block;min-height:44px;line-height:44px;padding:0 6px}
+.pt-root.pt-pc .pt-lead{font-weight:700}
+.pt-root.pt-pc .pt-thin{color:var(--g2)}
+.pt-root.pt-pc .pt-pos{color:var(--red)}
+.pt-root.pt-pc .pt-grid tfoot th,.pt-root.pt-pc .pt-grid tfoot td{position:sticky;bottom:0;z-index:3;
+  background:var(--w);border-top:2px solid var(--ink);border-bottom:0;font-size:12px;font-weight:700}
+
+/* ---------- expanded detail ---------- */
+.pt-root.pt-pc .pt-det td{padding:0;background:var(--bg2);
+  border-bottom:2px solid var(--ink);white-space:normal}
+/* The cell is as wide as the whole table; the panel is not. Sticking the inner
+   box to the left edge and sizing it to the panel keeps the cards and charts on
+   screen instead of scrolled off to the right. Width is set in JS from the
+   scroll container, since CSS has no unit for "as wide as my scrollport". */
+.pt-root.pt-pc .pt-detin{position:sticky;left:0;padding:12px;box-sizing:border-box}
+.pt-root.pt-pc .pt-detname{font-size:14px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.04em;margin-bottom:8px}
+.pt-root.pt-pc .pt-cards{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.pt-root.pt-pc .pt-card{flex:1 1 88px;border:1px solid var(--b2);background:var(--w);padding:6px 8px}
+.pt-root.pt-pc .pt-card .k{font-size:9px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--g1)}
+.pt-root.pt-pc .pt-card .n{font-size:17px;font-weight:700}
+.pt-root.pt-pc .pt-card .r{font-size:10px;color:var(--g1)}
+.pt-root.pt-pc .pt-chart{margin-bottom:12px}
+.pt-root.pt-pc .pt-chart:last-child{margin-bottom:0}
+.pt-root.pt-pc .pt-ctitle{font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--g1);margin-bottom:4px}
+.pt-root.pt-pc .pt-chart svg{display:block;width:100%;height:auto;background:var(--w);
+  border:1px solid var(--b2)}
+.pt-root.pt-pc .pt-note{font-size:11px;color:var(--g1);margin-top:6px}
+
+/* ---------- status + footer ---------- */
+.pt-root.pt-pc .pt-status{padding:26px 14px;text-align:center;font-size:13px;color:var(--g1)}
+.pt-root.pt-pc .pt-foot{flex:0 0 auto;padding:8px 12px;border-top:1px solid var(--b2);
+  background:var(--bg2);font-size:11px;color:var(--g1)}
+.pt-root.pt-pc .pt-foot b{color:var(--ink);font-weight:700}
+
+/* ---------- crawlable preload ---------- */
+.pt-root.pt-pc .pt-seo{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);
+  clip-path:inset(50%);white-space:nowrap}
+.pt-root.pt-pc .pt-seo table,.pt-root.pt-pc .pt-seo th,.pt-root.pt-pc .pt-seo td,
+.pt-root.pt-pc .pt-seo caption{font:inherit;color:inherit}
+.pt-root.pt-pc .pt-seo th,.pt-root.pt-pc .pt-seo td{border:1px solid var(--b2);padding:5px 7px;
+  text-align:center}
+
+/* ---------- desktop enhancement ---------- */
+@media (min-width:641px){
+  .pt-root.pt-pc .pt-title{font-size:25px}
+  .pt-root.pt-pc .pt-grid{font-size:14px}
+  .pt-root.pt-pc .pt-grid thead th{font-size:11px}
+  .pt-root.pt-pc .pt-rank{width:38px;font-size:12px}
+  .pt-root.pt-pc .pt-card{flex:1 1 112px}
+  .pt-root.pt-pc .pt-charts{display:flex;gap:12px}
+  .pt-root.pt-pc .pt-charts .pt-chart{flex:1;margin-bottom:0}
+}
+</style>
+
+<div class="pt-root pt-pc">
+  <div class="pt-head">
+    <div class="pt-title">Offensive Pace</div>
+    <div class="pt-sub" data-role="sub">Loading pace data…</div>
+    <div class="pt-modes" role="group" aria-label="Metric group">
+      <button type="button" class="pt-mode" data-mode="tempo" aria-pressed="true">Tempo</button>
+      <button type="button" class="pt-mode" data-mode="volume" aria-pressed="false">Volume</button>
+    </div>
+  </div>
+
+  <div class="pt-bar" data-role="bar"></div>
+  <div class="pt-pop" data-role="pop" hidden></div>
+
+  <div class="pt-wrap" data-role="wrap">
+    <div class="pt-status" data-role="status">Loading…</div>
+  </div>
+
+  <div class="pt-foot" data-role="foot"></div>
+
+  <div class="pt-seo">
+    <!-- SFA:PRELOAD:START -->
+<table class="pt-pre"><caption>2025 offensive pace by team, all plays, no filters applied. Seconds per play is real time between consecutive snaps, so it is unaffected by whether the game clock was running. Neutral covers quarters 1 to 3 inside 14 points, excluding the final two minutes of the half. Gear change is neutral seconds per play minus seconds per play when trailing by 5 or more: a positive number means the offense speeds up when it falls behind.</caption><thead><tr><th scope="col">#</th><th scope="col">Offense</th><th scope="col">Sec/play</th><th scope="col">Neutral</th><th scope="col">Gear change</th><th scope="col">No-huddle</th><th scope="col">Plays/game</th><th scope="col">Plays/drive</th><th scope="col">TOP/game</th><th scope="col">Plays</th></tr></thead><tbody><tr><td>1</td><th scope="row">NO</th><td>36.98</td><td>37.5</td><td>0.45</td><td>23%</td><td>62.4</td><td>6.17</td><td>27.8</td><td>1,061</td></tr><tr><td>2</td><th scope="row">NYG</th><td>39.13</td><td>38.59</td><td>-0.53</td><td>21%</td><td>63.2</td><td>6.44</td><td>30.4</td><td>1,075</td></tr><tr><td>3</td><th scope="row">DAL</th><td>38.71</td><td>39.27</td><td>1.74</td><td>9%</td><td>64.8</td><td>6.36</td><td>29.7</td><td>1,101</td></tr><tr><td>4</td><th scope="row">SF</th><td>39.64</td><td>39.53</td><td>1.22</td><td>4%</td><td>62.4</td><td>6.42</td><td>30.0</td><td>1,060</td></tr><tr><td>5</td><th scope="row">DET</th><td>40.26</td><td>40.36</td><td>0.73</td><td>6%</td><td>61.8</td><td>5.77</td><td>29.8</td><td>1,050</td></tr><tr><td>6</td><th scope="row">CHI</th><td>40.45</td><td>40.37</td><td>0.14</td><td>5%</td><td>64.1</td><td>6.19</td><td>30.0</td><td>1,090</td></tr><tr><td>7</td><th scope="row">LAR</th><td>40.49</td><td>40.59</td><td>-0.05</td><td>7%</td><td>62.2</td><td>6.07</td><td>29.1</td><td>1,057</td></tr><tr><td>8</td><th scope="row">DEN</th><td>40.78</td><td>40.67</td><td>1.37</td><td>13%</td><td>63.1</td><td>6.03</td><td>30.4</td><td>1,073</td></tr><tr><td>9</td><th scope="row">LV</th><td>39.62</td><td>40.69</td><td>1.31</td><td>9%</td><td>55.2</td><td>5.34</td><td>27.1</td><td>939</td></tr><tr><td>10</td><th scope="row">WAS</th><td>40.5</td><td>40.7</td><td>0.38</td><td>61%</td><td>57.2</td><td>6.11</td><td>27.9</td><td>972</td></tr><tr><td>11</td><th scope="row">NYJ</th><td>39.22</td><td>40.74</td><td>1.64</td><td>10%</td><td>58.9</td><td>5.66</td><td>27.5</td><td>1,001</td></tr><tr><td>12</td><th scope="row">KC</th><td>40.85</td><td>40.98</td><td>-0.14</td><td>2%</td><td>61.5</td><td>6.37</td><td>29.4</td><td>1,045</td></tr><tr><td>13</td><th scope="row">BAL</th><td>41.33</td><td>41.21</td><td>0.71</td><td>3%</td><td>56.1</td><td>5.58</td><td>28.2</td><td>954</td></tr><tr><td>14</td><th scope="row">NE</th><td>40.97</td><td>41.23</td><td>0.45</td><td>2%</td><td>59.6</td><td>6.11</td><td>29.7</td><td>1,014</td></tr><tr><td>15</td><th scope="row">CLE</th><td>40.26</td><td>41.27</td><td>2.24</td><td>9%</td><td>60.2</td><td>5.36</td><td>29.1</td><td>1,024</td></tr><tr><td>16</td><th scope="row">IND</th><td>41.29</td><td>41.37</td><td>1.38</td><td>5%</td><td>59.1</td><td>5.98</td><td>29.0</td><td>1,004</td></tr><tr><td>17</td><th scope="row">PHI</th><td>41.48</td><td>41.48</td><td>1.61</td><td>19%</td><td>58.4</td><td>5.7</td><td>29.3</td><td>992</td></tr><tr><td>18</td><th scope="row">GB</th><td>41.03</td><td>41.5</td><td>3.19</td><td>8%</td><td>58.3</td><td>6.35</td><td>29.0</td><td>991</td></tr><tr><td>19</td><th scope="row">LAC</th><td>41.19</td><td>41.52</td><td>0.31</td><td>4%</td><td>63.5</td><td>6.27</td><td>31.8</td><td>1,079</td></tr><tr><td>20</td><th scope="row">HOU</th><td>41.33</td><td>41.54</td><td>0.8</td><td>4%</td><td>63.1</td><td>5.79</td><td>30.6</td><td>1,072</td></tr><tr><td>21</td><th scope="row">ARI</th><td>39.56</td><td>41.66</td><td>5.21</td><td>12%</td><td>62.9</td><td>6.33</td><td>29.6</td><td>1,070</td></tr><tr><td>22</td><th scope="row">MIN</th><td>41.04</td><td>41.69</td><td>0.9</td><td>8%</td><td>55.2</td><td>5.37</td><td>27.1</td><td>939</td></tr><tr><td>23</td><th scope="row">CIN</th><td>41.17</td><td>41.7</td><td>1.0</td><td>3%</td><td>61.4</td><td>6.0</td><td>29.9</td><td>1,044</td></tr><tr><td>24</td><th scope="row">SEA</th><td>41.14</td><td>41.73</td><td>1.24</td><td>7%</td><td>58.5</td><td>5.52</td><td>29.2</td><td>994</td></tr><tr><td>25</td><th scope="row">ATL</th><td>41.44</td><td>41.8</td><td>2.48</td><td>11%</td><td>60.7</td><td>5.9</td><td>29.4</td><td>1,032</td></tr><tr><td>26</td><th scope="row">TEN</th><td>40.75</td><td>41.8</td><td>1.38</td><td>10%</td><td>58.5</td><td>5.56</td><td>28.6</td><td>995</td></tr><tr><td>27</td><th scope="row">BUF</th><td>41.76</td><td>41.88</td><td>0.46</td><td>6%</td><td>62.1</td><td>6.29</td><td>31.8</td><td>1,056</td></tr><tr><td>28</td><th scope="row">CAR</th><td>41.29</td><td>41.97</td><td>1.03</td><td>6%</td><td>58.3</td><td>6.23</td><td>29.3</td><td>991</td></tr><tr><td>29</td><th scope="row">PIT</th><td>41.31</td><td>42.07</td><td>2.08</td><td>11%</td><td>57.3</td><td>5.8</td><td>27.8</td><td>974</td></tr><tr><td>30</td><th scope="row">JAX</th><td>42.11</td><td>42.1</td><td>1.75</td><td>7%</td><td>62.9</td><td>5.94</td><td>30.9</td><td>1,070</td></tr><tr><td>31</td><th scope="row">MIA</th><td>42.16</td><td>42.53</td><td>-0.02</td><td>4%</td><td>55.2</td><td>5.49</td><td>28.3</td><td>939</td></tr><tr><td>32</td><th scope="row">TB</th><td>42.29</td><td>42.54</td><td>0.68</td><td>6%</td><td>62.2</td><td>6.07</td><td>31.6</td><td>1,057</td></tr></tbody></table>
+<!-- SFA:PRELOAD:END -->
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var ROOT = document.currentScript && document.currentScript.previousElementSibling;
+  if (!ROOT || !ROOT.classList.contains('pt-pc')) {
+    var all = document.querySelectorAll('.pt-root.pt-pc');
+    ROOT = all[all.length - 1];
+  }
+  if (!ROOT || ROOT.getAttribute('data-init') === '1') return;
+  ROOT.setAttribute('data-init', '1');
+
+  var BASE = 'https://rmsummerlin.github.io/SFAStatsPages/data/';
+
+  // Below this many plays a split is mostly sampling noise. Never binds at
+  // season level — the thinnest 2025 team has 113 trailing plays — so it only
+  // takes effect once a filter narrows things down.
+  var MIN_SPLIT = 75;
+  // Trailing by five or more. Tested against two scores (9+): the wider bucket
+  // has a bigger spread but an odd/even week split-half of 0.17 against 0.43,
+  // so most of that extra spread is noise. See docs/pace-data.md.
+  var TRAIL_BY = -5;
+  var NEUTRAL_MARGIN = 14;
+
+  var $ = function(role){ return ROOT.querySelector('[data-role="' + role + '"]'); };
+  var el = function(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  };
+
+  var STATE = {
+    season: null, mode: 'tempo', sort: 'neutral', asc: true,
+    weeks: [], qtrs: [], downs: [], venue: [], huddle: [],
+    open: null, data: null, index: null
+  };
+
+  // ------------------------------------------------------------- decoding
+
+  var DATA = null;
+
+  function decode(blob){
+    var abet = blob.alphabet, map = {}, i;
+    for (i = 0; i < abet.length; i++) map[abet.charAt(i)] = i;
+    var base = abet.length;
+
+    function one(str){
+      var out = new Int16Array(str.length);
+      for (var j = 0; j < str.length; j++) out[j] = map[str.charAt(j)];
+      return out;
+    }
+    function two(hi, lo, offset){
+      var out = new Int16Array(hi.length);
+      for (var j = 0; j < hi.length; j++){
+        out[j] = map[hi.charAt(j)] * base + map[lo.charAt(j)] - offset;
+      }
+      return out;
+    }
+
+    var c = blob.cols, d = blob.dcols;
+    return {
+      season: blob.season,
+      teams: blob.teams,
+      weeks: blob.weeks,
+      hasTempo: blob.has_tempo !== false,
+      hasDrives: blob.has_drives !== false,
+      generated: blob.generated_utc,
+      n: c.t.length,
+      team: one(c.t), opp: one(c.o), week: one(c.w), qtr: one(c.q),
+      down: one(c.d), drive: one(c.v), sec: one(c.s), nh: one(c.n),
+      home: one(c.hm), l2: one(c.l2),
+      margin: two(c.mh, c.ml, blob.margin_offset),
+      dn: d ? d.t.length : 0,
+      dteam: d ? one(d.t) : null,
+      dweek: d ? one(d.w) : null,
+      ddrive: d ? one(d.v) : null,
+      dsec: d ? two(d.sh, d.sl, 0) : null,
+      dtimed: d ? one(d.k) : null
+    };
+  }
+
+  // --------------------------------------------------------------- filters
+
+  function passes(i){
+    var D = DATA;
+    if (STATE.weeks.length && STATE.weeks.indexOf(D.week[i]) === -1) return false;
+    if (STATE.qtrs.length && STATE.qtrs.indexOf(D.qtr[i]) === -1) return false;
+    if (STATE.downs.length && STATE.downs.indexOf(D.down[i]) === -1) return false;
+    if (STATE.venue.length === 1 && D.home[i] !== STATE.venue[0]) return false;
+    if (STATE.huddle.length === 1 && D.nh[i] !== STATE.huddle[0]) return false;
+    return true;
+  }
+
+  function anyFilter(){
+    return STATE.weeks.length || STATE.qtrs.length || STATE.downs.length ||
+           STATE.venue.length || STATE.huddle.length;
+  }
+
+  // ------------------------------------------------------------ aggregation
+  //
+  // One pass over the filtered plays builds every column in both modes. Drive
+  // metrics come from a second table keyed on team/week/drive: a drive counts
+  // when at least one of its plays survives the filter, so seconds per drive
+  // responds to the same filters as everything else rather than silently
+  // ignoring them.
+
+  function aggregate(){
+    var D = DATA, T = D.teams.length, i, t;
+    var acc = [];
+    for (t = 0; t < T; t++){
+      acc.push({
+        team: D.teams[t], plays: 0, nh: 0,
+        secSum: 0, secN: 0, neuSum: 0, neuN: 0, traSum: 0, traN: 0,
+        games: {}, drives: {}, faced: 0, facedGames: {},
+        oppList: {}
+      });
+    }
+
+    for (i = 0; i < D.n; i++){
+      if (!passes(i)) continue;
+      var a = acc[D.team[i]];
+      a.plays++;
+      a.nh += D.nh[i];
+      a.games[D.week[i]] = 1;
+      a.drives[D.week[i] * 100 + D.drive[i]] = 1;
+      a.oppList[D.week[i]] = D.opp[i];
+
+      var f = acc[D.opp[i]];
+      f.faced++;
+      f.facedGames[D.week[i]] = 1;
+
+      var s = D.sec[i];
+      if (s > 0){
+        a.secSum += s; a.secN++;
+        if (D.qtr[i] <= 3 && D.margin[i] <= NEUTRAL_MARGIN &&
+            D.margin[i] >= -NEUTRAL_MARGIN && !D.l2[i]){
+          a.neuSum += s; a.neuN++;
+        }
+        if (D.margin[i] <= TRAIL_BY && !D.l2[i]){
+          a.traSum += s; a.traN++;
+        }
+      }
+    }
+
+    // Drive seconds, for the drives that survived the filter.
+    var seen = {};
+    if (D.dn){
+      for (i = 0; i < D.dn; i++){
+        if (!D.dtimed[i]) continue;
+        seen[D.dteam[i] + ':' + D.dweek[i] + ':' + D.ddrive[i]] = D.dsec[i];
+      }
+      for (t = 0; t < T; t++){
+        var a2 = acc[t], secs = 0, keys = Object.keys(a2.drives), k;
+        for (k = 0; k < keys.length; k++){
+          var wk = Math.floor(keys[k] / 100), dv = keys[k] % 100;
+          var hit = seen[t + ':' + wk + ':' + dv];
+          if (hit != null) secs += hit;
+        }
+        a2.driveSecs = secs;
+      }
+    }
+
+    var rows = [], leagueFaced = 0, leagueFacedGames = 0;
+    for (t = 0; t < T; t++){
+      var x = acc[t];
+      var g = Object.keys(x.games).length;
+      var dv2 = Object.keys(x.drives).length;
+      var fg = Object.keys(x.facedGames).length;
+      leagueFaced += x.faced; leagueFacedGames += fg;
+      rows.push({
+        team: x.team, ix: t, plays: x.plays, games: g, driveCount: dv2,
+        sec: x.secN ? x.secSum / x.secN : null, secN: x.secN,
+        neutral: x.neuN ? x.neuSum / x.neuN : null, neuN: x.neuN,
+        trailing: x.traN ? x.traSum / x.traN : null, traN: x.traN,
+        nohuddle: x.plays ? 100 * x.nh / x.plays : null,
+        playsGame: g ? x.plays / g : null,
+        playsDrive: dv2 ? x.plays / dv2 : null,
+        drivesGame: g ? dv2 / g : null,
+        top: (g && x.driveSecs != null) ? x.driveSecs / g / 60 : null,
+        allowed: fg ? x.faced / fg : null,
+        opps: x.oppList
+      });
+    }
+
+    // Gear change only where both halves of the comparison are thick enough.
+    rows.forEach(function(r){
+      r.gear = (r.neutral != null && r.trailing != null &&
+                r.neuN >= MIN_SPLIT && r.traN >= MIN_SPLIT)
+        ? r.neutral - r.trailing : null;
+      if (r.neuN < MIN_SPLIT) r.neutral = null;
+    });
+
+    // Opponent adjustment for volume. Each defence's plays allowed per game is
+    // the baseline; a team's expectation is the mean of the defences it faced.
+    // Worth doing for volume and not for tempo: schedule strength moves plays
+    // per game by up to four rank positions but moves seconds per play by about
+    // a tenth of a second, which is inside the noise. See docs/pace-data.md.
+    var leagueMean = leagueFacedGames ? leagueFaced / leagueFacedGames : null;
+    var allowedBy = {};
+    rows.forEach(function(r){ allowedBy[r.ix] = r.allowed; });
+    rows.forEach(function(r){
+      if (r.playsGame == null || leagueMean == null){ r.adjPlaysGame = null; return; }
+      var wk = Object.keys(r.opps), sum = 0, n = 0;
+      for (var j = 0; j < wk.length; j++){
+        var a3 = allowedBy[r.opps[wk[j]]];
+        if (a3 != null){ sum += a3; n++; }
+      }
+      r.adjPlaysGame = n ? r.playsGame - (sum / n) + leagueMean : null;
+    });
+
+    return rows;
+  }
+
+  // ---------------------------------------------------------------- columns
+
+  var COLUMNS = {
+    tempo: [
+      {key:'sec',      label:'Sec/play', dp:1, low:true,
+       tip:'Real seconds between snaps, averaged. Not game-clock time, so an incompletion does not make an offence look fast.'},
+      {key:'neutral',  label:'Neutral',  dp:1, low:true,
+       tip:'Quarters 1 to 3, inside 14 points, excluding the last two minutes of the half.'},
+      {key:'gear',     label:'Gear \u0394', dp:1, low:false, signed:true,
+       tip:'Neutral seconds per play minus seconds per play when trailing by 5 or more. Positive means the offence speeds up when behind.'},
+      {key:'nohuddle', label:'No-hud',   dp:0, low:false, pct:true,
+       tip:'Share of plays run without a huddle.'}
+    ],
+    volume: [
+      {key:'playsGame',    label:'Plays/gm', dp:1, low:false,
+       tip:'Offensive plays per game. Kneels and spikes excluded.'},
+      {key:'adjPlaysGame', label:'Adj p/gm', dp:1, low:false,
+       tip:'Plays per game adjusted for how many plays each defence faced. Moves teams by up to four rank positions.'},
+      {key:'playsDrive',   label:'Plays/dr', dp:2, low:false,
+       tip:'Plays per drive. Barely correlated with seconds per play — this measures sustaining drives, not tempo.'},
+      {key:'drivesGame',   label:'Drives',   dp:2, low:false,
+       tip:'Drives per game. Largely a function of the defence and the opponent.'},
+      {key:'top',          label:'TOP',      dp:1, low:false,
+       tip:'Time of possession per game, in minutes. Drives that ended because the half ran out are excluded.'}
+    ]
+  };
+
+  function cols(){ return COLUMNS[STATE.mode]; }
+
+  // ------------------------------------------------------------------ render
+
+  function fmt(v, c){
+    if (v == null) return '\u2014';
+    var s = v.toFixed(c.dp);
+    if (c.signed && v > 0) s = '+' + s;
+    if (c.pct) s += '%';
+    return s;
+  }
+
+  function ranked(rows, c){
+    var vals = rows.filter(function(r){ return r[c.key] != null; })
+                   .map(function(r){ return r[c.key]; });
+    vals.sort(function(a, b){ return c.low ? a - b : b - a; });
+    return vals;
+  }
+
+  function rankOf(v, vals, c){
+    if (v == null) return null;
+    for (var i = 0; i < vals.length; i++){
+      if (c.low ? vals[i] >= v - 1e-9 : vals[i] <= v + 1e-9) return i + 1;
+    }
+    return vals.length;
+  }
+
+  function render(){
+    var rows = aggregate();
+    var list = cols();
+    var wrap = $('wrap');
+
+    var live = rows.filter(function(r){ return r.plays > 0; });
+    if (!live.length){
+      wrap.innerHTML = '';
+      wrap.appendChild(el('div', 'pt-status',
+        'No plays match these filters. Try widening them.'));
+      paintFoot(rows);
+      return;
+    }
+
+    var sortCol = null;
+    list.forEach(function(c){ if (c.key === STATE.sort) sortCol = c; });
+    if (!sortCol){ sortCol = list[0]; STATE.sort = sortCol.key; STATE.asc = !!sortCol.low; }
+
+    live.sort(function(a, b){
+      var av = a[STATE.sort], bv = b[STATE.sort];
+      if (av == null && bv == null) return a.team < b.team ? -1 : 1;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (av === bv) return a.team < b.team ? -1 : 1;
+      return STATE.asc ? av - bv : bv - av;
+    });
+
+    var rankVals = {};
+    list.forEach(function(c){ rankVals[c.key] = ranked(live, c); });
+
+    var table = el('table', 'pt-grid');
+    var thead = el('thead'), hr = el('tr');
+    hr.appendChild(el('th', 'pt-rank', '#'));
+    var teamTh = el('th', 'pt-team');
+    teamTh.appendChild(el('span', null, 'Off'));
+    hr.appendChild(teamTh);
+    list.forEach(function(c){
+      var th = el('th');
+      var b = el('button', null, c.label);
+      b.type = 'button';
+      b.title = c.tip;
+      if (c.key === STATE.sort){
+        th.setAttribute('aria-sort', STATE.asc ? 'ascending' : 'descending');
+      }
+      b.addEventListener('click', function(){
+        if (STATE.sort === c.key) STATE.asc = !STATE.asc;
+        else { STATE.sort = c.key; STATE.asc = !!c.low; }
+        render();
+      });
+      th.appendChild(b);
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+
+    var tbody = el('tbody');
+    live.forEach(function(r, i){
+      var tr = el('tr');
+      var cls = (i % 2) ? 'pt-alt' : '';
+      if (STATE.open === r.team) cls += (cls ? ' ' : '') + 'pt-open';
+      if (cls) tr.className = cls;
+
+      tr.appendChild(el('td', 'pt-rank', String(i + 1)));
+
+      var td = el('td', 'pt-team');
+      var btn = el('button', 'pt-teamcell', r.team);
+      btn.type = 'button';
+      btn.setAttribute('aria-expanded', STATE.open === r.team ? 'true' : 'false');
+      btn.addEventListener('click', function(){
+        STATE.open = (STATE.open === r.team) ? null : r.team;
+        render();
+      });
+      td.appendChild(btn);
+      tr.appendChild(td);
+
+      list.forEach(function(c){
+        var cell = el('td');
+        var span = el('span', 'pt-num', fmt(r[c.key], c));
+        var rk = rankOf(r[c.key], rankVals[c.key], c);
+        if (rk != null && rk <= 3) span.classList.add('pt-lead');
+        if (r[c.key] == null) span.classList.add('pt-thin');
+        if (c.signed && r[c.key] > 0.75) span.classList.add('pt-pos');
+        span.title = rk ? (c.label + ': ' + fmt(r[c.key], c) + ' (rank ' + rk + ' of ' +
+                           rankVals[c.key].length + ')')
+                        : (c.label + ': not enough plays under these filters');
+        cell.appendChild(span);
+        tr.appendChild(cell);
+      });
+      tbody.appendChild(tr);
+
+      if (STATE.open === r.team){
+        var dtr = el('tr', 'pt-det');
+        var dtd = el('td');
+        dtd.colSpan = list.length + 2;
+        var inner = detail(r, live, rankVals);
+        // Match the scroll container, not the table, so the detail stays on
+        // screen when the numbers are scrolled sideways.
+        inner.style.width = (wrap.clientWidth || ROOT.clientWidth) + 'px';
+        dtd.appendChild(inner);
+        dtr.appendChild(dtd);
+        tbody.appendChild(dtr);
+      }
+    });
+    table.appendChild(tbody);
+
+    var tfoot = el('tfoot'), fr = el('tr');
+    fr.appendChild(el('th', 'pt-rank', ''));
+    fr.appendChild(el('th', 'pt-team', 'NFL'));
+    list.forEach(function(c){
+      var vals = live.filter(function(r){ return r[c.key] != null; });
+      var mean = vals.length
+        ? vals.reduce(function(s, r){ return s + r[c.key]; }, 0) / vals.length : null;
+      fr.appendChild(el('td', null, fmt(mean, c)));
+    });
+    tfoot.appendChild(fr);
+    table.appendChild(tfoot);
+
+    wrap.innerHTML = '';
+    wrap.appendChild(table);
+    paintFoot(live);
+  }
+
+  // ------------------------------------------------------------------ detail
+
+  function detail(r, live, rankVals){
+    var box = el('div', 'pt-detin');
+    box.appendChild(el('div', 'pt-detname', r.team + ' \u2014 ' + DATA.season));
+
+    var cards = el('div', 'pt-cards');
+    function card(label, value, note){
+      var c = el('div', 'pt-card');
+      c.appendChild(el('div', 'k', label));
+      c.appendChild(el('div', 'n', value));
+      c.appendChild(el('div', 'r', note || ''));
+      cards.appendChild(c);
+    }
+    card('Neutral', r.neutral == null ? '\u2014' : r.neutral.toFixed(1) + 's',
+         r.neuN + ' plays');
+    card('Trailing', r.trailing == null ? '\u2014' : r.trailing.toFixed(1) + 's',
+         r.traN + ' plays');
+    card('No-huddle', r.nohuddle == null ? '\u2014' : Math.round(r.nohuddle) + '%',
+         r.plays + ' plays');
+    card('Plays/drive', r.playsDrive == null ? '\u2014' : r.playsDrive.toFixed(2),
+         r.driveCount + ' drives');
+    box.appendChild(cards);
+
+    var charts = el('div', 'pt-charts');
+    charts.appendChild(chartMargin(r));
+    charts.appendChild(chartWeeks(r));
+    box.appendChild(charts);
+
+    var n = el('div', 'pt-note');
+    n.textContent = 'Gear change compares neutral pace with pace when trailing by 5 or ' +
+      'more. Both need at least ' + MIN_SPLIT + ' plays before a number is shown.';
+    box.appendChild(n);
+    return box;
+  }
+
+  function svg(){
+    var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('viewBox', '0 0 300 180');
+    s.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    s.setAttribute('role', 'img');
+    return s;
+  }
+  function node(tag, attrs, text){
+    var n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (var k in attrs) if (attrs.hasOwnProperty(k)) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  // Pace by score state. The point of the tool in one picture: a flat set of
+  // bars is an offence with one speed, a stepped set is one that changes gears.
+  function chartMargin(r){
+    var D = DATA;
+    var buckets = [
+      {label:'Down 9+', lo:-99, hi:-9},
+      {label:'Down 1-8', lo:-8, hi:-1},
+      {label:'Tied', lo:0, hi:0},
+      {label:'Up 1-8', lo:1, hi:8},
+      {label:'Up 9+', lo:9, hi:99}
+    ];
+    var sums = buckets.map(function(){ return [0, 0]; });
+    var lSum = 0, lN = 0;
+    for (var i = 0; i < D.n; i++){
+      if (!passes(i)) continue;
+      var s = D.sec[i];
+      if (s <= 0 || D.l2[i]) continue;
+      lSum += s; lN++;
+      if (D.team[i] !== r.ix) continue;
+      var m = D.margin[i];
+      for (var b = 0; b < buckets.length; b++){
+        if (m >= buckets[b].lo && m <= buckets[b].hi){
+          sums[b][0] += s; sums[b][1]++; break;
+        }
+      }
+    }
+    var league = lN ? lSum / lN : 40;
+    var vals = sums.map(function(p){ return p[1] >= 25 ? p[0] / p[1] : null; });
+    var present = vals.filter(function(v){ return v != null; });
+    var lo = Math.min.apply(null, present.concat([league])) - 2;
+    var hi = Math.max.apply(null, present.concat([league])) + 2;
+    if (!present.length){ lo = 30; hi = 50; }
+
+    var s = svg();
+    var x0 = 8, x1 = 292, y0 = 14, y1 = 148, w = (x1 - x0) / buckets.length;
+    var scale = function(v){ return y1 - (v - lo) / (hi - lo) * (y1 - y0); };
+
+    buckets.forEach(function(b, i){
+      var v = vals[i];
+      var cx = x0 + w * i + w / 2;
+      if (v == null){
+        s.appendChild(node('text', {x:cx, y:y1 - 4, 'text-anchor':'middle',
+          'font-size':8, fill:'#b0bec5'}, '\u2014'));
+      } else {
+        var y = scale(v);
+        s.appendChild(node('rect', {x:x0 + w * i + w * 0.18, y:y,
+          width:w * 0.64, height:Math.max(1, y1 - y),
+          fill: v < league ? '#cc0000' : '#7f8c9a'}));
+        s.appendChild(node('text', {x:cx, y:y - 3, 'text-anchor':'middle',
+          'font-size':9, 'font-weight':700, fill:'#111'}, v.toFixed(1)));
+      }
+      s.appendChild(node('text', {x:cx, y:162, 'text-anchor':'middle',
+        'font-size':8, fill:'#7f8c9a'}, b.label));
+    });
+    s.appendChild(node('line', {x1:x0, x2:x1, y1:y1, y2:y1, stroke:'#111', 'stroke-width':1}));
+
+    // League line last: SVG has no z-index, so anything drawn before the bars
+    // gets painted over by them.
+    s.appendChild(node('line', {x1:x0, x2:x1, y1:scale(league), y2:scale(league),
+      stroke:'#7f8c9a', 'stroke-width':1, 'stroke-dasharray':'3 3'}));
+    var lbl = 'NFL ' + league.toFixed(1) + 's';
+    s.appendChild(node('rect', {x:x1 - lbl.length * 4.1 - 2, y:scale(league) - 11,
+      width:lbl.length * 4.1 + 2, height:10, fill:'#fff', opacity:.85}));
+    s.appendChild(node('text', {x:x1, y:scale(league) - 3, 'text-anchor':'end',
+      'font-size':8, fill:'#7f8c9a'}, lbl));
+    s.appendChild(node('title', {}, r.team + ' seconds per play by score margin'));
+
+    var box = el('div', 'pt-chart');
+    box.appendChild(el('div', 'pt-ctitle', 'Sec/play by score margin'));
+    box.appendChild(s);
+    return box;
+  }
+
+  // Pace week to week. Catches coordinator and quarterback changes that a
+  // season average buries.
+  function chartWeeks(r){
+    var D = DATA, byWeek = {};
+    for (var i = 0; i < D.n; i++){
+      if (!passes(i) || D.team[i] !== r.ix) continue;
+      var s = D.sec[i];
+      if (s <= 0) continue;
+      var w = D.week[i];
+      if (!byWeek[w]) byWeek[w] = [0, 0];
+      byWeek[w][0] += s; byWeek[w][1]++;
+    }
+    var weeks = Object.keys(byWeek).map(Number).sort(function(a, b){ return a - b; });
+    var pts = weeks.filter(function(w){ return byWeek[w][1] >= 10; })
+                   .map(function(w){ return {w:w, v:byWeek[w][0] / byWeek[w][1]}; });
+
+    var s2 = svg();
+    var box = el('div', 'pt-chart');
+    box.appendChild(el('div', 'pt-ctitle', 'Sec/play by week'));
+
+    if (pts.length < 2){
+      s2.appendChild(node('text', {x:150, y:92, 'text-anchor':'middle',
+        'font-size':10, fill:'#b0bec5'}, 'Not enough weeks in this filter'));
+      box.appendChild(s2);
+      return box;
+    }
+
+    var vals = pts.map(function(p){ return p.v; });
+    var lo = Math.min.apply(null, vals) - 1.5, hi = Math.max.apply(null, vals) + 1.5;
+    var wLo = pts[0].w, wHi = pts[pts.length - 1].w;
+    var x0 = 20, x1 = 292, y0 = 14, y1 = 150;
+    var sx = function(w){ return wHi === wLo ? (x0 + x1) / 2
+      : x0 + (w - wLo) / (wHi - wLo) * (x1 - x0); };
+    var sy = function(v){ return y1 - (v - lo) / (hi - lo) * (y1 - y0); };
+
+    var mean = vals.reduce(function(a, b){ return a + b; }, 0) / vals.length;
+    s2.appendChild(node('line', {x1:x0, x2:x1, y1:sy(mean), y2:sy(mean),
+      stroke:'#dde2e8', 'stroke-width':1}));
+
+    var d = pts.map(function(p, i){
+      return (i ? 'L' : 'M') + sx(p.w).toFixed(1) + ' ' + sy(p.v).toFixed(1);
+    }).join(' ');
+    s2.appendChild(node('path', {d:d, fill:'none', stroke:'#cc0000', 'stroke-width':1.6}));
+    pts.forEach(function(p){
+      s2.appendChild(node('circle', {cx:sx(p.w), cy:sy(p.v), r:2, fill:'#cc0000'}));
+    });
+    s2.appendChild(node('text', {x:x0, y:166, 'font-size':8, fill:'#7f8c9a'}, 'Wk ' + wLo));
+    s2.appendChild(node('text', {x:x1, y:166, 'text-anchor':'end', 'font-size':8,
+      fill:'#7f8c9a'}, 'Wk ' + wHi));
+    s2.appendChild(node('text', {x:2, y:sy(mean) - 3, 'font-size':8, fill:'#7f8c9a'},
+      mean.toFixed(1)));
+    s2.appendChild(node('title', {}, r.team + ' seconds per play by week'));
+    box.appendChild(s2);
+    return box;
+  }
+
+  // ------------------------------------------------------------------- chrome
+
+  function paintFoot(rows){
+    var plays = rows.reduce(function(s, r){ return s + r.plays; }, 0);
+    var tempo = rows.reduce(function(s, r){ return s + r.secN; }, 0);
+    var f = $('foot');
+    f.innerHTML = '';
+    f.appendChild(el('b', null, plays.toLocaleString()));
+    f.appendChild(document.createTextNode(' plays in view, '));
+    f.appendChild(el('b', null, tempo.toLocaleString()));
+    f.appendChild(document.createTextNode(
+      ' with a comparable snap-to-snap gap. Gaps after timeouts, injuries, ' +
+      'measurements, reviews and the two-minute warning are excluded at source.'));
+  }
+
+  var FILTERS = [
+    {key:'weeks',  label:'Week',    all:'All',       multi:true},
+    {key:'qtrs',   label:'Quarter', all:'All',       multi:true,
+     opts:[[1,'1'],[2,'2'],[3,'3'],[4,'4'],[5,'OT']]},
+    {key:'downs',  label:'Down',    all:'All',       multi:true,
+     opts:[[1,'1st'],[2,'2nd'],[3,'3rd'],[4,'4th']]},
+    {key:'venue',  label:'Venue',   all:'Home + road', multi:false,
+     opts:[[1,'Home'],[0,'Road']]},
+    {key:'huddle', label:'Huddle',  all:'Both',      multi:false,
+     opts:[[0,'Huddle'],[1,'No-huddle']]}
+  ];
+
+  function filterValue(f){
+    var v = STATE[f.key];
+    if (!v.length) return f.all;
+    if (f.key === 'weeks'){
+      if (v.length === 1) return 'Wk ' + v[0];
+      return v.length + ' weeks';
+    }
+    var names = v.map(function(x){
+      var hit = f.all;
+      f.opts.forEach(function(o){ if (o[0] === x) hit = o[1]; });
+      return hit;
+    });
+    return names.length <= 2 ? names.join(', ') : names.length + ' selected';
+  }
+
+  function buildBar(){
+    var bar = $('bar');
+    bar.innerHTML = '';
+
+    if (STATE.index && STATE.index.seasons.length > 1){
+      var sb = el('button', 'pt-fb');
+      sb.type = 'button';
+      sb.appendChild(el('span', 'l', 'Season'));
+      sb.appendChild(el('span', 'v', String(STATE.season)));
+      sb.addEventListener('click', function(){ openSeason(sb); });
+      bar.appendChild(sb);
+    }
+
+    FILTERS.forEach(function(f){
+      var b = el('button', 'pt-fb');
+      b.type = 'button';
+      b.setAttribute('data-on', STATE[f.key].length ? '1' : '0');
+      b.appendChild(el('span', 'l', f.label));
+      b.appendChild(el('span', 'v', filterValue(f)));
+      b.addEventListener('click', function(){ openFilter(b, f); });
+      bar.appendChild(b);
+    });
+
+    var reset = el('button', 'pt-reset', 'Reset');
+    reset.type = 'button';
+    reset.hidden = !anyFilter();
+    reset.addEventListener('click', function(){
+      STATE.weeks = []; STATE.qtrs = []; STATE.downs = [];
+      STATE.venue = []; STATE.huddle = [];
+      closePop(); buildBar(); render();
+    });
+    bar.appendChild(reset);
+  }
+
+  function closePop(){ var p = $('pop'); p.hidden = true; p.innerHTML = ''; }
+
+  function placePop(anchor){
+    var p = $('pop');
+    var rb = ROOT.getBoundingClientRect(), ab = anchor.getBoundingClientRect();
+    p.hidden = false;
+    var left = ab.left - rb.left;
+    var maxLeft = ROOT.clientWidth - p.offsetWidth - 8;
+    p.style.left = Math.max(8, Math.min(left, maxLeft)) + 'px';
+    p.style.top = (ab.bottom - rb.top + 4) + 'px';
+  }
+
+  function openSeason(anchor){
+    var p = $('pop');
+    if (!p.hidden && p.getAttribute('data-for') === 'season'){ closePop(); return; }
+    p.innerHTML = '';
+    p.setAttribute('data-for', 'season');
+    p.appendChild(el('div', 'h', 'Season'));
+    var opts = el('div', 'pt-opts');
+    STATE.index.seasons.slice().sort(function(a, b){ return b - a; }).forEach(function(y){
+      var b = el('button', 'pt-opt', String(y));
+      b.type = 'button';
+      b.setAttribute('aria-pressed', y === STATE.season ? 'true' : 'false');
+      b.addEventListener('click', function(){
+        closePop();
+        if (y !== STATE.season) loadSeason(y);
+      });
+      opts.appendChild(b);
+    });
+    p.appendChild(opts);
+    placePop(anchor);
+  }
+
+  function openFilter(anchor, f){
+    var p = $('pop');
+    if (!p.hidden && p.getAttribute('data-for') === f.key){ closePop(); return; }
+    p.innerHTML = '';
+    p.setAttribute('data-for', f.key);
+    p.appendChild(el('div', 'h', f.label));
+
+    var opts = f.opts;
+    if (f.key === 'weeks'){
+      opts = DATA.weeks.map(function(w){ return [w, String(w)]; });
+    }
+    var pick = STATE[f.key].slice();
+    var box = el('div', 'pt-opts');
+    opts.forEach(function(o){
+      var b = el('button', 'pt-opt', o[1]);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', pick.indexOf(o[0]) > -1 ? 'true' : 'false');
+      b.addEventListener('click', function(){
+        var at = pick.indexOf(o[0]);
+        if (f.multi){
+          if (at > -1) pick.splice(at, 1); else pick.push(o[0]);
+        } else {
+          pick = at > -1 ? [] : [o[0]];
+        }
+        box.querySelectorAll('.pt-opt').forEach(function(node2, i){
+          node2.setAttribute('aria-pressed', pick.indexOf(opts[i][0]) > -1 ? 'true' : 'false');
+        });
+      });
+      box.appendChild(b);
+    });
+    p.appendChild(box);
+
+    var foot = el('div', 'pt-popfoot');
+    var clear = el('button', null, 'Clear');
+    clear.type = 'button';
+    clear.addEventListener('click', function(){
+      STATE[f.key] = []; closePop(); buildBar(); render();
+    });
+    var go = el('button', 'go', 'Apply');
+    go.type = 'button';
+    go.addEventListener('click', function(){
+      pick.sort(function(a, b){ return a - b; });
+      STATE[f.key] = pick; closePop(); buildBar(); render();
+    });
+    foot.appendChild(clear);
+    foot.appendChild(go);
+    p.appendChild(foot);
+    placePop(anchor);
+  }
+
+  ROOT.addEventListener('click', function(e){
+    var p = $('pop');
+    if (p.hidden) return;
+    if (p.contains(e.target)) return;
+    if (e.target.closest && e.target.closest('.pt-fb')) return;
+    closePop();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') closePop();
+  });
+
+  ROOT.querySelectorAll('.pt-mode').forEach(function(b){
+    b.addEventListener('click', function(){
+      if (STATE.mode === b.getAttribute('data-mode')) return;
+      STATE.mode = b.getAttribute('data-mode');
+      ROOT.querySelectorAll('.pt-mode').forEach(function(o){
+        o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
+      });
+      var first = cols()[0];
+      STATE.sort = first.key;
+      STATE.asc = !!first.low;
+      render();
+    });
+  });
+
+  // --------------------------------------------------------------------- load
+
+  function get(url){
+    return fetch(url, {cache:'no-cache'}).then(function(r){
+      if (!r.ok) throw new Error(url + ' returned ' + r.status);
+      return r.json();
+    });
+  }
+
+  function subtitle(){
+    var d = DATA;
+    var when = '';
+    if (d.generated){
+      var t = new Date(d.generated);
+      if (!isNaN(t)) when = ' \u00b7 updated ' + t.toLocaleDateString(undefined,
+        {month:'short', day:'numeric'});
+    }
+    $('sub').innerHTML = '';
+    $('sub').appendChild(el('b', null, String(d.season)));
+    $('sub').appendChild(document.createTextNode(
+      ' \u00b7 seconds between snaps, not game-clock time' + when));
+  }
+
+  function loadSeason(year){
+    $('wrap').innerHTML = '';
+    $('wrap').appendChild(el('div', 'pt-status', 'Loading ' + year + '\u2026'));
+    return get(BASE + 'pace_' + year + '.json').then(function(blob){
+      DATA = decode(blob);
+      STATE.season = year;
+      STATE.weeks = [];
+      STATE.open = null;
+      subtitle();
+      buildBar();
+      render();
+    }).catch(function(err){
+      $('wrap').innerHTML = '';
+      $('wrap').appendChild(el('div', 'pt-status',
+        'Could not load the ' + year + ' pace data. ' + err.message));
+    });
+  }
+
+  get(BASE + 'pace_index.json').then(function(ix){
+    STATE.index = ix;
+    if (!ix.seasons || !ix.seasons.length){
+      $('wrap').innerHTML = '';
+      $('wrap').appendChild(el('div', 'pt-status',
+        'No seasons have pace data yet.'));
+      return;
+    }
+    return loadSeason(ix.default || ix.seasons[ix.seasons.length - 1]);
+  }).catch(function(err){
+    $('wrap').innerHTML = '';
+    $('wrap').appendChild(el('div', 'pt-status',
+      'Could not reach the pace data. ' + err.message));
+  });
+})();
+</script>

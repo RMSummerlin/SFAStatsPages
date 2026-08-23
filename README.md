@@ -68,9 +68,15 @@ Run `python scripts/lint_embed.py` to check every tool against these mechanicall
 ```
 # rebuild data from the live sheet
 python scripts/pull_personnel_grouping.py
+python scripts/pull_pace.py
 
 # or from a downloaded CSV export, without touching the sheet
 python scripts/pull_personnel_grouping.py --csv ~/Downloads/export.csv --season 2025
+python scripts/pull_pace.py --csv ~/Downloads/export.csv --season 2025
+
+# run the regression tests the workflow runs before every pull
+python scripts/test_pace.py
+python scripts/test_dead_ball.py
 
 # refresh the crawlable static tables inside the tool fragments
 python scripts/refresh_preload.py
@@ -81,8 +87,14 @@ python scripts/lint_embed.py
 
 ## Status
 
-First tool shipped: **`tools/personnel-grouping/`** — personnel grouping frequency with a
-usage/efficiency toggle and EPA per play, yards per play and success rate on hover.
+Two tools shipped:
 
-2025 is the only season loaded so far; add earlier seasons to `SEASON_SHEETS` in
-`scripts/config.py` when their sheets exist.
+- **`tools/personnel-grouping/`** — personnel grouping frequency with a usage/efficiency
+  toggle and EPA per play, yards per play and success rate on hover. 2021 through 2025.
+- **`tools/pace/`** — offensive tempo and play volume, with a Tempo/Volume toggle,
+  a neutral-situation column and a gear-change column. Data decisions in
+  [`docs/pace-data.md`](docs/pace-data.md).
+
+The pace tool only offers seasons whose sheet carries the `TimeSinceSnap` column. Run the
+workflow with **Rebuild every season** ticked and read the log to find out which those are:
+any season without it prints a warning and is left out of `data/pace_index.json`.
