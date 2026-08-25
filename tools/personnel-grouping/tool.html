@@ -32,14 +32,18 @@
 .pt-root.pt-pg :focus-visible{outline:2px solid var(--red);outline-offset:1px}
 
 /* ---------- header ---------- */
-.pt-root.pt-pg .pt-head{flex:0 0 auto;padding:12px 12px 10px;border-bottom:2px solid var(--ink)}
-.pt-root.pt-pg .pt-title{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.01em}
-.pt-root.pt-pg .pt-sub{margin-top:3px;font-size:13px;color:var(--g1)}
-.pt-root.pt-pg .pt-sub b{color:var(--ink);font-weight:700}
-.pt-root.pt-pg .pt-modes{display:flex;margin-top:10px;border:1px solid var(--b1)}
-.pt-root.pt-pg .pt-mode{flex:1;min-height:40px;padding:0 14px;font-size:13px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.04em;color:var(--g1);white-space:nowrap}
-.pt-root.pt-pg .pt-mode[aria-pressed="true"]{background:var(--ink);color:var(--w)}
+.pt-root.pt-pg .pt-head{flex:0 0 auto;background:var(--ink);color:var(--w)}
+.pt-root.pt-pg .pt-headin{padding:13px 12px 12px;border-left:5px solid var(--red)}
+.pt-root.pt-pg .pt-kick{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:#ff5a4d}
+.pt-root.pt-pg .pt-title{margin-top:4px;font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:.005em;line-height:1.04}
+.pt-root.pt-pg .pt-sub{margin-top:4px;font-size:13px;color:var(--g2)}
+.pt-root.pt-pg .pt-sub b{color:var(--w);font-weight:700}
+.pt-root.pt-pg .pt-modewrap{display:flex;padding:0 12px 12px}
+.pt-root.pt-pg .pt-modes{display:flex;width:100%;border:1px solid #5c6773}
+.pt-root.pt-pg .pt-mode{flex:1;min-height:44px;padding:0 16px;font-size:13px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--g2);white-space:nowrap}
+.pt-root.pt-pg .pt-mode+.pt-mode{border-left:1px solid #5c6773}
+.pt-root.pt-pg .pt-mode[aria-pressed="true"]{background:var(--red);color:var(--w)}
 
 /* ---------- filter bar ---------- */
 .pt-root.pt-pg .pt-bar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;
@@ -184,10 +188,10 @@
 .pt-root.pt-pg .pt-seo th[scope=row]{text-align:left;font-weight:700}
 
 @media (min-width:641px){
-  .pt-root.pt-pg .pt-head{padding:16px 18px 14px;display:grid;grid-template-columns:1fr auto;
-    align-items:end;gap:16px}
-  .pt-root.pt-pg .pt-title{font-size:26px}
-  .pt-root.pt-pg .pt-modes{margin-top:0}
+.pt-root.pt-pg .pt-head{display:grid;grid-template-columns:1fr auto;align-items:end}
+  .pt-root.pt-pg .pt-headin{padding:17px 18px 16px}
+  .pt-root.pt-pg .pt-modewrap{padding:0 18px 16px;align-items:flex-end}
+  .pt-root.pt-pg .pt-title{font-size:30px}
   .pt-root.pt-pg .pt-bar{padding:11px 18px;gap:7px}
   .pt-root.pt-pg .pt-g{min-width:64px}
   .pt-root.pt-pg .pt-dwrap{padding:18px;grid-template-columns:repeat(3,minmax(0,1fr));
@@ -202,13 +206,16 @@
 
 <div class="pt-root pt-pg" id="pg">
   <div class="pt-head">
-    <div>
+    <div class="pt-headin">
+      <div class="pt-kick">Sharp Football Analysis · NFL Stats</div>
       <div class="pt-title">Personnel Grouping Frequency</div>
       <div class="pt-sub" id="pg-sub">Loading play-by-play data&hellip;</div>
     </div>
-    <div class="pt-modes" id="pg-modes" role="group" aria-label="Metric">
-      <button class="pt-mode" type="button" data-m="usage" aria-pressed="true">Usage</button>
-      <button class="pt-mode" type="button" data-m="epa" aria-pressed="false">Efficiency</button>
+    <div class="pt-modewrap">
+      <div class="pt-modes" id="pg-modes" role="group" aria-label="Metric">
+        <button class="pt-mode" type="button" data-m="usage" aria-pressed="true">Usage</button>
+        <button class="pt-mode" type="button" data-m="epa" aria-pressed="false">Efficiency</button>
+      </div>
     </div>
   </div>
 
@@ -1198,28 +1205,6 @@
 
     body.innerHTML = '';
     body.appendChild(tbl);
-    hideServerPreload();
-  }
-
-
-  /* The crawlable table can also be rendered server-side by the WordPress
-     shortcode, which may sit outside this fragment where we cannot replace it.
-     Hide it once we have rendered, so the page never shows both. If our fetch
-     fails we never get here, and the server-rendered table stays as the
-     fallback — which is the behaviour we want. */
-  var RENDERED = false;
-  function hideServerPreload(){
-    RENDERED = true;
-    /* No run-once guard: the shortcode's markup may be parsed after this script
-       executes, so an element that did not exist at first render can appear
-       later. Cheap enough to repeat. */
-    var nodes = document.querySelectorAll('[data-sfa-preload="personnel_grouping"]');
-    for (var i = 0; i < nodes.length; i++) nodes[i].style.display = 'none';
-  }
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', function(){
-      if (RENDERED) hideServerPreload();
-    });
   }
 
   function detail(team, r, L, span){
