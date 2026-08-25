@@ -89,20 +89,24 @@
 /* Rank and team stay put while the numbers scroll sideways. Without this the
    team abbreviation scrolls away and the numbers belong to nobody. Sticky cells
    need their own opaque background or the scrolling content shows through. */
-.pt-root.pt-pc .pt-rank{position:sticky;left:0;z-index:2;width:26px;
+.pt-root.pt-pc .pt-rank{position:sticky;left:0;z-index:2;width:34px;
   background:var(--w);color:var(--g2);font-size:11px}
-.pt-root.pt-pc .pt-team{position:sticky;left:26px;z-index:2;
-  background:var(--w);text-align:left;font-weight:700}
+.pt-root.pt-pc .pt-team{position:sticky;left:34px;z-index:2;
+  background:var(--w);text-align:left;font-weight:700;
+  border-right:1px solid var(--b2)}
 .pt-root.pt-pc .pt-grid thead .pt-rank,.pt-root.pt-pc .pt-grid thead .pt-team{z-index:4}
 .pt-root.pt-pc .pt-grid tfoot .pt-rank,.pt-root.pt-pc .pt-grid tfoot .pt-team{z-index:4}
 /* Striping is applied by class rather than :nth-child because an expanded detail
    row sits between two team rows and would flip the parity of everything below. */
-.pt-root.pt-pc .pt-alt,.pt-root.pt-pc .pt-alt .pt-rank,
-.pt-root.pt-pc .pt-alt .pt-team{background:var(--bg2)}
-.pt-root.pt-pc .pt-open,.pt-root.pt-pc .pt-open .pt-rank,
-.pt-root.pt-pc .pt-open .pt-team{background:var(--ink);color:var(--w)}
+.pt-root.pt-pc .pt-alt .pt-rank,.pt-root.pt-pc .pt-alt .pt-team{background:var(--bg2)}
+/* Data cells get an inline background from the colour ramp, so the open-row
+   highlight is limited to the rank and team columns. Inverting the whole row
+   would just overwrite the shading that the row is there to show. */
+.pt-root.pt-pc .pt-open .pt-rank,.pt-root.pt-pc .pt-open .pt-team{
+  background:var(--ink);color:var(--w)}
 .pt-root.pt-pc .pt-open .pt-teamcell{color:var(--w)}
 .pt-root.pt-pc .pt-open .pt-teamcell::before{color:var(--w)}
+.pt-root.pt-pc .pt-grid tbody td{transition:none}
 /* Data columns need a floor or long headers stretch them and the table blows
    past the panel on a narrow screen. */
 .pt-root.pt-pc .pt-grid td:not(.pt-rank):not(.pt-team),
@@ -162,7 +166,8 @@
   .pt-root.pt-pc .pt-title{font-size:25px}
   .pt-root.pt-pc .pt-grid{font-size:14px}
   .pt-root.pt-pc .pt-grid thead th{font-size:11px}
-  .pt-root.pt-pc .pt-rank{width:38px;font-size:12px}
+  .pt-root.pt-pc .pt-rank{width:44px;font-size:12px}
+  .pt-root.pt-pc .pt-team{left:44px}
   .pt-root.pt-pc .pt-card{flex:1 1 112px}
   .pt-root.pt-pc .pt-charts{display:flex;gap:12px}
   .pt-root.pt-pc .pt-charts .pt-chart{flex:1;margin-bottom:0}
@@ -190,7 +195,7 @@
 
   <div class="pt-seo">
     <!-- SFA:PRELOAD:START -->
-<table class="pt-pre"><caption>2025 offensive pace by team, all plays, no filters applied. Seconds per play is real time between consecutive snaps, so it is unaffected by whether the game clock was running. Neutral covers quarters 1 to 3 inside 14 points, excluding the final two minutes of the half. Gear change is neutral seconds per play minus seconds per play when trailing by 5 or more: a positive number means the offense speeds up when it falls behind.</caption><thead><tr><th scope="col">#</th><th scope="col">Offense</th><th scope="col">Sec/play</th><th scope="col">Neutral</th><th scope="col">Gear change</th><th scope="col">No-huddle</th><th scope="col">Plays/game</th><th scope="col">Plays/drive</th><th scope="col">TOP/game</th><th scope="col">Plays</th></tr></thead><tbody><tr><td>1</td><th scope="row">NO</th><td>36.98</td><td>37.5</td><td>0.45</td><td>23%</td><td>62.4</td><td>6.17</td><td>27.8</td><td>1,061</td></tr><tr><td>2</td><th scope="row">NYG</th><td>39.13</td><td>38.59</td><td>-0.53</td><td>21%</td><td>63.2</td><td>6.44</td><td>30.4</td><td>1,075</td></tr><tr><td>3</td><th scope="row">DAL</th><td>38.71</td><td>39.27</td><td>1.74</td><td>9%</td><td>64.8</td><td>6.36</td><td>29.7</td><td>1,101</td></tr><tr><td>4</td><th scope="row">SF</th><td>39.64</td><td>39.53</td><td>1.22</td><td>4%</td><td>62.4</td><td>6.42</td><td>30.0</td><td>1,060</td></tr><tr><td>5</td><th scope="row">DET</th><td>40.26</td><td>40.36</td><td>0.73</td><td>6%</td><td>61.8</td><td>5.77</td><td>29.8</td><td>1,050</td></tr><tr><td>6</td><th scope="row">CHI</th><td>40.45</td><td>40.37</td><td>0.14</td><td>5%</td><td>64.1</td><td>6.19</td><td>30.0</td><td>1,090</td></tr><tr><td>7</td><th scope="row">LAR</th><td>40.49</td><td>40.59</td><td>-0.05</td><td>7%</td><td>62.2</td><td>6.07</td><td>29.1</td><td>1,057</td></tr><tr><td>8</td><th scope="row">DEN</th><td>40.78</td><td>40.67</td><td>1.37</td><td>13%</td><td>63.1</td><td>6.03</td><td>30.4</td><td>1,073</td></tr><tr><td>9</td><th scope="row">LV</th><td>39.62</td><td>40.69</td><td>1.31</td><td>9%</td><td>55.2</td><td>5.34</td><td>27.1</td><td>939</td></tr><tr><td>10</td><th scope="row">WAS</th><td>40.5</td><td>40.7</td><td>0.38</td><td>61%</td><td>57.2</td><td>6.11</td><td>27.9</td><td>972</td></tr><tr><td>11</td><th scope="row">NYJ</th><td>39.22</td><td>40.74</td><td>1.64</td><td>10%</td><td>58.9</td><td>5.66</td><td>27.5</td><td>1,001</td></tr><tr><td>12</td><th scope="row">KC</th><td>40.85</td><td>40.98</td><td>-0.14</td><td>2%</td><td>61.5</td><td>6.37</td><td>29.4</td><td>1,045</td></tr><tr><td>13</td><th scope="row">BAL</th><td>41.33</td><td>41.21</td><td>0.71</td><td>3%</td><td>56.1</td><td>5.58</td><td>28.2</td><td>954</td></tr><tr><td>14</td><th scope="row">NE</th><td>40.97</td><td>41.23</td><td>0.45</td><td>2%</td><td>59.6</td><td>6.11</td><td>29.7</td><td>1,014</td></tr><tr><td>15</td><th scope="row">CLE</th><td>40.26</td><td>41.27</td><td>2.24</td><td>9%</td><td>60.2</td><td>5.36</td><td>29.1</td><td>1,024</td></tr><tr><td>16</td><th scope="row">IND</th><td>41.29</td><td>41.37</td><td>1.38</td><td>5%</td><td>59.1</td><td>5.98</td><td>29.0</td><td>1,004</td></tr><tr><td>17</td><th scope="row">PHI</th><td>41.48</td><td>41.48</td><td>1.61</td><td>19%</td><td>58.4</td><td>5.7</td><td>29.3</td><td>992</td></tr><tr><td>18</td><th scope="row">GB</th><td>41.03</td><td>41.5</td><td>3.19</td><td>8%</td><td>58.3</td><td>6.35</td><td>29.0</td><td>991</td></tr><tr><td>19</td><th scope="row">LAC</th><td>41.19</td><td>41.52</td><td>0.31</td><td>4%</td><td>63.5</td><td>6.27</td><td>31.8</td><td>1,079</td></tr><tr><td>20</td><th scope="row">HOU</th><td>41.33</td><td>41.54</td><td>0.8</td><td>4%</td><td>63.1</td><td>5.79</td><td>30.6</td><td>1,072</td></tr><tr><td>21</td><th scope="row">ARI</th><td>39.56</td><td>41.66</td><td>5.21</td><td>12%</td><td>62.9</td><td>6.33</td><td>29.6</td><td>1,070</td></tr><tr><td>22</td><th scope="row">MIN</th><td>41.04</td><td>41.69</td><td>0.9</td><td>8%</td><td>55.2</td><td>5.37</td><td>27.1</td><td>939</td></tr><tr><td>23</td><th scope="row">CIN</th><td>41.17</td><td>41.7</td><td>1.0</td><td>3%</td><td>61.4</td><td>6.0</td><td>29.9</td><td>1,044</td></tr><tr><td>24</td><th scope="row">SEA</th><td>41.14</td><td>41.73</td><td>1.24</td><td>7%</td><td>58.5</td><td>5.52</td><td>29.2</td><td>994</td></tr><tr><td>25</td><th scope="row">ATL</th><td>41.44</td><td>41.8</td><td>2.48</td><td>11%</td><td>60.7</td><td>5.9</td><td>29.4</td><td>1,032</td></tr><tr><td>26</td><th scope="row">TEN</th><td>40.75</td><td>41.8</td><td>1.38</td><td>10%</td><td>58.5</td><td>5.56</td><td>28.6</td><td>995</td></tr><tr><td>27</td><th scope="row">BUF</th><td>41.76</td><td>41.88</td><td>0.46</td><td>6%</td><td>62.1</td><td>6.29</td><td>31.8</td><td>1,056</td></tr><tr><td>28</td><th scope="row">CAR</th><td>41.29</td><td>41.97</td><td>1.03</td><td>6%</td><td>58.3</td><td>6.23</td><td>29.3</td><td>991</td></tr><tr><td>29</td><th scope="row">PIT</th><td>41.31</td><td>42.07</td><td>2.08</td><td>11%</td><td>57.3</td><td>5.8</td><td>27.8</td><td>974</td></tr><tr><td>30</td><th scope="row">JAX</th><td>42.11</td><td>42.1</td><td>1.75</td><td>7%</td><td>62.9</td><td>5.94</td><td>30.9</td><td>1,070</td></tr><tr><td>31</td><th scope="row">MIA</th><td>42.16</td><td>42.53</td><td>-0.02</td><td>4%</td><td>55.2</td><td>5.49</td><td>28.3</td><td>939</td></tr><tr><td>32</td><th scope="row">TB</th><td>42.29</td><td>42.54</td><td>0.68</td><td>6%</td><td>62.2</td><td>6.07</td><td>31.6</td><td>1,057</td></tr></tbody></table>
+<table class="pt-pre"><caption>2025 offensive pace by team, with no filters applied. Play clock used is how many of the 40 seconds an offense burns before snapping the ball, so it measures the huddle and the walk to the line rather than how long the previous play took to finish. Neutral covers quarters 1 to 3 inside 14 points, excluding the final two minutes of the half. Gear change is neutral play clock used minus play clock used when trailing by 5 or more, so a positive number means the offense speeds up once it falls behind. Lower is faster.</caption><thead><tr><th scope="col">Rank</th><th scope="col">Offense</th><th scope="col">Play Clock Used</th><th scope="col">Neutral</th><th scope="col">Gear Change</th><th scope="col">No Huddle</th><th scope="col">Plays/Game</th><th scope="col">Plays/Drive</th><th scope="col">Time of Possession</th><th scope="col">Plays</th></tr></thead><tbody><tr><td>1</td><th scope="row">NO</th><td>28.61</td><td>29.11</td><td>0.52</td><td>23%</td><td>62.4</td><td>6.17</td><td>27.8</td><td>1,061</td></tr><tr><td>2</td><th scope="row">DAL</th><td>29.4</td><td>30.22</td><td>2.5</td><td>9%</td><td>64.8</td><td>6.36</td><td>29.7</td><td>1,101</td></tr><tr><td>3</td><th scope="row">NYG</th><td>30.66</td><td>30.58</td><td>-0.05</td><td>21%</td><td>63.2</td><td>6.44</td><td>30.4</td><td>1,075</td></tr><tr><td>4</td><th scope="row">WAS</th><td>31.39</td><td>31.67</td><td>0.01</td><td>61%</td><td>57.2</td><td>6.11</td><td>27.9</td><td>972</td></tr><tr><td>5</td><th scope="row">SF</th><td>31.67</td><td>31.76</td><td>1.6</td><td>4%</td><td>62.4</td><td>6.42</td><td>30.0</td><td>1,060</td></tr><tr><td>6</td><th scope="row">CHI</th><td>31.99</td><td>32.11</td><td>1.13</td><td>5%</td><td>64.1</td><td>6.19</td><td>30.0</td><td>1,090</td></tr><tr><td>7</td><th scope="row">LAR</th><td>32.14</td><td>32.46</td><td>0.31</td><td>7%</td><td>62.2</td><td>6.07</td><td>29.1</td><td>1,057</td></tr><tr><td>8</td><th scope="row">NE</th><td>32.3</td><td>32.57</td><td>0.11</td><td>2%</td><td>59.6</td><td>6.11</td><td>29.7</td><td>1,014</td></tr><tr><td>9</td><th scope="row">NYJ</th><td>31.1</td><td>32.65</td><td>1.68</td><td>10%</td><td>58.9</td><td>5.66</td><td>27.5</td><td>1,001</td></tr><tr><td>10</td><th scope="row">LV</th><td>31.31</td><td>32.67</td><td>1.91</td><td>9%</td><td>55.2</td><td>5.34</td><td>27.1</td><td>939</td></tr><tr><td>11</td><th scope="row">KC</th><td>32.54</td><td>32.69</td><td>-0.03</td><td>2%</td><td>61.5</td><td>6.37</td><td>29.4</td><td>1,045</td></tr><tr><td>12</td><th scope="row">DET</th><td>32.41</td><td>32.71</td><td>0.74</td><td>6%</td><td>61.8</td><td>5.77</td><td>29.8</td><td>1,050</td></tr><tr><td>13</td><th scope="row">DEN</th><td>32.6</td><td>32.82</td><td>1.77</td><td>13%</td><td>63.1</td><td>6.03</td><td>30.4</td><td>1,073</td></tr><tr><td>14</td><th scope="row">ATL</th><td>32.44</td><td>33.01</td><td>1.9</td><td>11%</td><td>60.7</td><td>5.9</td><td>29.4</td><td>1,032</td></tr><tr><td>15</td><th scope="row">LAC</th><td>32.69</td><td>33.01</td><td>0.96</td><td>4%</td><td>63.5</td><td>6.27</td><td>31.8</td><td>1,079</td></tr><tr><td>16</td><th scope="row">BAL</th><td>32.86</td><td>33.02</td><td>0.78</td><td>3%</td><td>56.1</td><td>5.58</td><td>28.2</td><td>954</td></tr><tr><td>17</td><th scope="row">HOU</th><td>32.79</td><td>33.08</td><td>1.53</td><td>4%</td><td>63.1</td><td>5.79</td><td>30.6</td><td>1,072</td></tr><tr><td>18</td><th scope="row">CLE</th><td>31.99</td><td>33.09</td><td>2.43</td><td>9%</td><td>60.2</td><td>5.36</td><td>29.1</td><td>1,024</td></tr><tr><td>19</td><th scope="row">ARI</th><td>30.99</td><td>33.22</td><td>5.09</td><td>12%</td><td>62.9</td><td>6.33</td><td>29.6</td><td>1,070</td></tr><tr><td>20</td><th scope="row">GB</th><td>32.81</td><td>33.22</td><td>2.84</td><td>8%</td><td>58.3</td><td>6.35</td><td>29.0</td><td>991</td></tr><tr><td>21</td><th scope="row">SEA</th><td>32.82</td><td>33.24</td><td>1.58</td><td>7%</td><td>58.5</td><td>5.52</td><td>29.2</td><td>994</td></tr><tr><td>22</td><th scope="row">IND</th><td>32.92</td><td>33.28</td><td>2.29</td><td>5%</td><td>59.1</td><td>5.98</td><td>29.0</td><td>1,004</td></tr><tr><td>23</td><th scope="row">PHI</th><td>33.2</td><td>33.31</td><td>1.71</td><td>19%</td><td>58.4</td><td>5.7</td><td>29.3</td><td>992</td></tr><tr><td>24</td><th scope="row">CIN</th><td>32.81</td><td>33.4</td><td>1.0</td><td>3%</td><td>61.4</td><td>6.0</td><td>29.9</td><td>1,044</td></tr><tr><td>25</td><th scope="row">JAX</th><td>33.56</td><td>33.62</td><td>2.31</td><td>7%</td><td>62.9</td><td>5.94</td><td>30.9</td><td>1,070</td></tr><tr><td>26</td><th scope="row">MIN</th><td>32.75</td><td>33.64</td><td>0.78</td><td>8%</td><td>55.2</td><td>5.37</td><td>27.1</td><td>939</td></tr><tr><td>27</td><th scope="row">BUF</th><td>33.54</td><td>33.71</td><td>1.27</td><td>6%</td><td>62.1</td><td>6.29</td><td>31.8</td><td>1,056</td></tr><tr><td>28</td><th scope="row">CAR</th><td>33.08</td><td>33.87</td><td>1.11</td><td>6%</td><td>58.3</td><td>6.23</td><td>29.3</td><td>991</td></tr><tr><td>29</td><th scope="row">TEN</th><td>32.56</td><td>33.89</td><td>1.98</td><td>10%</td><td>58.5</td><td>5.56</td><td>28.6</td><td>995</td></tr><tr><td>30</td><th scope="row">PIT</th><td>33.07</td><td>34.05</td><td>2.08</td><td>11%</td><td>57.3</td><td>5.8</td><td>27.8</td><td>974</td></tr><tr><td>31</td><th scope="row">TB</th><td>33.74</td><td>34.17</td><td>0.17</td><td>6%</td><td>62.2</td><td>6.07</td><td>31.6</td><td>1,057</td></tr><tr><td>32</td><th scope="row">MIA</th><td>34.23</td><td>34.51</td><td>0.15</td><td>4%</td><td>55.2</td><td>5.49</td><td>28.3</td><td>939</td></tr></tbody></table>
 <!-- SFA:PRELOAD:END -->
   </div>
 </div>
@@ -218,6 +223,63 @@
   // so most of that extra spread is noise. See docs/pace-data.md.
   var TRAIL_BY = -5;
   var NEUTRAL_MARGIN = 14;
+  var FULL_CLOCK = 40;
+
+  // Three widths of the same name. Which one shows depends on how much room the
+  // tool actually has, measured from the container rather than the viewport —
+  // the tool can sit in a narrow column on a wide screen.
+  var NAMES = {
+    ARI:['Arizona Cardinals','Cardinals'], ATL:['Atlanta Falcons','Falcons'],
+    BAL:['Baltimore Ravens','Ravens'], BUF:['Buffalo Bills','Bills'],
+    CAR:['Carolina Panthers','Panthers'], CHI:['Chicago Bears','Bears'],
+    CIN:['Cincinnati Bengals','Bengals'], CLE:['Cleveland Browns','Browns'],
+    DAL:['Dallas Cowboys','Cowboys'], DEN:['Denver Broncos','Broncos'],
+    DET:['Detroit Lions','Lions'], GB:['Green Bay Packers','Packers'],
+    HOU:['Houston Texans','Texans'], IND:['Indianapolis Colts','Colts'],
+    JAX:['Jacksonville Jaguars','Jaguars'], KC:['Kansas City Chiefs','Chiefs'],
+    LAC:['Los Angeles Chargers','Chargers'], LAR:['Los Angeles Rams','Rams'],
+    LV:['Las Vegas Raiders','Raiders'], MIA:['Miami Dolphins','Dolphins'],
+    MIN:['Minnesota Vikings','Vikings'], NE:['New England Patriots','Patriots'],
+    NO:['New Orleans Saints','Saints'], NYG:['New York Giants','Giants'],
+    NYJ:['New York Jets','Jets'], PHI:['Philadelphia Eagles','Eagles'],
+    PIT:['Pittsburgh Steelers','Steelers'], SEA:['Seattle Seahawks','Seahawks'],
+    SF:['San Francisco 49ers','49ers'], TB:['Tampa Bay Buccaneers','Buccaneers'],
+    TEN:['Tennessee Titans','Titans'], WAS:['Washington Commanders','Commanders']
+  };
+
+  // 0 = abbreviation, 1 = nickname, 2 = full name.
+  function nameTier(){
+    var w = ROOT.clientWidth || 0;
+    if (w >= 900) return 2;
+    if (w >= 620) return 1;
+    return 0;
+  }
+  function teamName(code){
+    var t = nameTier(), n = NAMES[code];
+    if (!n || t === 0) return code;
+    return t === 2 ? n[0] : n[1];
+  }
+
+  // Diverging fill, anchored on rank rather than raw value so the ramp is fully
+  // used no matter how tight the spread is. Deliberately teal rather than a true
+  // green: red/green is the one pair a large share of a football audience cannot
+  // separate, and teal keeps the same "good" reading while staying distinct from
+  // Sharp red under deuteranopia.
+  var GOOD = [[13,110,95],[74,164,148],[176,214,205],[246,248,249]];
+  var BAD  = [[246,248,249],[240,206,201],[224,122,112],[204,0,0]];
+  function mix(stops, t){
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    var x = t * (stops.length - 1), i = Math.floor(x), f = x - i;
+    var a = stops[i], b = stops[Math.min(i + 1, stops.length - 1)];
+    return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * f) + ',' +
+                    Math.round(a[1] + (b[1] - a[1]) * f) + ',' +
+                    Math.round(a[2] + (b[2] - a[2]) * f) + ')';
+  }
+  // p is 0 for the best rank and 1 for the worst.
+  function fillFor(p){
+    return p <= 0.5 ? mix(GOOD, p * 2) : mix(BAD, (p - 0.5) * 2);
+  }
+  function darkFill(p){ return p < 0.17 || p > 0.83; }
 
   var $ = function(role){ return ROOT.querySelector('[data-role="' + role + '"]'); };
   var el = function(tag, cls, text){
@@ -228,14 +290,32 @@
   };
 
   var STATE = {
-    season: null, mode: 'tempo', sort: 'neutral', asc: true,
+    seasons: [], mode: 'tempo', sort: 'neutral', asc: true,
     weeks: [], qtrs: [], downs: [], venue: [], huddle: [],
-    open: null, data: null, index: null
+    open: null, index: null
   };
 
-  // ------------------------------------------------------------- decoding
+  // Decoded seasons, keyed by year. Seasons are fetched the first time they are
+  // selected and kept, so flicking between them costs nothing after the first.
+  var DB = {};
 
-  var DATA = null;
+  // Team codes are indexed per season inside each payload, and the league is not
+  // constant across seasons — Washington alone has been WFT and WAS. Pooling
+  // seasons therefore needs one shared index that every season maps into, rather
+  // than trusting position.
+  var TEAMS = [], TEAM_IX = {};
+  function registerTeams(list){
+    list.forEach(function(code){
+      if (!(code in TEAM_IX)){ TEAM_IX[code] = TEAMS.length; TEAMS.push(code); }
+    });
+  }
+  function loaded(){
+    return STATE.seasons.filter(function(y){ return DB[y]; })
+                        .map(function(y){ return DB[y]; });
+  }
+  function anyLoaded(){ return loaded().length > 0; }
+
+  // ------------------------------------------------------------- decoding
 
   function decode(blob){
     var abet = blob.alphabet, map = {}, i;
@@ -256,6 +336,15 @@
     }
 
     var c = blob.cols, d = blob.dcols;
+
+    registerTeams(blob.teams);
+    var localToGlobal = blob.teams.map(function(code){ return TEAM_IX[code]; });
+    function globalise(str){
+      var out = new Int16Array(str.length);
+      for (var j = 0; j < str.length; j++) out[j] = localToGlobal[map[str.charAt(j)]];
+      return out;
+    }
+
     return {
       season: blob.season,
       teams: blob.teams,
@@ -264,12 +353,13 @@
       hasDrives: blob.has_drives !== false,
       generated: blob.generated_utc,
       n: c.t.length,
-      team: one(c.t), opp: one(c.o), week: one(c.w), qtr: one(c.q),
+      team: globalise(c.t), opp: globalise(c.o),
+      week: one(c.w), qtr: one(c.q),
       down: one(c.d), drive: one(c.v), sec: one(c.s), nh: one(c.n),
       home: one(c.hm), l2: one(c.l2),
       margin: two(c.mh, c.ml, blob.margin_offset),
       dn: d ? d.t.length : 0,
-      dteam: d ? one(d.t) : null,
+      dteam: d ? globalise(d.t) : null,
       dweek: d ? one(d.w) : null,
       ddrive: d ? one(d.v) : null,
       dsec: d ? two(d.sh, d.sl, 0) : null,
@@ -279,14 +369,24 @@
 
   // --------------------------------------------------------------- filters
 
-  function passes(i){
-    var D = DATA;
+  function passes(D, i){
     if (STATE.weeks.length && STATE.weeks.indexOf(D.week[i]) === -1) return false;
     if (STATE.qtrs.length && STATE.qtrs.indexOf(D.qtr[i]) === -1) return false;
     if (STATE.downs.length && STATE.downs.indexOf(D.down[i]) === -1) return false;
     if (STATE.venue.length === 1 && D.home[i] !== STATE.venue[0]) return false;
     if (STATE.huddle.length === 1 && D.nh[i] !== STATE.huddle[0]) return false;
     return true;
+  }
+
+  // Every week and drive key is namespaced by season, so pooling five seasons
+  // cannot collide week 3 of 2021 with week 3 of 2025.
+  function gameKey(D, i){ return D.season * 100 + D.week[i]; }
+  function allWeeks(){
+    var seen = {};
+    loaded().forEach(function(D){
+      D.weeks.forEach(function(w){ seen[w] = 1; });
+    });
+    return Object.keys(seen).map(Number).sort(function(a, b){ return a - b; });
   }
 
   function anyFilter(){
@@ -303,84 +403,89 @@
   // ignoring them.
 
   function aggregate(){
-    var D = DATA, T = D.teams.length, i, t;
+    var T = TEAMS.length, i, t;
     var acc = [];
     for (t = 0; t < T; t++){
       acc.push({
-        team: D.teams[t], plays: 0, nh: 0,
+        team: TEAMS[t], plays: 0, nh: 0,
         secSum: 0, secN: 0, neuSum: 0, neuN: 0, traSum: 0, traN: 0,
-        games: {}, drives: {}, faced: 0, facedGames: {},
-        oppList: {}
+        games: {}, drives: {}, faced: 0, facedGames: {}, oppList: {},
+        driveSecs: 0
       });
     }
 
-    for (i = 0; i < D.n; i++){
-      if (!passes(i)) continue;
-      var a = acc[D.team[i]];
-      a.plays++;
-      a.nh += D.nh[i];
-      a.games[D.week[i]] = 1;
-      a.drives[D.week[i] * 100 + D.drive[i]] = 1;
-      a.oppList[D.week[i]] = D.opp[i];
+    var sets = loaded();
 
-      var f = acc[D.opp[i]];
-      f.faced++;
-      f.facedGames[D.week[i]] = 1;
+    sets.forEach(function(D){
+      for (i = 0; i < D.n; i++){
+        if (!passes(D, i)) continue;
+        var g = gameKey(D, i);
+        var a = acc[D.team[i]];
+        a.plays++;
+        a.nh += D.nh[i];
+        a.games[g] = 1;
+        a.drives[g + ':' + D.drive[i]] = 1;
+        a.oppList[g] = D.opp[i];
 
-      var s = D.sec[i];
-      if (s > 0){
-        a.secSum += s; a.secN++;
-        if (D.qtr[i] <= 3 && D.margin[i] <= NEUTRAL_MARGIN &&
-            D.margin[i] >= -NEUTRAL_MARGIN && !D.l2[i]){
-          a.neuSum += s; a.neuN++;
-        }
-        if (D.margin[i] <= TRAIL_BY && !D.l2[i]){
-          a.traSum += s; a.traN++;
+        var f = acc[D.opp[i]];
+        f.faced++;
+        f.facedGames[g] = 1;
+
+        var sec = D.sec[i];
+        if (sec > 0){
+          a.secSum += sec; a.secN++;
+          if (D.qtr[i] <= 3 && D.margin[i] <= NEUTRAL_MARGIN &&
+              D.margin[i] >= -NEUTRAL_MARGIN && !D.l2[i]){
+            a.neuSum += sec; a.neuN++;
+          }
+          if (D.margin[i] <= TRAIL_BY && !D.l2[i]){
+            a.traSum += sec; a.traN++;
+          }
         }
       }
-    }
+    });
 
-    // Drive seconds, for the drives that survived the filter.
+    // A drive counts when at least one of its plays survived the filter, so
+    // seconds per drive answers to the same filters as everything else.
     var seen = {};
-    if (D.dn){
+    sets.forEach(function(D){
+      if (!D.dn) return;
       for (i = 0; i < D.dn; i++){
         if (!D.dtimed[i]) continue;
-        seen[D.dteam[i] + ':' + D.dweek[i] + ':' + D.ddrive[i]] = D.dsec[i];
+        seen[D.dteam[i] + ':' + (D.season * 100 + D.dweek[i]) + ':' + D.ddrive[i]] =
+          D.dsec[i];
       }
-      for (t = 0; t < T; t++){
-        var a2 = acc[t], secs = 0, keys = Object.keys(a2.drives), k;
-        for (k = 0; k < keys.length; k++){
-          var wk = Math.floor(keys[k] / 100), dv = keys[k] % 100;
-          var hit = seen[t + ':' + wk + ':' + dv];
-          if (hit != null) secs += hit;
-        }
-        a2.driveSecs = secs;
+    });
+    for (t = 0; t < T; t++){
+      var a2 = acc[t], keys = Object.keys(a2.drives);
+      for (var k = 0; k < keys.length; k++){
+        var hit = seen[t + ':' + keys[k]];
+        if (hit != null) a2.driveSecs += hit;
       }
     }
 
     var rows = [], leagueFaced = 0, leagueFacedGames = 0;
     for (t = 0; t < T; t++){
       var x = acc[t];
-      var g = Object.keys(x.games).length;
-      var dv2 = Object.keys(x.drives).length;
+      var g2 = Object.keys(x.games).length;
+      var dv = Object.keys(x.drives).length;
       var fg = Object.keys(x.facedGames).length;
       leagueFaced += x.faced; leagueFacedGames += fg;
       rows.push({
-        team: x.team, ix: t, plays: x.plays, games: g, driveCount: dv2,
+        team: x.team, ix: t, plays: x.plays, games: g2, driveCount: dv,
         sec: x.secN ? x.secSum / x.secN : null, secN: x.secN,
         neutral: x.neuN ? x.neuSum / x.neuN : null, neuN: x.neuN,
         trailing: x.traN ? x.traSum / x.traN : null, traN: x.traN,
         nohuddle: x.plays ? 100 * x.nh / x.plays : null,
-        playsGame: g ? x.plays / g : null,
-        playsDrive: dv2 ? x.plays / dv2 : null,
-        drivesGame: g ? dv2 / g : null,
-        top: (g && x.driveSecs != null) ? x.driveSecs / g / 60 : null,
+        playsGame: g2 ? x.plays / g2 : null,
+        playsDrive: dv ? x.plays / dv : null,
+        drivesGame: g2 ? dv / g2 : null,
+        top: g2 ? x.driveSecs / g2 / 60 : null,
         allowed: fg ? x.faced / fg : null,
         opps: x.oppList
       });
     }
 
-    // Gear change only where both halves of the comparison are thick enough.
     rows.forEach(function(r){
       r.gear = (r.neutral != null && r.trailing != null &&
                 r.neuN >= MIN_SPLIT && r.traN >= MIN_SPLIT)
@@ -388,19 +493,24 @@
       if (r.neuN < MIN_SPLIT) r.neutral = null;
     });
 
-    // Opponent adjustment for volume. Each defence's plays allowed per game is
-    // the baseline; a team's expectation is the mean of the defences it faced.
+    // Opponent adjustment for volume. Each defense's plays allowed per game is
+    // the baseline; a team's expectation is the mean of the defenses it faced.
     // Worth doing for volume and not for tempo: schedule strength moves plays
-    // per game by up to four rank positions but moves seconds per play by about
-    // a tenth of a second, which is inside the noise. See docs/pace-data.md.
+    // per game by up to four rank positions but moves tempo by about a tenth of
+    // a second, which is inside the noise. See docs/pace-data.md.
+    //
+    // Pooling seasons pools the baseline too. That is the right call for a
+    // multi-season view — it asks how a team compares to everyone it played
+    // across the whole span — but it is not the same as averaging per-season
+    // adjustments, and drifts slightly if league-wide volume has moved.
     var leagueMean = leagueFacedGames ? leagueFaced / leagueFacedGames : null;
     var allowedBy = {};
     rows.forEach(function(r){ allowedBy[r.ix] = r.allowed; });
     rows.forEach(function(r){
       if (r.playsGame == null || leagueMean == null){ r.adjPlaysGame = null; return; }
-      var wk = Object.keys(r.opps), sum = 0, n = 0;
-      for (var j = 0; j < wk.length; j++){
-        var a3 = allowedBy[r.opps[wk[j]]];
+      var keys2 = Object.keys(r.opps), sum = 0, n = 0;
+      for (var j = 0; j < keys2.length; j++){
+        var a3 = allowedBy[r.opps[keys2[j]]];
         if (a3 != null){ sum += a3; n++; }
       }
       r.adjPlaysGame = n ? r.playsGame - (sum / n) + leagueMean : null;
@@ -411,32 +521,39 @@
 
   // ---------------------------------------------------------------- columns
 
+  // Each column carries a long and a short header. The long one shows whenever
+  // the table has room for it, which is most of the time on desktop.
   var COLUMNS = {
     tempo: [
-      {key:'sec',      label:'Sec/play', dp:1, low:true,
-       tip:'Real seconds between snaps, averaged. Not game-clock time, so an incompletion does not make an offence look fast.'},
-      {key:'neutral',  label:'Neutral',  dp:1, low:true,
-       tip:'Quarters 1 to 3, inside 14 points, excluding the last two minutes of the half.'},
-      {key:'gear',     label:'Gear \u0394', dp:1, low:false, signed:true,
-       tip:'Neutral seconds per play minus seconds per play when trailing by 5 or more. Positive means the offence speeds up when behind.'},
-      {key:'nohuddle', label:'No-hud',   dp:0, low:false, pct:true,
-       tip:'Share of plays run without a huddle.'}
+      {key:'sec', label:'Play Clock Used', short:'Clock Used', dp:1, low:true,
+       tip:'How many of the 40 seconds on the play clock the offense uses before snapping. Lower is faster.'},
+      {key:'neutral', label:'Neutral', short:'Neutral', dp:1, low:true,
+       tip:'Play clock used in quarters 1 to 3, inside 14 points, excluding the last two minutes of the half.'},
+      {key:'gear', label:'Gear Change', short:'Gear', dp:1, low:false, signed:true,
+       tip:'Neutral play clock used minus play clock used when trailing by 5 or more. A positive number means the offense speeds up once it falls behind.'},
+      {key:'nohuddle', label:'No Huddle', short:'No Hud', dp:0, low:false, pct:true,
+       tip:'Share of plays the offense runs without huddling.'}
     ],
     volume: [
-      {key:'playsGame',    label:'Plays/gm', dp:1, low:false,
-       tip:'Offensive plays per game. Kneels and spikes excluded.'},
-      {key:'adjPlaysGame', label:'Adj p/gm', dp:1, low:false,
-       tip:'Plays per game adjusted for how many plays each defence faced. Moves teams by up to four rank positions.'},
-      {key:'playsDrive',   label:'Plays/dr', dp:2, low:false,
-       tip:'Plays per drive. Barely correlated with seconds per play — this measures sustaining drives, not tempo.'},
-      {key:'drivesGame',   label:'Drives',   dp:2, low:false,
-       tip:'Drives per game. Largely a function of the defence and the opponent.'},
-      {key:'top',          label:'TOP',      dp:1, low:false,
+      {key:'playsGame', label:'Plays/Game', short:'Plays/G', dp:1, low:false,
+       tip:'Offensive plays per game. Kneels and spikes are excluded.'},
+      {key:'adjPlaysGame', label:'Adjusted Plays/Game', short:'Adj P/G', dp:1, low:false,
+       tip:'Plays per game adjusted for how many plays each defense faced. This moves teams by up to four rank positions.'},
+      {key:'playsDrive', label:'Plays/Drive', short:'Plays/D', dp:2, low:false,
+       tip:'Plays per drive. This barely correlates with play clock used, so it measures sustaining drives rather than tempo.'},
+      {key:'drivesGame', label:'Drives/Game', short:'Drives', dp:2, low:false,
+       tip:'Drives per game. Largely a function of the defense and the opponent.'},
+      {key:'top', label:'Time of Possession', short:'TOP', dp:1, low:false,
        tip:'Time of possession per game, in minutes. Drives that ended because the half ran out are excluded.'}
     ]
   };
 
   function cols(){ return COLUMNS[STATE.mode]; }
+  function headerFor(c){
+    var w = ROOT.clientWidth || 0;
+    var budget = STATE.mode === 'tempo' ? 560 : 700;
+    return w >= budget ? c.label : c.short;
+  }
 
   // ------------------------------------------------------------------ render
 
@@ -495,13 +612,11 @@
 
     var table = el('table', 'pt-grid');
     var thead = el('thead'), hr = el('tr');
-    hr.appendChild(el('th', 'pt-rank', '#'));
-    var teamTh = el('th', 'pt-team');
-    teamTh.appendChild(el('span', null, 'Off'));
-    hr.appendChild(teamTh);
+    hr.appendChild(el('th', 'pt-rank', 'Rank'));
+    hr.appendChild(el('th', 'pt-team', 'Offense'));
     list.forEach(function(c){
       var th = el('th');
-      var b = el('button', null, c.label);
+      var b = el('button', null, headerFor(c));
       b.type = 'button';
       b.title = c.tip;
       if (c.key === STATE.sort){
@@ -525,10 +640,14 @@
       if (STATE.open === r.team) cls += (cls ? ' ' : '') + 'pt-open';
       if (cls) tr.className = cls;
 
-      tr.appendChild(el('td', 'pt-rank', String(i + 1)));
+      // Rank is the team's standing on the sorted column, not its position in
+      // the list. Reversing the sort has to count 32 down to 1, not renumber the
+      // rows 1 to 32 in the new order.
+      var ownRank = rankOf(r[STATE.sort], rankVals[STATE.sort], sortCol);
+      tr.appendChild(el('td', 'pt-rank', ownRank == null ? '\u2014' : String(ownRank)));
 
       var td = el('td', 'pt-team');
-      var btn = el('button', 'pt-teamcell', r.team);
+      var btn = el('button', 'pt-teamcell', teamName(r.team));
       btn.type = 'button';
       btn.setAttribute('aria-expanded', STATE.open === r.team ? 'true' : 'false');
       btn.addEventListener('click', function(){
@@ -542,11 +661,15 @@
         var cell = el('td');
         var span = el('span', 'pt-num', fmt(r[c.key], c));
         var rk = rankOf(r[c.key], rankVals[c.key], c);
-        if (rk != null && rk <= 3) span.classList.add('pt-lead');
+        var total = rankVals[c.key].length;
+        if (rk != null && total > 1){
+          var p = (rk - 1) / (total - 1);
+          cell.style.background = fillFor(p);
+          if (darkFill(p)) cell.style.color = '#fff';
+        }
         if (r[c.key] == null) span.classList.add('pt-thin');
-        if (c.signed && r[c.key] > 0.75) span.classList.add('pt-pos');
-        span.title = rk ? (c.label + ': ' + fmt(r[c.key], c) + ' (rank ' + rk + ' of ' +
-                           rankVals[c.key].length + ')')
+        span.title = rk ? (c.label + ': ' + fmt(r[c.key], c) + ' (rank ' + rk +
+                           ' of ' + total + ')')
                         : (c.label + ': not enough plays under these filters');
         cell.appendChild(span);
         tr.appendChild(cell);
@@ -570,7 +693,7 @@
 
     var tfoot = el('tfoot'), fr = el('tr');
     fr.appendChild(el('th', 'pt-rank', ''));
-    fr.appendChild(el('th', 'pt-team', 'NFL'));
+    fr.appendChild(el('th', 'pt-team', 'NFL Average'));
     list.forEach(function(c){
       var vals = live.filter(function(r){ return r[c.key] != null; });
       var mean = vals.length
@@ -589,7 +712,8 @@
 
   function detail(r, live, rankVals){
     var box = el('div', 'pt-detin');
-    box.appendChild(el('div', 'pt-detname', r.team + ' \u2014 ' + DATA.season));
+    box.appendChild(el('div', 'pt-detname',
+      (NAMES[r.team] ? NAMES[r.team][0] : r.team) + ' \u2014 ' + seasonLabel()));
 
     var cards = el('div', 'pt-cards');
     function card(label, value, note){
@@ -600,13 +724,13 @@
       cards.appendChild(c);
     }
     card('Neutral', r.neutral == null ? '\u2014' : r.neutral.toFixed(1) + 's',
-         r.neuN + ' plays');
+         r.neuN.toLocaleString() + ' plays');
     card('Trailing', r.trailing == null ? '\u2014' : r.trailing.toFixed(1) + 's',
-         r.traN + ' plays');
-    card('No-huddle', r.nohuddle == null ? '\u2014' : Math.round(r.nohuddle) + '%',
-         r.plays + ' plays');
-    card('Plays/drive', r.playsDrive == null ? '\u2014' : r.playsDrive.toFixed(2),
-         r.driveCount + ' drives');
+         r.traN.toLocaleString() + ' plays');
+    card('No Huddle', r.nohuddle == null ? '\u2014' : Math.round(r.nohuddle) + '%',
+         r.plays.toLocaleString() + ' plays');
+    card('Plays/Drive', r.playsDrive == null ? '\u2014' : r.playsDrive.toFixed(2),
+         r.driveCount.toLocaleString() + ' drives');
     box.appendChild(cards);
 
     var charts = el('div', 'pt-charts');
@@ -615,8 +739,9 @@
     box.appendChild(charts);
 
     var n = el('div', 'pt-note');
-    n.textContent = 'Gear change compares neutral pace with pace when trailing by 5 or ' +
-      'more. Both need at least ' + MIN_SPLIT + ' plays before a number is shown.';
+    n.textContent = 'Gear change compares neutral play clock used with play clock ' +
+      'used when trailing by 5 or more. Both sides need at least ' + MIN_SPLIT +
+      ' plays before a number is shown.';
     box.appendChild(n);
     return box;
   }
@@ -638,7 +763,6 @@
   // Pace by score state. The point of the tool in one picture: a flat set of
   // bars is an offence with one speed, a stepped set is one that changes gears.
   function chartMargin(r){
-    var D = DATA;
     var buckets = [
       {label:'Down 9+', lo:-99, hi:-9},
       {label:'Down 1-8', lo:-8, hi:-1},
@@ -648,25 +772,27 @@
     ];
     var sums = buckets.map(function(){ return [0, 0]; });
     var lSum = 0, lN = 0;
-    for (var i = 0; i < D.n; i++){
-      if (!passes(i)) continue;
-      var s = D.sec[i];
-      if (s <= 0 || D.l2[i]) continue;
-      lSum += s; lN++;
-      if (D.team[i] !== r.ix) continue;
-      var m = D.margin[i];
-      for (var b = 0; b < buckets.length; b++){
-        if (m >= buckets[b].lo && m <= buckets[b].hi){
-          sums[b][0] += s; sums[b][1]++; break;
+    loaded().forEach(function(D){
+      for (var i = 0; i < D.n; i++){
+        if (!passes(D, i)) continue;
+        var v = D.sec[i];
+        if (v <= 0 || D.l2[i]) continue;
+        lSum += v; lN++;
+        if (D.team[i] !== r.ix) continue;
+        var m = D.margin[i];
+        for (var b = 0; b < buckets.length; b++){
+          if (m >= buckets[b].lo && m <= buckets[b].hi){
+            sums[b][0] += v; sums[b][1]++; break;
+          }
         }
       }
-    }
-    var league = lN ? lSum / lN : 40;
+    });
+    var league = lN ? lSum / lN : 32;
     var vals = sums.map(function(p){ return p[1] >= 25 ? p[0] / p[1] : null; });
     var present = vals.filter(function(v){ return v != null; });
     var lo = Math.min.apply(null, present.concat([league])) - 2;
     var hi = Math.max.apply(null, present.concat([league])) + 2;
-    if (!present.length){ lo = 30; hi = 50; }
+    if (!present.length){ lo = 24; hi = FULL_CLOCK; }
 
     var s = svg();
     var x0 = 8, x1 = 292, y0 = 14, y1 = 148, w = (x1 - x0) / buckets.length;
@@ -695,15 +821,16 @@
     // gets painted over by them.
     s.appendChild(node('line', {x1:x0, x2:x1, y1:scale(league), y2:scale(league),
       stroke:'#7f8c9a', 'stroke-width':1, 'stroke-dasharray':'3 3'}));
-    var lbl = 'NFL ' + league.toFixed(1) + 's';
+    var lbl = 'NFL avg ' + league.toFixed(1) + 's';
     s.appendChild(node('rect', {x:x1 - lbl.length * 4.1 - 2, y:scale(league) - 11,
       width:lbl.length * 4.1 + 2, height:10, fill:'#fff', opacity:.85}));
     s.appendChild(node('text', {x:x1, y:scale(league) - 3, 'text-anchor':'end',
       'font-size':8, fill:'#7f8c9a'}, lbl));
-    s.appendChild(node('title', {}, r.team + ' seconds per play by score margin'));
+    s.appendChild(node('title', {},
+      teamName(r.team) + ' play clock used by score margin'));
 
     var box = el('div', 'pt-chart');
-    box.appendChild(el('div', 'pt-ctitle', 'Sec/play by score margin'));
+    box.appendChild(el('div', 'pt-ctitle', 'Play Clock Used by Score Margin'));
     box.appendChild(s);
     return box;
   }
@@ -711,22 +838,28 @@
   // Pace week to week. Catches coordinator and quarterback changes that a
   // season average buries.
   function chartWeeks(r){
-    var D = DATA, byWeek = {};
-    for (var i = 0; i < D.n; i++){
-      if (!passes(i) || D.team[i] !== r.ix) continue;
-      var s = D.sec[i];
-      if (s <= 0) continue;
-      var w = D.week[i];
-      if (!byWeek[w]) byWeek[w] = [0, 0];
-      byWeek[w][0] += s; byWeek[w][1]++;
-    }
+    var byWeek = {};
+    loaded().forEach(function(D){
+      for (var i = 0; i < D.n; i++){
+        if (!passes(D, i) || D.team[i] !== r.ix) continue;
+        var v = D.sec[i];
+        if (v <= 0) continue;
+        // Season-major key so several seasons lay out end to end rather than
+        // folding week 1 of every year onto the same point.
+        var key = D.season * 100 + D.week[i];
+        if (!byWeek[key]) byWeek[key] = [0, 0];
+        byWeek[key][0] += v; byWeek[key][1]++;
+      }
+    });
     var weeks = Object.keys(byWeek).map(Number).sort(function(a, b){ return a - b; });
     var pts = weeks.filter(function(w){ return byWeek[w][1] >= 10; })
                    .map(function(w){ return {w:w, v:byWeek[w][0] / byWeek[w][1]}; });
 
     var s2 = svg();
     var box = el('div', 'pt-chart');
-    box.appendChild(el('div', 'pt-ctitle', 'Sec/play by week'));
+    box.appendChild(el('div', 'pt-ctitle',
+      STATE.seasons.length > 1 ? 'Play Clock Used by Week (All Seasons)'
+                               : 'Play Clock Used by Week'));
 
     if (pts.length < 2){
       s2.appendChild(node('text', {x:150, y:92, 'text-anchor':'middle',
@@ -738,9 +871,17 @@
     var vals = pts.map(function(p){ return p.v; });
     var lo = Math.min.apply(null, vals) - 1.5, hi = Math.max.apply(null, vals) + 1.5;
     var wLo = pts[0].w, wHi = pts[pts.length - 1].w;
+    function weekLabel(key){
+      var yr = Math.floor(key / 100), wk = key % 100;
+      return STATE.seasons.length > 1 ? (yr + ' W' + wk) : ('Week ' + wk);
+    }
     var x0 = 20, x1 = 292, y0 = 14, y1 = 150;
-    var sx = function(w){ return wHi === wLo ? (x0 + x1) / 2
-      : x0 + (w - wLo) / (wHi - wLo) * (x1 - x0); };
+    // Space points by position, not by key value: keys jump from 202118 to
+    // 202201 at a season boundary, which would leave a false gap in the line.
+    var slot = {};
+    pts.forEach(function(pt, i){ slot[pt.w] = i; });
+    var sx = function(w){ return pts.length < 2 ? (x0 + x1) / 2
+      : x0 + slot[w] / (pts.length - 1) * (x1 - x0); };
     var sy = function(v){ return y1 - (v - lo) / (hi - lo) * (y1 - y0); };
 
     var mean = vals.reduce(function(a, b){ return a + b; }, 0) / vals.length;
@@ -754,12 +895,13 @@
     pts.forEach(function(p){
       s2.appendChild(node('circle', {cx:sx(p.w), cy:sy(p.v), r:2, fill:'#cc0000'}));
     });
-    s2.appendChild(node('text', {x:x0, y:166, 'font-size':8, fill:'#7f8c9a'}, 'Wk ' + wLo));
+    s2.appendChild(node('text', {x:x0, y:166, 'font-size':8, fill:'#7f8c9a'},
+      weekLabel(wLo)));
     s2.appendChild(node('text', {x:x1, y:166, 'text-anchor':'end', 'font-size':8,
-      fill:'#7f8c9a'}, 'Wk ' + wHi));
+      fill:'#7f8c9a'}, weekLabel(wHi)));
     s2.appendChild(node('text', {x:2, y:sy(mean) - 3, 'font-size':8, fill:'#7f8c9a'},
       mean.toFixed(1)));
-    s2.appendChild(node('title', {}, r.team + ' seconds per play by week'));
+    s2.appendChild(node('title', {}, teamName(r.team) + ' play clock used by week'));
     box.appendChild(s2);
     return box;
   }
@@ -775,27 +917,42 @@
     f.appendChild(document.createTextNode(' plays in view, '));
     f.appendChild(el('b', null, tempo.toLocaleString()));
     f.appendChild(document.createTextNode(
-      ' with a comparable snap-to-snap gap. Gaps after timeouts, injuries, ' +
-      'measurements, reviews and the two-minute warning are excluded at source.'));
+      ' on a full 40-second play clock. Snaps after a change of possession, ' +
+      'timeout, penalty, injury, review or the two-minute warning run on a ' +
+      '25-second clock and are left out of the tempo columns.'));
+  }
+
+  function seasonLabel(){
+    var y = STATE.seasons.slice().sort(function(a, b){ return a - b; });
+    if (!y.length) return '\u2014';
+    if (y.length === 1) return String(y[0]);
+    var run = y[y.length - 1] - y[0] + 1 === y.length;
+    return run ? (y[0] + '\u2013' + y[y.length - 1]) : (y.length + ' seasons');
   }
 
   var FILTERS = [
+    // Season sits in the same popover shape as everything else, and is
+    // multi-select so several years can be pooled. It is the one filter that
+    // cannot be emptied — with no season there is nothing to show — so the
+    // popover re-adds the last chip rather than allowing a blank table.
+    {key:'seasons', label:'Season', all:'All', multi:true, required:true},
     {key:'weeks',  label:'Week',    all:'All',       multi:true},
     {key:'qtrs',   label:'Quarter', all:'All',       multi:true,
      opts:[[1,'1'],[2,'2'],[3,'3'],[4,'4'],[5,'OT']]},
     {key:'downs',  label:'Down',    all:'All',       multi:true,
      opts:[[1,'1st'],[2,'2nd'],[3,'3rd'],[4,'4th']]},
-    {key:'venue',  label:'Venue',   all:'Home + road', multi:false,
+    {key:'venue',  label:'Venue',   all:'Home + Road', multi:false,
      opts:[[1,'Home'],[0,'Road']]},
     {key:'huddle', label:'Huddle',  all:'Both',      multi:false,
-     opts:[[0,'Huddle'],[1,'No-huddle']]}
+     opts:[[0,'Huddle'],[1,'No Huddle']]}
   ];
 
   function filterValue(f){
     var v = STATE[f.key];
+    if (f.key === 'seasons') return seasonLabel();
     if (!v.length) return f.all;
     if (f.key === 'weeks'){
-      if (v.length === 1) return 'Wk ' + v[0];
+      if (v.length === 1) return 'Week ' + v[0];
       return v.length + ' weeks';
     }
     var names = v.map(function(x){
@@ -810,19 +967,16 @@
     var bar = $('bar');
     bar.innerHTML = '';
 
-    if (STATE.index && STATE.index.seasons.length > 1){
-      var sb = el('button', 'pt-fb');
-      sb.type = 'button';
-      sb.appendChild(el('span', 'l', 'Season'));
-      sb.appendChild(el('span', 'v', String(STATE.season)));
-      sb.addEventListener('click', function(){ openSeason(sb); });
-      bar.appendChild(sb);
-    }
-
     FILTERS.forEach(function(f){
+      if (f.key === 'seasons' &&
+          (!STATE.index || (STATE.index.seasons || []).length < 2)) return;
       var b = el('button', 'pt-fb');
       b.type = 'button';
-      b.setAttribute('data-on', STATE[f.key].length ? '1' : '0');
+      var on = f.key === 'seasons'
+        ? (STATE.seasons.length !== 1 ||
+           STATE.seasons[0] !== (STATE.index && STATE.index.default))
+        : STATE[f.key].length > 0;
+      b.setAttribute('data-on', on ? '1' : '0');
       b.appendChild(el('span', 'l', f.label));
       b.appendChild(el('span', 'v', filterValue(f)));
       b.addEventListener('click', function(){ openFilter(b, f); });
@@ -837,6 +991,9 @@
       STATE.venue = []; STATE.huddle = [];
       closePop(); buildBar(); render();
     });
+    // Season is deliberately not cleared here: Reset is for narrowing filters,
+    // and silently reloading four extra seasons would be a surprising thing for
+    // it to do.
     bar.appendChild(reset);
   }
 
@@ -852,27 +1009,6 @@
     p.style.top = (ab.bottom - rb.top + 4) + 'px';
   }
 
-  function openSeason(anchor){
-    var p = $('pop');
-    if (!p.hidden && p.getAttribute('data-for') === 'season'){ closePop(); return; }
-    p.innerHTML = '';
-    p.setAttribute('data-for', 'season');
-    p.appendChild(el('div', 'h', 'Season'));
-    var opts = el('div', 'pt-opts');
-    STATE.index.seasons.slice().sort(function(a, b){ return b - a; }).forEach(function(y){
-      var b = el('button', 'pt-opt', String(y));
-      b.type = 'button';
-      b.setAttribute('aria-pressed', y === STATE.season ? 'true' : 'false');
-      b.addEventListener('click', function(){
-        closePop();
-        if (y !== STATE.season) loadSeason(y);
-      });
-      opts.appendChild(b);
-    });
-    p.appendChild(opts);
-    placePop(anchor);
-  }
-
   function openFilter(anchor, f){
     var p = $('pop');
     if (!p.hidden && p.getAttribute('data-for') === f.key){ closePop(); return; }
@@ -882,7 +1018,11 @@
 
     var opts = f.opts;
     if (f.key === 'weeks'){
-      opts = DATA.weeks.map(function(w){ return [w, String(w)]; });
+      opts = allWeeks().map(function(w){ return [w, String(w)]; });
+    } else if (f.key === 'seasons'){
+      opts = (STATE.index.seasons || []).slice()
+        .sort(function(a, b){ return b - a; })
+        .map(function(y){ return [y, String(y)]; });
     }
     var pick = STATE[f.key].slice();
     var box = el('div', 'pt-opts');
@@ -894,11 +1034,14 @@
         var at = pick.indexOf(o[0]);
         if (f.multi){
           if (at > -1) pick.splice(at, 1); else pick.push(o[0]);
+          // Season cannot be emptied — an empty table is never what was meant.
+          if (f.required && !pick.length) pick.push(o[0]);
         } else {
           pick = at > -1 ? [] : [o[0]];
         }
         box.querySelectorAll('.pt-opt').forEach(function(node2, i){
-          node2.setAttribute('aria-pressed', pick.indexOf(opts[i][0]) > -1 ? 'true' : 'false');
+          node2.setAttribute('aria-pressed',
+            pick.indexOf(opts[i][0]) > -1 ? 'true' : 'false');
         });
       });
       box.appendChild(b);
@@ -906,16 +1049,24 @@
     p.appendChild(box);
 
     var foot = el('div', 'pt-popfoot');
-    var clear = el('button', null, 'Clear');
+    var clear = el('button', null, f.required ? 'Latest' : 'Clear');
     clear.type = 'button';
     clear.addEventListener('click', function(){
-      STATE[f.key] = []; closePop(); buildBar(); render();
+      if (f.required){
+        applySeasons([STATE.index.default ||
+          Math.max.apply(null, STATE.index.seasons)]);
+      } else {
+        STATE[f.key] = [];
+      }
+      closePop(); buildBar(); render();
     });
     var go = el('button', 'go', 'Apply');
     go.type = 'button';
     go.addEventListener('click', function(){
       pick.sort(function(a, b){ return a - b; });
-      STATE[f.key] = pick; closePop(); buildBar(); render();
+      closePop();
+      if (f.key === 'seasons'){ applySeasons(pick); return; }
+      STATE[f.key] = pick; buildBar(); render();
     });
     foot.appendChild(clear);
     foot.appendChild(go);
@@ -958,35 +1109,77 @@
   }
 
   function subtitle(){
-    var d = DATA;
+    var sets = loaded();
     var when = '';
-    if (d.generated){
-      var t = new Date(d.generated);
+    var newest = null;
+    sets.forEach(function(D){
+      if (D.generated && (!newest || D.generated > newest)) newest = D.generated;
+    });
+    if (newest){
+      var t = new Date(newest);
       if (!isNaN(t)) when = ' \u00b7 updated ' + t.toLocaleDateString(undefined,
         {month:'short', day:'numeric'});
     }
-    $('sub').innerHTML = '';
-    $('sub').appendChild(el('b', null, String(d.season)));
-    $('sub').appendChild(document.createTextNode(
-      ' \u00b7 seconds between snaps, not game-clock time' + when));
+    var sub = $('sub');
+    sub.innerHTML = '';
+    sub.appendChild(el('b', null, seasonLabel()));
+    sub.appendChild(document.createTextNode(
+      ' \u00b7 how much of the 40-second play clock each offense uses' + when));
   }
 
-  function loadSeason(year){
-    $('wrap').innerHTML = '';
-    $('wrap').appendChild(el('div', 'pt-status', 'Loading ' + year + '\u2026'));
-    return get(BASE + 'pace_' + year + '.json').then(function(blob){
-      DATA = decode(blob);
-      STATE.season = year;
-      STATE.weeks = [];
-      STATE.open = null;
-      subtitle();
-      buildBar();
-      render();
-    }).catch(function(err){
+  // Seasons are fetched once and cached. Selecting four extra years pulls four
+  // more files, so the table stays on screen with a quiet note rather than being
+  // torn down and replaced by a spinner.
+  function applySeasons(years){
+    years = years.slice().sort(function(a, b){ return a - b; });
+    if (!years.length) return;
+    STATE.seasons = years;
+    STATE.open = null;
+    // Weeks are re-offered from whatever the new selection actually contains.
+    STATE.weeks = [];
+
+    var missing = years.filter(function(y){ return !DB[y]; });
+    if (!missing.length){ buildBar(); subtitle(); render(); return; }
+
+    var status = $('status-line');
+    if (status) status.textContent = 'Loading ' + missing.join(', ') + '\u2026';
+    if (!anyLoaded()){
       $('wrap').innerHTML = '';
       $('wrap').appendChild(el('div', 'pt-status',
-        'Could not load the ' + year + ' pace data. ' + err.message));
+        'Loading ' + missing.join(', ') + '\u2026'));
+    }
+    buildBar();
+
+    return Promise.all(missing.map(function(y){
+      return get(BASE + 'pace_' + y + '.json').then(function(blob){
+        DB[y] = decode(blob);
+      }).catch(function(err){
+        // One bad season should not take the others down with it.
+        STATE.seasons = STATE.seasons.filter(function(x){ return x !== y; });
+        console.error('pace: could not load ' + y, err);
+      });
+    })).then(function(){
+      if (!STATE.seasons.length){
+        $('wrap').innerHTML = '';
+        $('wrap').appendChild(el('div', 'pt-status',
+          'Could not load that season.'));
+        return;
+      }
+      buildBar();
+      subtitle();
+      render();
     });
+  }
+
+  if (window.ResizeObserver){
+    var lastTier = null;
+    new ResizeObserver(function(){
+      if (!anyLoaded()) return;
+      var tier = nameTier() + ':' + (ROOT.clientWidth >= 700 ? 'w' : 'n');
+      if (tier === lastTier) return;
+      lastTier = tier;
+      render();
+    }).observe(ROOT);
   }
 
   get(BASE + 'pace_index.json').then(function(ix){
@@ -997,7 +1190,7 @@
         'No seasons have pace data yet.'));
       return;
     }
-    return loadSeason(ix.default || ix.seasons[ix.seasons.length - 1]);
+    return applySeasons([ix.default || Math.max.apply(null, ix.seasons)]);
   }).catch(function(err){
     $('wrap').innerHTML = '';
     $('wrap').appendChild(el('div', 'pt-status',

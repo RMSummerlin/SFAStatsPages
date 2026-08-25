@@ -14,14 +14,26 @@ combinable, and the neutral / trailing splits have to be recomputed inside
 whatever filter is active, so there is no useful aggregation short of the plays
 themselves.
 
-TimeSinceSnap is the core column and it is worth understanding before changing
-anything here. See docs/pace-data.md for the full derivation, but in short: it
-is real-world seconds between consecutive snaps, not game-clock delta. On plays
-where the clock ran continuously it matches the game-clock delta ~91% exactly;
-after an incompletion the game clock burns ~5s but TimeSinceSnap still reads
-~43s. The provider also blanks it after timeouts, injuries, measurements,
-replay reviews and the two-minute warning, which is why this script does no
-clock-state filtering of its own — that work is already done upstream.
+Tempo is measured as PLAY CLOCK USED: 40 minus the seconds left on the play
+clock at the snap. See docs/pace-data.md for the derivation. The short version
+is that snap-to-snap time bundles two different things — how long the previous
+play took to finish, and how long the offence then took to snap. Only the second
+is a tempo decision. Play clock used isolates it, and is 0.86 split-half reliable
+against 0.74 for snap-to-snap.
+
+TimeSinceSnap is still essential, but as a gate rather than a metric. Play clock
+used is only comparable when the play clock started at 40, and the NFL resets to
+25 after a change of possession, timeout, penalty, injury, measurement, review,
+the two-minute warning and the start of a period. TimeSinceSnap is blank on
+almost exactly that set — 96% of first-plays-of-drive, 94% of post-timeout snaps
+— so requiring it to be present selects the 40-second universe without this
+script having to enumerate the rule book. Verified: first plays of drives top out
+at 25 on the play clock (4 exceptions in 5,692), while plays with TimeSinceSnap
+present reach 39.
+
+Penalties are the one case TimeSinceSnap does not catch. Those snaps keep a
+TimeSinceSnap but run on a 25-second clock — their play clock maxes at exactly 25
+across all 260 of them — so they are excluded explicitly.
 
 Seasons whose sheet predates the TimeSinceSnap column are still published, with
 pace fields absent and a loud warning in the log. The tool reads pace_index.json
@@ -68,8 +80,9 @@ REQUIRED_COLUMNS = [
 # Present in the 2025 sheet onward. A season missing TimeSinceSnap is published
 # without tempo; a season missing the drive columns is published without volume.
 OPTIONAL_COLUMNS = [
-    "TimeSinceSnap", "Huddle", "HomeRoad", "GameClock", "GameId", "PlayId",
-    "DriveStartClock", "DriveEndClock", "DriveResult",
+    "TimeSinceSnap", "PlayClock", "Huddle", "HomeRoad", "GameClock", "GameId",
+    "PlayId", "DriveStartClock", "DriveEndClock", "DriveResult",
+    "OffPenaltyYds", "DefPenaltyYds",
 ]
 
 # Encoding alphabet: printable ASCII 35..126 minus backslash. 91 symbols, all
@@ -79,13 +92,13 @@ BASE = len(ALPHABET)
 
 MARGIN_OFFSET = 100   # margin stored base-91 across two columns as margin + 100
 
-# TimeSinceSnap is winsorized here rather than in the browser so every consumer
-# sees the same number. The raw column tops out at 75 and the tail above 60 is
-# almost entirely unflagged penalty administration rather than real tempo, so a
-# handful of 70s plays would otherwise drag a team mean around. 0 is reserved as
-# the "no comparable gap" sentinel, which is free because real values start at 1.
-TSS_CAP = 60
-TSS_MISSING = 0
+# A full play clock. Play clock used is PLAY_CLOCK - seconds remaining, so it is
+# bounded 0..40 by construction and needs no winsorizing — which is the other
+# reason to prefer it over snap-to-snap, whose tail ran to 75 seconds and had to
+# be clipped. Only ever applied to plays that passed the 40-second gate.
+PLAY_CLOCK = 40
+# Values run 1..40, so 0 is free as the "no comparable snap" sentinel.
+TEMPO_MISSING = 0
 
 # Drives that ran out of clock rather than ending on their own terms. Their
 # duration is an artifact of when the half started, not of how the offense
@@ -103,6 +116,40 @@ LAST_TWO_MINUTES = 120
 DEAD_BALL_RE = re.compile(r"\bkneels?\b|spiked the ball", re.IGNORECASE)
 
 CLOCK_RE = re.compile(r"^\s*(\d{0,2}):(\d{2})\s*$")
+
+# Franchises pooled under one code so a multi-season view shows 32 rows rather
+# than one row per name a franchise has worn. Without this, selecting 2021 next
+# to 2025 lists WFT and WAS as if they were different teams — which is exactly
+# what the tool did before this map existed.
+#
+# Two groups, both mapping to whatever the franchise is called now:
+#   * relocations and renames — WFT/WSH, OAK, SD, STL
+#   * alternate abbreviations for the same team, which differ between data
+#     providers and have a habit of changing when a sheet is rebuilt
+#
+# Rule of thumb for additions: normalise toward the CURRENT code, so history
+# folds into the present rather than the present being renamed into history.
+TEAM_ALIASES = {
+    # Washington: Redskins -> Football Team (2020-21) -> Commanders
+    "WFT": "WAS", "WSH": "WAS", "WAS": "WAS",
+    # Oakland -> Las Vegas, 2020
+    "OAK": "LV", "LVR": "LV", "RAI": "LV",
+    # San Diego -> Los Angeles, 2017
+    "SD": "LAC", "SDG": "LAC",
+    # St. Louis -> Los Angeles, 2016. "LA" is ambiguous in principle, but every
+    # feed that uses it means the Rams; the Chargers have always been LAC here.
+    "STL": "LAR", "SL": "LAR", "LA": "LAR", "RAM": "LAR",
+    # Same franchise, different house style
+    "JAC": "JAX", "ARZ": "ARI", "BLT": "BAL", "CLV": "CLE", "HST": "HOU",
+    "TAM": "TB", "KAN": "KC", "NOR": "NO", "SFO": "SF", "GNB": "GB",
+    "NWE": "NE", "NORL": "NO", "TBB": "TB",
+}
+
+
+def canonical_team(code):
+    """Fold a team abbreviation onto the franchise's current code."""
+    code = (code or "").strip().upper()
+    return TEAM_ALIASES.get(code, code)
 
 
 # --------------------------------------------------------------------------- io
@@ -268,14 +315,49 @@ def in_last_two_minutes(qtr, clock):
 # ------------------------------------------------------------------- build
 
 
+def mark_prior_penalties(rows, present):
+    """Flag each row whose PREVIOUS play in the same drive drew a penalty.
+
+    Those snaps run on a 25-second play clock, so their play clock used is not
+    comparable with everyone else's. TimeSinceSnap does not blank them, so they
+    have to be found here.
+
+    Ordering matters and file order will not do: the sheet groups plays by team,
+    so the two offences in a game are never interleaved. PlayId is a per-game
+    sequence spanning both, which is the only ordering that means anything.
+    """
+    order = []
+    for i, row in enumerate(rows):
+        play_id = as_int(row.get("PlayId")) if "PlayId" in present else None
+        order.append((row.get("GameId") or "", play_id if play_id is not None else i, i))
+    order.sort()
+
+    def drew_penalty(row):
+        for col in ("OffPenaltyYds", "DefPenaltyYds"):
+            yards = as_int(row.get(col))
+            if yards:
+                return True
+        return "PENALTY" in (row.get("PlayDesc") or "").upper()
+
+    previous = {}
+    for _, _, i in order:
+        row = rows[i]
+        key = (row.get("GameId"), row.get("team"), row.get("DriveNumber"))
+        row["_prior_penalty"] = previous.get(key, False)
+        previous[key] = drew_penalty(row)
+
+
 def build_season(rows, season, present):
     """Clean and encode one season. Returns (payload, summary)."""
-    has_tempo = "TimeSinceSnap" in present
+    # Both columns are needed: PlayClock supplies the metric, TimeSinceSnap
+    # selects the plays where that metric is comparable.
+    has_tempo = "TimeSinceSnap" in present and "PlayClock" in present
     has_drives = {"DriveStartClock", "DriveEndClock", "DriveResult"} <= present
     has_order = "PlayId" in present
 
     plays = []
     dropped = Counter()
+    renamed = Counter()
     capped = 0
     drives = {}
 
@@ -289,8 +371,12 @@ def build_season(rows, season, present):
             dropped["kneel or spike"] += 1
             continue
 
-        team = (row.get("team") or "").strip().upper()
-        opp = (row.get("opponent") or "").strip().upper()
+        team = canonical_team(row.get("team"))
+        opp = canonical_team(row.get("opponent"))
+        for raw, folded in ((row.get("team"), team), (row.get("opponent"), opp)):
+            raw = (raw or "").strip().upper()
+            if raw and raw != folded:
+                renamed[raw + " \u2192 " + folded] += 1
         week = parse_week(row.get("week"))
         qtr = as_int(row.get("qtr"))
         down = as_int(row.get("down"))
@@ -307,18 +393,19 @@ def build_season(rows, season, present):
         clock = parse_clock(row.get("GameClock"))
         play_id = as_int(row.get("PlayId"))
 
-        # TimeSinceSnap is blank by design after any stoppage the provider does
-        # not consider a normal snap-to-snap gap. Blank is information, not an
-        # error, so the play is kept for volume and excluded only from tempo.
-        tss = as_float(row.get("TimeSinceSnap")) if has_tempo else None
-        if tss is None or tss <= 0:
-            tss_code = TSS_MISSING
-        else:
-            value = int(round(tss))
-            if value > TSS_CAP:
+        # A blank TimeSinceSnap is information, not an error: the provider omits
+        # it after every stoppage that also resets the play clock to 25. Such a
+        # play still counts toward volume and is simply excluded from tempo.
+        tempo_code = TEMPO_MISSING
+        if has_tempo and as_float(row.get("TimeSinceSnap")) and not row.get("_prior_penalty"):
+            remaining = as_float(row.get("PlayClock"))
+            if remaining is not None and 0 <= remaining <= PLAY_CLOCK:
+                used = int(round(PLAY_CLOCK - remaining))
+                # A snap with the clock at 0 uses the whole 40; nothing can use
+                # more, so the sentinel at 0 can never collide with a real value.
+                tempo_code = min(max(used, 1), PLAY_CLOCK)
+            elif remaining is not None:
                 capped += 1
-                value = TSS_CAP
-            tss_code = max(1, value)
 
         huddle = (row.get("Huddle") or "").strip().lower()
         no_huddle = 1 if huddle.startswith("no") else 0
@@ -331,7 +418,7 @@ def build_season(rows, season, present):
             "qtr": min(qtr, 5),                 # 5 = overtime
             "down": down,
             "drive": min(drive_no, BASE - 1),
-            "tss": tss_code,
+            "tempo": tempo_code,
             "nh": no_huddle,
             "home": home,
             "l2": 1 if in_last_two_minutes(qtr, clock) else 0,
@@ -408,10 +495,11 @@ def build_season(rows, season, present):
         "plays": len(plays),
         "drives": len(drive_rows),
         "excluded": dict(dropped),
+        "renamed_teams": dict(renamed),
         "has_tempo": has_tempo,
         "has_drives": has_drives,
-        "tss_capped": capped,
-        "tss_cap": TSS_CAP,
+        "tempo_dropped": capped,
+        "play_clock": PLAY_CLOCK,
         "drives_untimed": untimed,
         "teams": teams,
         "weeks": sorted({p["week"] for p in plays}),
@@ -424,7 +512,7 @@ def build_season(rows, season, present):
             "q": enc(p["qtr"] for p in plays),
             "d": enc(p["down"] for p in plays),
             "v": enc(p["drive"] for p in plays),
-            "s": enc(p["tss"] for p in plays),
+            "s": enc(p["tempo"] for p in plays),
             "n": enc(p["nh"] for p in plays),
             "hm": enc(p["home"] for p in plays),
             "l2": enc(p["l2"] for p in plays),
@@ -461,15 +549,15 @@ def summarise(plays, drive_rows, teams):
         games[t].add(p["week"])
         drive_keys[t].add((p["week"], p["drive"]))
 
-        if p["tss"] == TSS_MISSING:
+        if p["tempo"] == TEMPO_MISSING:
             continue
-        tempo[t][0] += p["tss"]
+        tempo[t][0] += p["tempo"]
         tempo[t][1] += 1
         if p["qtr"] <= 3 and abs(p["margin"]) <= 14 and not p["l2"]:
-            neutral[t][0] += p["tss"]
+            neutral[t][0] += p["tempo"]
             neutral[t][1] += 1
         if p["margin"] <= -5 and not p["l2"]:
-            trailing[t][0] += p["tss"]
+            trailing[t][0] += p["tempo"]
             trailing[t][1] += 1
 
     seconds = defaultdict(int)
@@ -538,19 +626,21 @@ def preload_main(summary, season):
             f'<td>{c["plays"]:,}</td></tr>'
         )
     return (
-        f'<table class="pt-pre"><caption>{season} offensive pace by team, all '
-        "plays, no filters applied. Seconds per play is real time between "
-        "consecutive snaps, so it is unaffected by whether the game clock was "
-        "running. Neutral covers quarters 1 to 3 inside 14 points, excluding the "
-        "final two minutes of the half. Gear change is neutral seconds per play "
-        "minus seconds per play when trailing by 5 or more: a positive number "
-        "means the offense speeds up when it falls behind."
+        f'<table class="pt-pre"><caption>{season} offensive pace by team, with no '
+        "filters applied. Play clock used is how many of the 40 seconds an offense "
+        "burns before snapping the ball, so it measures the huddle and the walk to "
+        "the line rather than how long the previous play took to finish. Neutral "
+        "covers quarters 1 to 3 inside 14 points, excluding the final two minutes "
+        "of the half. Gear change is neutral play clock used minus play clock used "
+        "when trailing by 5 or more, so a positive number means the offense speeds "
+        "up once it falls behind. Lower is faster."
         "</caption>"
-        '<thead><tr><th scope="col">#</th><th scope="col">Offense</th>'
-        '<th scope="col">Sec/play</th><th scope="col">Neutral</th>'
-        '<th scope="col">Gear change</th><th scope="col">No-huddle</th>'
-        '<th scope="col">Plays/game</th><th scope="col">Plays/drive</th>'
-        '<th scope="col">TOP/game</th><th scope="col">Plays</th></tr></thead>'
+        '<thead><tr><th scope="col">Rank</th><th scope="col">Offense</th>'
+        '<th scope="col">Play Clock Used</th><th scope="col">Neutral</th>'
+        '<th scope="col">Gear Change</th><th scope="col">No Huddle</th>'
+        '<th scope="col">Plays/Game</th><th scope="col">Plays/Drive</th>'
+        '<th scope="col">Time of Possession</th>'
+        '<th scope="col">Plays</th></tr></thead>'
         "<tbody>" + "".join(rows) + "</tbody></table>"
     )
 
@@ -593,12 +683,21 @@ def main():
             text = fetch_csv(season)
 
         rows, present = read_rows(text)
+        mark_prior_penalties(rows, present)
         missing = [c for c in OPTIONAL_COLUMNS if c not in present]
         if missing:
             print(f"{season}: NOTE — sheet has no {', '.join(missing)}. "
                   f"Publishing what is available.")
 
         payload, summary = build_season(rows, season, present)
+
+        if payload["renamed_teams"]:
+            for pair, n in sorted(payload["renamed_teams"].items()):
+                print(f"{season}: pooled {pair} ({n:,} team-play references)")
+        if len(payload["teams"]) != 32:
+            print(f"{season}: NOTE — {len(payload['teams'])} teams, not 32: "
+                  f"{', '.join(payload['teams'])}. If one of those is an "
+                  f"alternate spelling, add it to TEAM_ALIASES in this script.")
 
         if payload["has_tempo"]:
             tempo_seasons.append(season)
@@ -625,7 +724,7 @@ def main():
         write_json(out, payload)
         print(f"{season}: wrote {out.name} — {payload['plays']:,} plays, "
               f"{payload['drives']:,} drives, "
-              f"{payload['tss_capped']:,} capped at {TSS_CAP}s, "
+              f"{payload['tempo_dropped']:,} play-clock values out of range, "
               f"excluded {sum(payload['excluded'].values()):,} "
               f"({payload['excluded']})")
 

@@ -108,16 +108,16 @@ for desc, want in DEAD_BALL_CASES:
 # -------------------------------------------------------------------- encoding
 #
 # One character per play only works while every encoded value fits the alphabet.
-# TimeSinceSnap is capped at 60 and 0 is the "no comparable gap" sentinel, so the
-# cap has to stay below the alphabet size and above zero.
+# Play clock used runs 1..40 with 0 as the "no comparable snap" sentinel, so the
+# full clock has to stay below the alphabet size and above zero.
 
 check("alphabet size", len(P.ALPHABET), 91)
 check("alphabet has no backslash", "\\" in P.ALPHABET, False)
 check("alphabet has no quote", '"' in P.ALPHABET, False)
 check("alphabet is unique", len(set(P.ALPHABET)), len(P.ALPHABET))
-if not 0 < P.TSS_CAP < P.BASE:
-    failures.append(f"TSS_CAP {P.TSS_CAP} does not fit a single encoded character")
-check("missing sentinel is zero", P.TSS_MISSING, 0)
+if not 0 < P.PLAY_CLOCK < P.BASE:
+    failures.append(f"PLAY_CLOCK {P.PLAY_CLOCK} does not fit a single encoded character")
+check("missing sentinel is zero", P.TEMPO_MISSING, 0)
 
 # Margin is stored across two characters as margin + 100, so it has to survive a
 # blowout in either direction.
@@ -146,6 +146,7 @@ def row(**kw):
         "team": "AAA", "opponent": "BBB", "week": "W1", "qtr": "1", "down": "1",
         "PlayType": "PASS", "PlayDesc": "(14:00) 1-A.Back pass short right.",
         "ScoreDiff": "0", "DriveNumber": "1", "TimeSinceSnap": "40",
+        "PlayClock": "5", "OffPenaltyYds": "", "DefPenaltyYds": "",
         "Huddle": "Huddle", "HomeRoad": "Home", "GameClock": "14:00",
         "GameId": "1", "PlayId": "10", "DriveStartClock": "15:00",
         "DriveEndClock": "10:00", "DriveResult": "Punt",
@@ -155,10 +156,11 @@ def row(**kw):
 
 
 rows = [
-    row(PlayId="10", GameClock="15:00", TimeSinceSnap=""),        # sentinel
-    row(PlayId="20", GameClock="14:20", TimeSinceSnap="40"),
-    row(PlayId="30", GameClock="13:40", TimeSinceSnap="75"),      # winsorized
-    row(PlayId="40", GameClock="13:00", TimeSinceSnap="30", Huddle="No-Huddle"),
+    # No TimeSinceSnap: the play clock started at 25, so tempo is not comparable.
+    row(PlayId="10", GameClock="15:00", TimeSinceSnap="", PlayClock="12"),
+    row(PlayId="20", GameClock="14:20", PlayClock="5"),           # used 35
+    row(PlayId="30", GameClock="13:40", PlayClock="0"),           # used the lot
+    row(PlayId="40", GameClock="13:00", PlayClock="22", Huddle="No-Huddle"),
     row(PlayId="50", qtr="2", GameClock="1:30", DriveNumber="2",
         DriveStartClock="2:10", DriveEndClock="0:00",
         DriveResult="End of Half"),                               # untimed drive
@@ -167,16 +169,17 @@ rows = [
     row(PlayId="70", PlayDesc="(:30) 1-A.Back kneels to AAA 20.",
         DriveNumber="4"),                                          # excluded
     row(team="BBB", opponent="AAA", HomeRoad="Road", PlayId="80",
-        DriveNumber="5", TimeSinceSnap="44"),
+        DriveNumber="5", PlayClock="9"),
 ]
 
+P.mark_prior_penalties(rows, set(P.OPTIONAL_COLUMNS))
 payload, summary = P.build_season(rows, 2025, set(P.OPTIONAL_COLUMNS))
 
 check("plays kept", payload["plays"], 7)
 check("kneel excluded", payload["excluded"].get("kneel or spike"), 1)
 check("tempo detected", payload["has_tempo"], True)
 check("drives detected", payload["has_drives"], True)
-check("one play capped", payload["tss_capped"], 1)
+check("no play clock values out of range", payload["tempo_dropped"], 0)
 check("teams found", payload["teams"], ["AAA", "BBB"])
 check("every column is the same length",
       {len(v) for v in payload["cols"].values()}, {7})
@@ -187,8 +190,10 @@ check("every drive column is the same length",
 check("drives kept", payload["drives"], 4)
 
 decoded = [P.ALPHABET.index(ch) for ch in payload["cols"]["s"]]
-check("blank TimeSinceSnap becomes the sentinel", decoded[0], P.TSS_MISSING)
-check("75 seconds is winsorized to the cap", decoded[2], P.TSS_CAP)
+check("a 25-second play clock is excluded from tempo", decoded[0], P.TEMPO_MISSING)
+check("play clock at 5 means 35 used", decoded[1], 35)
+check("play clock at 0 means the full 40 used", decoded[2], P.PLAY_CLOCK)
+check("play clock at 22 means 18 used", decoded[3], 18)
 check("no-huddle flag set", P.ALPHABET.index(payload["cols"]["n"][3]), 1)
 check("home flag set for AAA", P.ALPHABET.index(payload["cols"]["hm"][0]), 1)
 check("home flag clear for BBB", P.ALPHABET.index(payload["cols"]["hm"][-1]), 0)
@@ -196,12 +201,103 @@ check("two-minute flag set", P.ALPHABET.index(payload["cols"]["l2"][4]), 1)
 
 # A season whose sheet predates the pace columns must still publish rather than
 # raise, so that adding the column later is the only change needed.
-bare = [{k: v for k, v in r.items() if k not in P.OPTIONAL_COLUMNS} for r in rows]
+bare = [{k: v for k, v in r.items()
+         if k not in P.OPTIONAL_COLUMNS and not k.startswith("_")} for r in rows]
 bare_payload, _ = P.build_season(bare, 2021, set())
 check("season without tempo still builds", bare_payload["plays"], 7)
 check("season without tempo is flagged", bare_payload["has_tempo"], False)
 check("season without drives is flagged", bare_payload["has_drives"], False)
 check("season without tempo has no drive rows", bare_payload["drives"], 0)
+
+
+# ------------------------------------------------------------- team aliases
+#
+# Pooling seasons is by team code, so an unfolded rename shows up as a 33rd row
+# rather than as an error. These pin the relocations and the alternate spellings.
+
+for raw, want in [
+    ("WFT", "WAS"), ("WSH", "WAS"), ("WAS", "WAS"),   # Football Team -> Commanders
+    ("OAK", "LV"), ("LVR", "LV"), ("LV", "LV"),       # Oakland -> Las Vegas
+    ("SD", "LAC"), ("SDG", "LAC"), ("LAC", "LAC"),    # San Diego -> Los Angeles
+    ("STL", "LAR"), ("LA", "LAR"), ("LAR", "LAR"),    # St. Louis -> Los Angeles
+    ("JAC", "JAX"), ("JAX", "JAX"),
+    ("ARZ", "ARI"), ("BLT", "BAL"), ("CLV", "CLE"), ("HST", "HOU"),
+    ("KAN", "KC"), ("NOR", "NO"), ("SFO", "SF"), ("GNB", "GB"), ("NWE", "NE"),
+    ("TAM", "TB"),
+    ("nyg", "NYG"), (" DAL ", "DAL"),                  # case and whitespace
+]:
+    check(f"team alias {raw!r}", P.canonical_team(raw), want)
+
+check("unknown code passes through", P.canonical_team("XYZ"), "XYZ")
+check("empty code stays empty", P.canonical_team(""), "")
+check("None code stays empty", P.canonical_team(None), "")
+
+# Every alias must resolve in one hop. A chain like A -> B -> C would leave rows
+# under B, since canonical_team does a single lookup.
+for src, dst in P.TEAM_ALIASES.items():
+    if dst in P.TEAM_ALIASES and P.TEAM_ALIASES[dst] != dst:
+        failures.append(f"alias {src} -> {dst} needs a second hop to "
+                        f"{P.TEAM_ALIASES[dst]}")
+
+# A season that spells Washington two ways must still produce one team.
+alias_rows = [
+    row(team="WFT", opponent="DAL", PlayId="10"),
+    row(team="WAS", opponent="DAL", PlayId="20", week="W2"),
+    row(team="DAL", opponent="WFT", PlayId="30"),
+]
+P.mark_prior_penalties(alias_rows, set(P.OPTIONAL_COLUMNS))
+alias_payload, _ = P.build_season(alias_rows, 2021, set(P.OPTIONAL_COLUMNS))
+check("renames pool into one team", alias_payload["teams"], ["DAL", "WAS"])
+check("the fold is reported", alias_payload["renamed_teams"].get("WFT \u2192 WAS"), 2)
+
+
+# ------------------------------------------------------- 25-second play clocks
+#
+# A snap after a penalty keeps its TimeSinceSnap but runs on a 25-second clock.
+# Left in, it reads as an offence that burned 15 more seconds than it did. The
+# real 2025 sheet has 260 of these and every one tops out at exactly 25.
+
+pen_rows = [
+    row(opponent="AAA", PlayId="10", PlayDesc="(9:00) 1-A.Back pass incomplete. "
+        "PENALTY on AAA-70-B.Guard, Holding, 10 yards, enforced at AAA 30.",
+        PlayClock="7"),
+    row(opponent="AAA", PlayId="20", PlayClock="4"),   # 25-second clock, excluded
+    row(opponent="AAA", PlayId="30", PlayClock="4"),   # back to a 40-second clock
+]
+P.mark_prior_penalties(pen_rows, set(P.OPTIONAL_COLUMNS))
+check("penalty play itself is not flagged", pen_rows[0]["_prior_penalty"], False)
+check("snap after a penalty is flagged", pen_rows[1]["_prior_penalty"], True)
+check("the snap after that is not", pen_rows[2]["_prior_penalty"], False)
+
+pen_payload, _ = P.build_season(pen_rows, 2025, set(P.OPTIONAL_COLUMNS))
+pen_decoded = [P.ALPHABET.index(ch) for ch in pen_payload["cols"]["s"]]
+check("post-penalty snap has no tempo", pen_decoded[1], P.TEMPO_MISSING)
+check("the following snap does", pen_decoded[2], 36)
+
+# The penalty column route and the description route should agree.
+yard_rows = [
+    row(opponent="AAA", PlayId="10", OffPenaltyYds="-10", PlayClock="7"),
+    row(opponent="AAA", PlayId="20", PlayClock="4"),
+]
+P.mark_prior_penalties(yard_rows, set(P.OPTIONAL_COLUMNS))
+check("penalty yardage also flags the next snap", yard_rows[1]["_prior_penalty"], True)
+
+
+# ------------------------------------------------------------- play ordering
+#
+# The sheet groups plays by team, so the two offences in a game never interleave
+# in file order. Sorting on PlayId is what makes "the previous play" mean
+# anything. Rows below are deliberately out of file order.
+
+mixed = [
+    row(opponent="AAA", GameId="7", PlayId="30", PlayClock="4"),
+    row(opponent="AAA", GameId="7", PlayId="10", PlayClock="7",
+        PlayDesc="(9:00) PENALTY on AAA, Holding, 10 yards."),
+    row(opponent="AAA", GameId="7", PlayId="20", PlayClock="4"),
+]
+P.mark_prior_penalties(mixed, set(P.OPTIONAL_COLUMNS))
+check("PlayId ordering wins over file order",
+      [r["_prior_penalty"] for r in mixed], [False, False, True])
 
 
 # ---------------------------------------------------------------------- report
