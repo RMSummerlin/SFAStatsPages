@@ -65,6 +65,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config  # noqa: E402
+import preloads  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
@@ -587,7 +588,7 @@ def preload_main(summary, season):
     for i, t in enumerate(ranked, 1):
         c = summary["team"][t]
         rows.append(
-            f'<tr><td>{i}</td><th scope="row">{t}</th>'
+            f'<tr><td>{i}</td><th scope="row"><abbr title="{config.team_name(t)}">{t}</abbr> {config.team_name(t)}</th>'
             f'<td>{fmt(c["sec"])}</td>'
             f'<td>{fmt(c["neutral"])}</td>'
             f'<td>{fmt(c["gear"])}</td>'
@@ -607,11 +608,13 @@ def preload_main(summary, season):
         "when trailing by 5 or more, so a positive number means the offense speeds "
         "up once it falls behind. Lower is faster."
         "</caption>"
-        '<thead><tr><th scope="col">Rank</th><th scope="col">Offense</th>'
-        '<th scope="col">Play Clock Used</th><th scope="col">Neutral</th>'
-        '<th scope="col">Gear Change</th><th scope="col">No Huddle</th>'
-        '<th scope="col">Plays/Game</th><th scope="col">Plays/Drive</th>'
-        '<th scope="col">Time of Possession</th>'
+        '<thead><tr><th scope="col">#</th><th scope="col">Offense</th>'
+        '<th scope="col">Play Clock Used (Sec/Play)</th>'
+        '<th scope="col">Neutral Script (Sec/Play)</th>'
+        '<th scope="col">Gear Change (Sec/Play)</th>'
+        '<th scope="col">No Huddle (% of Plays)</th>'
+        '<th scope="col">Plays per Game</th><th scope="col">Plays per Drive</th>'
+        '<th scope="col">Time of Possession (Minutes)</th>'
         '<th scope="col">Plays</th></tr></thead>'
         "<tbody>" + "".join(rows) + "</tbody></table>"
     )
@@ -726,6 +729,8 @@ def main():
         (DATA_DIR / "pace_preload.html").write_text(
             preload_main(summary, season) + "\n", encoding="utf-8")
         print("Refreshed the crawlable preload table in data/.")
+        if preloads.write_manifest():
+            print("Rebuilt data/preloads.json for the WordPress shortcodes.")
 
 
 if __name__ == "__main__":

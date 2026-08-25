@@ -32,6 +32,15 @@ The `pull_*.py` glob covers the pull itself. These three do not happen on their 
 Helper scripts that should *not* run on the schedule must not be named `pull_*` — that is
 why the linter is `lint_embed.py` and the preload refresher is `refresh_preload.py`.
 
+## 1b. Crawlable preload table
+
+- [ ] The pull script writes `data/<name>_preload.html`; `scripts/preloads.py` folds every
+      one of those into `data/preloads.json` automatically, so no wiring is needed
+- [ ] Add an `add_shortcode(...)` line to `wordpress/sfa-preloads.php` for the new tool
+- [ ] Add `hideServerPreload()` to the new tool's render path so the server-rendered table
+      is hidden once the interactive one draws — see either existing tool
+- [ ] Full detail in `wordpress/README.md`
+
 ## 2. Tool build (HTML/CSS/JS fragment)
 
 - [ ] New folder under `tools/<tool-name>/`

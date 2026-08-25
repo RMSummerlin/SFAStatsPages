@@ -1198,6 +1198,28 @@
 
     body.innerHTML = '';
     body.appendChild(tbl);
+    hideServerPreload();
+  }
+
+
+  /* The crawlable table can also be rendered server-side by the WordPress
+     shortcode, which may sit outside this fragment where we cannot replace it.
+     Hide it once we have rendered, so the page never shows both. If our fetch
+     fails we never get here, and the server-rendered table stays as the
+     fallback — which is the behaviour we want. */
+  var RENDERED = false;
+  function hideServerPreload(){
+    RENDERED = true;
+    /* No run-once guard: the shortcode's markup may be parsed after this script
+       executes, so an element that did not exist at first render can appear
+       later. Cheap enough to repeat. */
+    var nodes = document.querySelectorAll('[data-sfa-preload="personnel_grouping"]');
+    for (var i = 0; i < nodes.length; i++) nodes[i].style.display = 'none';
+  }
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){
+      if (RENDERED) hideServerPreload();
+    });
   }
 
   function detail(team, r, L, span){

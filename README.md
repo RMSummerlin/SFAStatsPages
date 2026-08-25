@@ -40,6 +40,7 @@ SFAStatsPages/
 │   ├── lint_embed.py               ← checks a fragment against the embed rules
 │   └── refresh_preload.py          ← injects the crawlable static table into tools
 ├── index.html                      ← endpoint health check, served at the Pages root
+├── wordpress/                      ← server-side preload shortcodes (Code Snippets)
 ├── tools/
 │   └── personnel-grouping/         ← the shipped tool
 └── .github/

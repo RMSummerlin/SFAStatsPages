@@ -39,6 +39,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config  # noqa: E402
+import preloads  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
@@ -394,7 +395,7 @@ def preload_main(summary, season):
         n = c.get("plays", 0)
         cells = "".join(f"<td>{pct(by_team[t].get(g, 0), n)}</td>" for g in MAIN_GROUPS)
         rows.append(
-            f'<tr><td>{i}</td><th scope="row">{t}</th>{cells}'
+            f'<tr><td>{i}</td><th scope="row"><abbr title="{config.team_name(t)}">{t}</abbr> {config.team_name(t)}</th>{cells}'
             f'<td>{pct(c.get("te2", 0), n)}</td>'
             f'<td>{pct(c.get("rb2", 0), n)}</td>'
             f'<td>{pct(c.get("wr3", 0), n)}</td>'
@@ -496,6 +497,8 @@ def main():
         (DATA_DIR / "personnel_grouping_preload.html").write_text(
             preload_main(summary, season) + "\n", encoding="utf-8")
         print("Refreshed the crawlable preload table in data/.")
+        if preloads.write_manifest():
+            print("Rebuilt data/preloads.json for the WordPress shortcodes.")
 
 
 if __name__ == "__main__":

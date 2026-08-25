@@ -77,6 +77,51 @@ def canonical_team(code):
     return TEAM_ALIASES.get(code, code)
 
 
+# Full team names, used to give the crawlable preload tables the city and
+# mascot that short codes miss on long-tail searches. The interactive tools
+# keep the abbreviations for density.
+TEAM_NAMES = {
+    "ARI": "Arizona Cardinals",
+    "ATL": "Atlanta Falcons",
+    "BAL": "Baltimore Ravens",
+    "BUF": "Buffalo Bills",
+    "CAR": "Carolina Panthers",
+    "CHI": "Chicago Bears",
+    "CIN": "Cincinnati Bengals",
+    "CLE": "Cleveland Browns",
+    "DAL": "Dallas Cowboys",
+    "DEN": "Denver Broncos",
+    "DET": "Detroit Lions",
+    "GB": "Green Bay Packers",
+    "HOU": "Houston Texans",
+    "IND": "Indianapolis Colts",
+    "JAX": "Jacksonville Jaguars",
+    "KC": "Kansas City Chiefs",
+    "LAC": "Los Angeles Chargers",
+    "LAR": "Los Angeles Rams",
+    "LV": "Las Vegas Raiders",
+    "MIA": "Miami Dolphins",
+    "MIN": "Minnesota Vikings",
+    "NE": "New England Patriots",
+    "NO": "New Orleans Saints",
+    "NYG": "New York Giants",
+    "NYJ": "New York Jets",
+    "PHI": "Philadelphia Eagles",
+    "PIT": "Pittsburgh Steelers",
+    "SEA": "Seattle Seahawks",
+    "SF": "San Francisco 49ers",
+    "TB": "Tampa Bay Buccaneers",
+    "TEN": "Tennessee Titans",
+    "WAS": "Washington Commanders",
+}
+
+
+def team_name(code: str) -> str:
+    """Full name for a team code, falling back to the code itself."""
+    code = canonical_team(code)
+    return TEAM_NAMES.get(code, code)
+
+
 # Read-only scopes for the service account. Drive is needed as well as Sheets
 # because the CSV export endpoint is served by Drive.
 SCOPES = [

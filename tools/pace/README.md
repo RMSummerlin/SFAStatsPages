@@ -110,3 +110,20 @@ python scripts/refresh_preload.py
 ```
 
 then re-paste `tool.html` into Avada. Worth doing every week or two in season.
+
+## Convergence with the personnel grouping tool
+
+Both tools deliberately behave the same way, so a reader who learns one is not
+surprised by the other:
+
+- Filter options apply on tap, with the popover left open. There is no Apply step.
+- Each popover has its own **Reset**; the bar has **Clear all**, which also returns the
+  season scope to the newest season.
+- The rank column header is `#`.
+- Column headers carry their full text in the DOM with the unit on a second line, so a
+  crawler sees "Play Clock Used (Sec/Play)" rather than an abbreviation. The old version
+  swapped in a short label below a width threshold, which meant anything rendering
+  without layout only ever saw the short form.
+- The metric formerly labelled "Neutral" is now **Neutral Script**, because "neutral
+  script" is a filter in the personnel tool and the same word meaning two things across
+  two tools on one site is a comprehension problem.
