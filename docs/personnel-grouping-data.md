@@ -100,6 +100,21 @@ The tool suppresses efficiency below **20 matching plays** and ranks only among 
 that clear that bar. Eight snaps of 22 personnel can read +0.9 EPA per play, which is
 noise presented as insight.
 
+## Team codes across seasons
+
+The source data does not use stable team abbreviations — the Rams are `LA` through 2024
+and `LAR` from 2025 — so a multi-season selection produced 33 rows instead of 32.
+
+`TEAM_ALIASES` in `scripts/config.py` folds every historical code onto the franchise's
+current one, and both `pull_pace.py` and `pull_personnel_grouping.py` go through
+`config.canonical_team()`. It lives in config rather than in either script so a new tool
+inherits the same behaviour, and `scripts/test_teams.py` guards it.
+
+Scheduled runs only re-pull `CURRENT_SEASON`, so archived seasons keep their old codes
+until regenerated. Run the workflow manually from the Actions tab with **all_seasons**
+ticked. `test_teams.py` warns (but does not fail) while any published season still holds
+an un-folded code, so the warning clears itself once that rebuild lands.
+
 ## Output format
 
 One file per season, `data/personnel_grouping_<season>.json`. Every filter is independent

@@ -108,6 +108,14 @@ or, with no local setup at all, trigger it from the Actions tab: **Update Stats 
 pull script that advertises the flag, and commits the new JSON itself. Scheduled runs
 always leave the box unticked, so archives are never rebuilt on a timer.
 
+## Team codes
+
+- [ ] Any script reading a team column normalises it with `config.canonical_team()`
+- [ ] When adding a season, check whether its codes match the existing ones. They are not
+      stable in the source data. Add new variants to `TEAM_ALIASES` in `scripts/config.py`
+- [ ] After changing the map, rebuild archived seasons: manual workflow run with
+      **all_seasons** ticked. `scripts/test_teams.py` warns until that happens
+
 ## 6. Before calling it done
 
 - [ ] Pull script runs cleanly and produces the expected JSON

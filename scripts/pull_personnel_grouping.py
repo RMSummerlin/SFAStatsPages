@@ -227,7 +227,7 @@ def build_season(rows, season):
             dropped["incomplete personnel"] += 1
             continue
 
-        team = (row.get("team") or "").strip().upper()
+        team = config.canonical_team(row.get("team"))
         week = parse_week(row.get("week"))
         qtr = as_int(row.get("qtr"))
         down = as_int(row.get("down"))
