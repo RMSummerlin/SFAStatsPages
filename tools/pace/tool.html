@@ -34,15 +34,18 @@
 .pt-root.pt-pc :focus-visible{outline:2px solid var(--red);outline-offset:1px}
 
 /* ---------- header ---------- */
-.pt-root.pt-pc .pt-head{flex:0 0 auto;padding:12px 12px 10px;border-bottom:2px solid var(--ink)}
-.pt-root.pt-pc .pt-title{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.01em}
-.pt-root.pt-pc .pt-sub{margin-top:3px;font-size:13px;color:var(--g1)}
-.pt-root.pt-pc .pt-sub b{color:var(--ink);font-weight:700}
-.pt-root.pt-pc .pt-modes{display:flex;margin-top:10px;border:1px solid var(--b1)}
-.pt-root.pt-pc .pt-mode{flex:1;min-height:44px;padding:0 14px;font-size:13px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.04em;color:var(--g1)}
-.pt-root.pt-pc .pt-mode+.pt-mode{border-left:1px solid var(--b1)}
-.pt-root.pt-pc .pt-mode[aria-pressed="true"]{background:var(--ink);color:var(--w)}
+.pt-root.pt-pc .pt-head{flex:0 0 auto;background:var(--ink);color:var(--w)}
+.pt-root.pt-pc .pt-headin{padding:13px 12px 12px;border-left:5px solid var(--red)}
+.pt-root.pt-pc .pt-kick{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:#ff5a4d}
+.pt-root.pt-pc .pt-title{margin-top:4px;font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:.005em;line-height:1.04}
+.pt-root.pt-pc .pt-sub{margin-top:4px;font-size:13px;color:var(--g2)}
+.pt-root.pt-pc .pt-sub b{color:var(--w);font-weight:700}
+.pt-root.pt-pc .pt-modewrap{display:flex;padding:0 12px 12px}
+.pt-root.pt-pc .pt-modes{display:flex;width:100%;border:1px solid #5c6773}
+.pt-root.pt-pc .pt-mode{flex:1;min-height:44px;padding:0 16px;font-size:13px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--g2);white-space:nowrap}
+.pt-root.pt-pc .pt-mode+.pt-mode{border-left:1px solid #5c6773}
+.pt-root.pt-pc .pt-mode[aria-pressed="true"]{background:var(--red);color:var(--w)}
 
 /* ---------- filter bar ---------- */
 .pt-root.pt-pc .pt-bar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;
@@ -64,9 +67,6 @@
 .pt-root.pt-pc .pt-pop[hidden]{display:none}
 .pt-root.pt-pc .pt-pop .h{font-size:10px;font-weight:700;text-transform:uppercase;
   letter-spacing:.07em;color:var(--g1);margin-bottom:6px}
-.pt-root.pt-pc .pt-hmain{display:block;font-size:11px;line-height:1.2}
-.pt-root.pt-pc .pt-hunit{display:block;font-size:9px;font-weight:600;color:var(--g1);
-  text-transform:none;letter-spacing:0;line-height:1.2}
 .pt-root.pt-pc .pt-opts{display:flex;flex-wrap:wrap;gap:4px}
 .pt-root.pt-pc .pt-opt{min-height:38px;min-width:44px;padding:0 10px;border:1px solid var(--b1);
   font-size:13px;font-weight:700;background:var(--w)}
@@ -166,7 +166,10 @@
 
 /* ---------- desktop enhancement ---------- */
 @media (min-width:641px){
-  .pt-root.pt-pc .pt-title{font-size:25px}
+.pt-root.pt-pc .pt-head{display:grid;grid-template-columns:1fr auto;align-items:end}
+  .pt-root.pt-pc .pt-headin{padding:17px 18px 16px}
+  .pt-root.pt-pc .pt-modewrap{padding:0 18px 16px;align-items:flex-end}
+  .pt-root.pt-pc .pt-title{font-size:30px}
   .pt-root.pt-pc .pt-grid{font-size:14px}
   .pt-root.pt-pc .pt-grid thead th{font-size:11px}
   .pt-root.pt-pc .pt-rank{width:44px;font-size:12px}
@@ -179,11 +182,16 @@
 
 <div class="pt-root pt-pc">
   <div class="pt-head">
-    <div class="pt-title">Offensive Pace</div>
-    <div class="pt-sub" data-role="sub">Loading pace data…</div>
-    <div class="pt-modes" role="group" aria-label="Metric group">
-      <button type="button" class="pt-mode" data-mode="tempo" aria-pressed="true">Tempo</button>
-      <button type="button" class="pt-mode" data-mode="volume" aria-pressed="false">Volume</button>
+    <div class="pt-headin">
+      <div class="pt-kick">Sharp Football Analysis · NFL Stats</div>
+      <div class="pt-title">Offensive Pace</div>
+      <div class="pt-sub" data-role="sub">Loading pace data…</div>
+    </div>
+    <div class="pt-modewrap">
+      <div class="pt-modes" role="group" aria-label="Metric group">
+        <button type="button" class="pt-mode" data-mode="tempo" aria-pressed="true">Tempo</button>
+        <button type="button" class="pt-mode" data-mode="volume" aria-pressed="false">Volume</button>
+      </div>
     </div>
   </div>
 
@@ -528,40 +536,34 @@
   // the table has room for it, which is most of the time on desktop.
   var COLUMNS = {
     tempo: [
-      {key:'sec', label:'Play Clock Used', unit:'(Sec/Play)', dp:1, low:true,
+      {key:'sec', label:'Play Clock Used', short:'Clock Used', dp:1, low:true,
        tip:'How many of the 40 seconds on the play clock the offense uses before snapping. Lower is faster.'},
-      {key:'neutral', label:'Neutral Script', unit:'(Sec/Play)', dp:1, low:true,
+      {key:'neutral', label:'Neutral', short:'Neutral', dp:1, low:true,
        tip:'Play clock used in quarters 1 to 3, inside 14 points, excluding the last two minutes of the half.'},
-      {key:'gear', label:'Gear Change', unit:'(Sec/Play)', dp:1, low:false, signed:true,
+      {key:'gear', label:'Gear Change', short:'Gear', dp:1, low:false, signed:true,
        tip:'Neutral play clock used minus play clock used when trailing by 5 or more. A positive number means the offense speeds up once it falls behind.'},
-      {key:'nohuddle', label:'No Huddle', unit:'(% of Plays)', dp:0, low:false, pct:true,
+      {key:'nohuddle', label:'No Huddle', short:'No Hud', dp:0, low:false, pct:true,
        tip:'Share of plays the offense runs without huddling.'}
     ],
     volume: [
-      {key:'playsGame', label:'Plays per Game', dp:1, low:false,
+      {key:'playsGame', label:'Plays/Game', short:'Plays/G', dp:1, low:false,
        tip:'Offensive plays per game. Kneels and spikes are excluded.'},
-      {key:'adjPlaysGame', label:'Adjusted Plays per Game', dp:1, low:false,
+      {key:'adjPlaysGame', label:'Adjusted Plays/Game', short:'Adj P/G', dp:1, low:false,
        tip:'Plays per game adjusted for how many plays each defense faced. This moves teams by up to four rank positions.'},
-      {key:'playsDrive', label:'Plays per Drive', dp:2, low:false,
+      {key:'playsDrive', label:'Plays/Drive', short:'Plays/D', dp:2, low:false,
        tip:'Plays per drive. This barely correlates with play clock used, so it measures sustaining drives rather than tempo.'},
-      {key:'drivesGame', label:'Drives per Game', dp:2, low:false,
+      {key:'drivesGame', label:'Drives/Game', short:'Drives', dp:2, low:false,
        tip:'Drives per game. Largely a function of the defense and the opponent.'},
-      {key:'top', label:'Time of Possession', unit:'(Minutes)', dp:1, low:false,
+      {key:'top', label:'Time of Possession', short:'TOP', dp:1, low:false,
        tip:'Time of possession per game, in minutes. Drives that ended because the half ran out are excluded.'}
     ]
   };
 
   function cols(){ return COLUMNS[STATE.mode]; }
-  /* The full label is always in the DOM. The old version swapped in a short
-     form below a width threshold, so anything rendering without layout —
-     including a crawler — only ever saw the abbreviation. The unit goes on a
-     second line so the column still fits a phone. */
-  function headerHtml(c){
-    var esc = function(t){
-      return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-    };
-    return '<span class="pt-hmain">' + esc(c.label) + '</span>' +
-      (c.unit ? '<span class="pt-hunit"> ' + esc(c.unit) + '</span>' : '');
+  function headerFor(c){
+    var w = ROOT.clientWidth || 0;
+    var budget = STATE.mode === 'tempo' ? 560 : 700;
+    return w >= budget ? c.label : c.short;
   }
 
   // ------------------------------------------------------------------ render
@@ -587,26 +589,6 @@
       if (c.low ? vals[i] >= v - 1e-9 : vals[i] <= v + 1e-9) return i + 1;
     }
     return vals.length;
-  }
-
-  /* The crawlable table can also be rendered server-side by the WordPress
-     shortcode, which may sit outside this fragment where we cannot reach it to
-     replace it. Hide it once we have drawn our own, so the page never shows
-     both. If our fetch fails we never render, and the server-rendered table
-     stays visible as the fallback — which is the behaviour we want. */
-  var RENDERED = false;
-  function hideServerPreload(){
-    RENDERED = true;
-    /* No run-once guard: the shortcode's markup may be parsed after this script
-       executes, so an element that did not exist at first render can appear
-       later. Cheap enough to repeat. */
-    var nodes = document.querySelectorAll('[data-sfa-preload="pace"]');
-    for (var i = 0; i < nodes.length; i++) nodes[i].style.display = 'none';
-  }
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', function(){
-      if (RENDERED) hideServerPreload();
-    });
   }
 
   function render(){
@@ -641,12 +623,11 @@
 
     var table = el('table', 'pt-grid');
     var thead = el('thead'), hr = el('tr');
-    hr.appendChild(el('th', 'pt-rank', '#'));
+    hr.appendChild(el('th', 'pt-rank', 'Rank'));
     hr.appendChild(el('th', 'pt-team', 'Offense'));
     list.forEach(function(c){
       var th = el('th');
-      var b = el('button', null, null);
-      b.innerHTML = headerHtml(c);
+      var b = el('button', null, headerFor(c));
       b.type = 'button';
       b.title = c.tip;
       if (c.key === STATE.sort){
@@ -736,7 +717,6 @@
     wrap.innerHTML = '';
     wrap.appendChild(table);
     paintFoot(live);
-    hideServerPreload();
   }
 
   // ------------------------------------------------------------------ detail
@@ -1020,17 +1000,11 @@
     reset.addEventListener('click', function(){
       STATE.weeks = []; STATE.qtrs = []; STATE.downs = [];
       STATE.venue = []; STATE.huddle = [];
-      closePop();
-      // Season goes back to the newest too, matching the personnel tool.
-      // Narrowing to a season already in memory fetches nothing.
-      var latest = STATE.index.default ||
-        Math.max.apply(null, STATE.index.seasons);
-      if (STATE.seasons.length !== 1 || STATE.seasons[0] !== latest){
-        applySeasons([latest]);
-        return;
-      }
-      buildBar(); render();
+      closePop(); buildBar(); render();
     });
+    // Season is deliberately not cleared here: Reset is for narrowing filters,
+    // and silently reloading four extra seasons would be a surprising thing for
+    // it to do.
     bar.appendChild(reset);
   }
 
@@ -1080,18 +1054,13 @@
           node2.setAttribute('aria-pressed',
             pick.indexOf(opts[i][0]) > -1 ? 'true' : 'false');
         });
-        // Applied on the tap, with the popover left open so several can be
-        // picked in a row. Matches the personnel grouping tool.
-        var chosen = pick.slice().sort(function(a, b){ return a - b; });
-        if (f.key === 'seasons'){ applySeasons(chosen); return; }
-        STATE[f.key] = chosen; buildBar(); render();
       });
       box.appendChild(b);
     });
     p.appendChild(box);
 
     var foot = el('div', 'pt-popfoot');
-    var clear = el('button', null, 'Reset');
+    var clear = el('button', null, f.required ? 'Latest' : 'Clear');
     clear.type = 'button';
     clear.addEventListener('click', function(){
       if (f.required){
@@ -1102,11 +1071,16 @@
       }
       closePop(); buildBar(); render();
     });
-    var done = el('button', 'go', 'Done');
-    done.type = 'button';
-    done.addEventListener('click', closePop);
+    var go = el('button', 'go', 'Apply');
+    go.type = 'button';
+    go.addEventListener('click', function(){
+      pick.sort(function(a, b){ return a - b; });
+      closePop();
+      if (f.key === 'seasons'){ applySeasons(pick); return; }
+      STATE[f.key] = pick; buildBar(); render();
+    });
     foot.appendChild(clear);
-    foot.appendChild(done);
+    foot.appendChild(go);
     p.appendChild(foot);
     placePop(anchor);
   }
