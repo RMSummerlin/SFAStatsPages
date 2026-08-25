@@ -1,76 +1,66 @@
 <?php
 /**
- * Sharp Football Analysis — server-side preload tables.
+ * Sharp Football Analysis: server-side preload tables.
  *
- * Renders the crawlable stat tables into the page HTML so search engines and
- * no-JavaScript visitors see real data. The interactive tools replace them on
- * load; if a tool's data fetch fails, the server-rendered table stays visible,
- * which makes this the fallback as well as the SEO path.
+ * Renders each tool's crawlable stat table into the page HTML so search engines
+ * and no-JavaScript visitors see real data. The interactive tool hides it once
+ * it has painted; if the tool's data fetch fails, the table stays visible.
  *
- * Shortcodes:
  *   [sharp_football_personnel]   personnel grouping frequency
  *   [sharp_football_pace]        offensive pace
  *
- * All of them read one cached manifest, so two shortcodes on one page cost a
- * single HTTP request — and so do two shortcodes on different pages, because
- * the cache is shared.
+ * Paste this file into Code Snippets as a PHP (Functions) snippet, scope "Run
+ * everywhere", omitting the opening PHP tag on line 1. Code Snippets supplies it.
  *
- * Install: paste into Code Snippets (run everywhere), or into the child theme's
- * functions.php. No configuration needed.
+ * Structure note: no top-level `return`, no `define()`, no closures. Code
+ * Snippets evaluates snippet bodies, and all three behave differently there
+ * than in a normal include. This mirrors the shape of the injury report
+ * snippet, which has been running in production.
  */
-
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-
-// Bail out rather than fatal if this ends up pasted in twice.
-if ( function_exists( 'sfa_preload_render' ) ) {
-	return;
-}
-
-define( 'SFA_PRELOAD_URL', 'https://rmsummerlin.github.io/SFAStatsPages/data/preloads.json' );
-// The tables are refreshed once a week, because the sheets are only topped up
-// once a week and almost always on a Tuesday. Anything more often spends a
-// blocking HTTP request for a file that has not changed.
-define( 'SFA_PRELOAD_TIMEZONE', 'America/New_York' );
-define( 'SFA_PRELOAD_REFRESH_DAY', 'tuesday' );
-define( 'SFA_PRELOAD_REFRESH_TIME', '23:00' );
-define( 'SFA_PRELOAD_RETRY', 120 );      // after a failed fetch, wait this long before retrying
-define( 'SFA_PRELOAD_LOCK_TTL', 30 );    // how long one refresh may hold the lock
-define( 'SFA_PRELOAD_OPTION', 'sfa_preloads_last_good' );
-define( 'SFA_PRELOAD_LOCK', 'sfa_preloads_lock' );
-define( 'SFA_PRELOAD_TRANSIENT', 'sfa_preloads_html' );
 
 /**
- * Seconds until the next scheduled refresh.
- *
- * Anchored to a wall-clock moment rather than a rolling duration, so the cache
- * always turns over just after the week's data has landed instead of drifting
- * by however long ago the last page view happened to be.
+ * All configuration lives here. A function rather than constants so the snippet
+ * body is safe to evaluate more than once.
+ */
+function sfa_preload_config() {
+	return array(
+		'url'       => 'https://rmsummerlin.github.io/SFAStatsPages/data/preloads.json',
+		'timezone'  => 'America/New_York',
+		'day'       => 'tuesday',
+		'time'      => '23:00',
+		'retry'     => 2 * MINUTE_IN_SECONDS,
+		'lock_ttl'  => 30,
+		'option'    => 'sfa_preloads_last_good',
+		'lock'      => 'sfa_preloads_lock',
+		'transient' => 'sfa_preloads_html',
+	);
+}
+
+/**
+ * Seconds until the next scheduled refresh. Anchored to a wall-clock moment
+ * rather than a rolling week, so the cache turns over just after the week's
+ * data lands instead of drifting with traffic.
  */
 function sfa_preload_ttl() {
+	$cfg = sfa_preload_config();
 	try {
-		$tz   = new DateTimeZone( SFA_PRELOAD_TIMEZONE );
+		$tz   = new DateTimeZone( $cfg['timezone'] );
 		$now  = new DateTime( 'now', $tz );
-		// 'tuesday 23:00' resolves to today when today is a Tuesday, so the
-		// comparison below is what rolls it forward once the moment has passed.
-		$next = new DateTime(
-			SFA_PRELOAD_REFRESH_DAY . ' ' . SFA_PRELOAD_REFRESH_TIME, $tz );
+		$next = new DateTime( $cfg['day'] . ' ' . $cfg['time'], $tz );
 		if ( $now >= $next ) {
 			$next->modify( '+7 days' );
 		}
 		return max( $next->getTimestamp() - $now->getTimestamp(), MINUTE_IN_SECONDS );
 	} catch ( Exception $e ) {
-		return WEEK_IN_SECONDS;  // never let a date problem break the page
+		return WEEK_IN_SECONDS;
 	}
 }
 
 /**
- * Tags permitted in the fetched HTML.
- *
- * The manifest comes from our own repo over HTTPS, but it is still remote HTML
- * being echoed into every article. Restricting it to table markup means that
- * even if the source were tampered with, nothing executable can reach the page.
+ * Table-only whitelist, deliberately narrower than wp_kses_post. The manifest is
+ * ours and arrives over HTTPS, but it is still remote HTML echoed into live
+ * articles, so nothing executable can reach the page even if it were tampered
+ * with. Verified against the generated tables, so nothing is silently stripped.
  */
 function sfa_preload_allowed_tags() {
 	$cell = array(
@@ -98,11 +88,14 @@ function sfa_preload_allowed_tags() {
 }
 
 /**
- * Fetch the manifest. Returns an array of tool => html, or null on any failure.
+ * Fetch and sanitise the manifest. Returns tool => html, or null on any failure.
+ * Sanitising happens once per fetch rather than per render; wp_kses is
+ * regex-heavy and the result is identical every time.
  */
 function sfa_preload_fetch() {
-	$response = wp_remote_get(
-		SFA_PRELOAD_URL,
+	$cfg  = sfa_preload_config();
+	$resp = wp_remote_get(
+		$cfg['url'],
 		array(
 			'timeout'    => 4,
 			'user-agent' => 'SFAStatsPages preload/1.0',
@@ -111,25 +104,22 @@ function sfa_preload_fetch() {
 	);
 
 	$failed = '';
-	if ( is_wp_error( $response ) ) {
-		$failed = 'wp_error: ' . $response->get_error_message();
-	} elseif ( 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
-		$failed = 'http ' . wp_remote_retrieve_response_code( $response );
+	if ( is_wp_error( $resp ) ) {
+		$failed = 'wp_error: ' . $resp->get_error_message();
+	} elseif ( 200 !== (int) wp_remote_retrieve_response_code( $resp ) ) {
+		$failed = 'http ' . wp_remote_retrieve_response_code( $resp );
 	}
 	if ( $failed ) {
-		error_log( 'sfa_preloads: fetch failed (' . $failed . ') for ' . SFA_PRELOAD_URL );
+		error_log( 'sfa_preloads: fetch failed (' . $failed . ') for ' . $cfg['url'] );
 		return null;
 	}
 
-	$decoded = json_decode( wp_remote_retrieve_body( $response ), true );
+	$decoded = json_decode( wp_remote_retrieve_body( $resp ), true );
 	if ( ! is_array( $decoded ) || empty( $decoded ) ) {
-		error_log( 'sfa_preloads: response was not a JSON object for ' . SFA_PRELOAD_URL );
+		error_log( 'sfa_preloads: response was not a JSON object for ' . $cfg['url'] );
 		return null;
 	}
 
-	// Sanitised here, once per fetch, rather than on every page render. wp_kses
-	// is regex-heavy and the result is identical every time, so there is no
-	// reason to pay for it per request.
 	$clean = array();
 	foreach ( $decoded as $key => $html ) {
 		if ( is_string( $key ) && is_string( $html ) && '' !== trim( $html ) ) {
@@ -137,7 +127,7 @@ function sfa_preload_fetch() {
 		}
 	}
 	if ( empty( $clean ) ) {
-		error_log( 'sfa_preloads: nothing survived sanitising for ' . SFA_PRELOAD_URL );
+		error_log( 'sfa_preloads: nothing survived sanitising for ' . $cfg['url'] );
 		return null;
 	}
 	return $clean;
@@ -146,10 +136,9 @@ function sfa_preload_fetch() {
 /**
  * Cached manifest.
  *
- * The payload lives in an option rather than a transient so it survives cache
- * expiry: if GitHub is briefly unreachable we serve the last good copy instead
- * of rendering an empty table on a live article. The timestamp decides when to
- * try again, and a short lock stops concurrent requests all refreshing at once.
+ * A transient is the live cache; an option holds the last known good copy, so a
+ * brief GitHub outage serves a stale table rather than an empty one. A short
+ * lock stops every concurrent request refreshing at once when the cache expires.
  */
 function sfa_preload_manifest() {
 	static $memo = null;
@@ -157,44 +146,68 @@ function sfa_preload_manifest() {
 		return $memo;  // one lookup per request, however many shortcodes run
 	}
 
+	$cfg    = sfa_preload_config();
 	$forced = isset( $_GET['sfa_refresh'] ) && current_user_can( 'edit_posts' );
 
 	if ( ! $forced ) {
-		$cached = get_transient( SFA_PRELOAD_TRANSIENT );
+		$cached = get_transient( $cfg['transient'] );
 		if ( false !== $cached ) {
 			$memo = is_array( $cached ) ? $cached : array();
 			return $memo;
 		}
+		if ( false !== get_transient( $cfg['lock'] ) ) {
+			$memo = (array) get_option( $cfg['option'], array() );
+			return $memo;
+		}
 	}
-
-	// Only one request should refresh when the cache expires; the rest fall
-	// through to the last good copy for a moment.
-	if ( ! $forced && false !== get_transient( SFA_PRELOAD_LOCK ) ) {
-		$memo = (array) get_option( SFA_PRELOAD_OPTION, array() );
-		return $memo;
-	}
-	set_transient( SFA_PRELOAD_LOCK, 1, SFA_PRELOAD_LOCK_TTL );
+	set_transient( $cfg['lock'], 1, $cfg['lock_ttl'] );
 
 	$fresh = sfa_preload_fetch();
-	delete_transient( SFA_PRELOAD_LOCK );
+	delete_transient( $cfg['lock'] );
 
 	if ( null === $fresh ) {
-		// Serve the last good snapshot and retry shortly, rather than rendering
-		// an empty table on a live article.
-		$fallback = (array) get_option( SFA_PRELOAD_OPTION, array() );
-		set_transient( SFA_PRELOAD_TRANSIENT, $fallback, SFA_PRELOAD_RETRY );
+		$fallback = (array) get_option( $cfg['option'], array() );
+		set_transient( $cfg['transient'], $fallback, $cfg['retry'] );
 		$memo = $fallback;
 		return $memo;
 	}
 
-	update_option( SFA_PRELOAD_OPTION, $fresh, false );  // no autoload
-	set_transient( SFA_PRELOAD_TRANSIENT, $fresh, sfa_preload_ttl() );
+	update_option( $cfg['option'], $fresh, false );  // no autoload
+	set_transient( $cfg['transient'], $fresh, sfa_preload_ttl() );
 	$memo = $fresh;
 	return $memo;
 }
 
 /**
+ * Styles for the preload table.
+ *
+ * The shortcode output sits outside .pt-root, so the tool fragment's own CSS
+ * cannot reach it. Printed inline on first render rather than enqueued, so the
+ * snippet stays self-contained and costs nothing on pages without a shortcode.
+ * Every selector is scoped under .sfa-preload; nothing leaks into the theme.
+ */
+function sfa_preload_styles() {
+	static $done = false;
+	if ( $done ) {
+		return '';
+	}
+	$done = true;
+	return '<style>'
+		. '.sfa-preload{margin:0 0 18px;overflow-x:auto}'
+		. '.sfa-preload table{border-collapse:collapse;width:100%;font-size:12px;'
+		. 'font-family:inherit;color:#111}'
+		. '.sfa-preload caption{text-align:left;padding:10px 12px;color:#7f8c9a;font-size:12px}'
+		. '.sfa-preload th,.sfa-preload td{border:1px solid #dde2e8;padding:5px 7px;text-align:center}'
+		. '.sfa-preload th[scope=row]{text-align:left;font-weight:700}'
+		. '.sfa-preload thead th{background:#f4f5f7}'
+		. '</style>';
+}
+
+/**
  * Render one tool's table.
+ *
+ * data-sfa-preload is what the interactive tool looks for to hide this once it
+ * has painted, wherever on the page it sits.
  */
 function sfa_preload_render( $tool ) {
 	$manifest = sfa_preload_manifest();
@@ -205,38 +218,28 @@ function sfa_preload_render( $tool ) {
 		return '<!-- sfa preload: no table available for ' . esc_html( $tool ) . ' -->';
 	}
 
-	// Already sanitised at fetch time.
-	$html = $manifest[ $tool ];
-
-	// data-sfa-preload lets the interactive tool hide this once it has rendered,
-	// wherever on the page it sits. If the tool's fetch fails it stays visible.
-	return '<div class="sfa-preload" data-sfa-preload="' . esc_attr( $tool ) . '">'
-		. $html . '</div>';
+	return sfa_preload_styles()
+		. '<div class="sfa-preload" data-sfa-preload="' . esc_attr( $tool ) . '">'
+		. $manifest[ $tool ]  // already sanitised at fetch time
+		. '</div>';
 }
 
 /*
- * One shortcode per tool, deliberately, so they read clearly in the CMS. They
- * all share the cache above, so the count of shortcodes does not affect the
- * number of requests. To add a tool: add a line here matching its key in
- * data/preloads.json.
+ * One shortcode per tool, so they read clearly in the CMS. They share the cache
+ * above, so the count of shortcodes on a page does not affect request count.
+ *
+ * To add a tool: copy one of these pairs and match the key in data/preloads.json,
+ * then add hideServerPreload() to that tool's render path.
+ *
+ * To force a refresh: load a page carrying a shortcode with ?sfa_refresh=1 while
+ * logged in as an editor, or delete the sfa_preloads_last_good option.
  */
-add_shortcode(
-	'sharp_football_personnel',
-	function () {
-		return sfa_preload_render( 'personnel_grouping' );
-	}
-);
+function sfa_preload_personnel_shortcode() {
+	return sfa_preload_render( 'personnel_grouping' );
+}
+add_shortcode( 'sharp_football_personnel', 'sfa_preload_personnel_shortcode' );
 
-add_shortcode(
-	'sharp_football_pace',
-	function () {
-		return sfa_preload_render( 'pace' );
-	}
-);
-
-/*
- * No deactivation hook: that is plugin-only, and inside Code Snippets __FILE__
- * is not this snippet, so it would silently do the wrong thing. To clear the
- * stored copy, load any page carrying a shortcode with ?sfa_refresh=1 while
- * logged in as an editor, or delete the sfa_preloads_cache option.
- */
+function sfa_preload_pace_shortcode() {
+	return sfa_preload_render( 'pace' );
+}
+add_shortcode( 'sharp_football_pace', 'sfa_preload_pace_shortcode' );

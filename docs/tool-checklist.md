@@ -36,9 +36,16 @@ why the linter is `lint_embed.py` and the preload refresher is `refresh_preload.
 
 - [ ] The pull script writes `data/<name>_preload.html`; `scripts/preloads.py` folds every
       one of those into `data/preloads.json` automatically, so no wiring is needed
-- [ ] Add an `add_shortcode(...)` line to `wordpress/sfa-preloads.php` for the new tool
+- [ ] Add a shortcode function + `add_shortcode(...)` pair to `wordpress/sfa-preloads.php`.
+      Named function, not a closure, and no top-level `return` or `define()` anywhere in
+      that file — Code Snippets evaluates the body and all three misbehave there
 - [ ] Add `hideServerPreload()` to the new tool's render path so the server-rendered table
-      is hidden once the interactive one draws — see either existing tool
+      is hidden once the interactive one draws — see either existing tool. It must query
+      `document`, not the tool root: the shortcode renders as a sibling in Avada
+- [ ] Put the shortcode in an Avada **Text Block**, not a Code Block. Code Blocks never
+      run `do_shortcode`, so the shortcode renders as literal bracket text
+- [ ] Decide one crawlable table per article: keep the baked-in copy, or run
+      `python scripts/refresh_preload.py --strip` so the shortcode is the only one
 - [ ] Full detail in `wordpress/README.md`
 
 ## 2. Tool build (HTML/CSS/JS fragment)
