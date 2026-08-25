@@ -106,7 +106,7 @@ The static table inside the `SFA:PRELOAD` markers is what search engines see.
 Regenerate it after a data pull with:
 
 ```
-python scripts/refresh_preload.py
+python scripts/pull_pace.py
 ```
 
 then re-paste `tool.html` into Avada. Worth doing every week or two in season.

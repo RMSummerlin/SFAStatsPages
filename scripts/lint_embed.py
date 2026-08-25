@@ -149,8 +149,11 @@ def lint(path: Path):
         found = set(re.findall(r"#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b", css))
         off = {c.lower() for c in found} - BRAND_COLORS
         # the heatmap ramp is intentionally interpolated between brand endpoints
+        # Interpolated heatmap stops, plus the two masthead colours: the brand
+        # palette assumes a light background, and #cc0000 is unreadable on black.
         off = {c for c in off if c not in {"#f7f8fa", "#f6e0dd", "#eeb4ac", "#e07a70",
-                                          "#7a0000", "#fff5f5", "#e3e8ee"}}
+                                          "#7a0000", "#fff5f5", "#e3e8ee",
+                                          "#ff5a4d", "#5c6773"}}
         if off:
             warns.append("colors outside the brand palette: " + ", ".join(sorted(off)))
 
@@ -161,8 +164,13 @@ def lint(path: Path):
                 fails.append(f"uses {api} — not permitted in an embed")
         if re.search(r"\bapi[_-]?key\b|secret|Bearer ", js, re.I):
             fails.append("looks like it contains a credential — embeds must stay public-only")
-        if "SFA:PRELOAD:START" not in src:
-            warns.append("no crawlable preload block — search engines will see an empty tool")
+        # The crawlable table is rendered server-side by the WordPress shortcode
+        # and is no longer baked into the fragment, so the old SFA:PRELOAD markers
+        # are gone. What must remain is a note saying the page needs the
+        # shortcode, or someone will build a page without one and never notice.
+        if not re.search(r"sharp_football_\w+", src):
+            warns.append("no note naming the [sharp_football_*] shortcode this tool "
+                         "relies on — a page built without it serves an empty table")
 
     label = str(path.relative_to(REPO_ROOT)) if REPO_ROOT in path.parents else str(path)
     print(("FAIL  " if fails else "ok    ") + label)
@@ -173,6 +181,73 @@ def lint(path: Path):
     return not fails
 
 
+def lint_php_preload():
+    """Check the WordPress snippet's inline CSS for the same theme-bleed trap.
+
+    The fragments are covered by the <table> check in lint(); the bug then
+    reappeared in wordpress/sfa-preloads.php, where the preload table's own
+    styles left colour to inheritance and Avada's bare th rule won, tinting the
+    team column. Same trap, different file, so check it here too.
+    """
+    path = REPO_ROOT / "wordpress" / "sfa-preloads.php"
+    if not path.exists():
+        return True
+
+    src = path.read_text(encoding="utf-8")
+    fails = []
+
+    # The CSS is concatenated from single-quoted fragments inside
+    # sfa_preload_styles(), and a rule is routinely split across two of them, so
+    # take every quoted string in that function rather than only the ones that
+    # happen to start with a selector.
+    start = src.find("function sfa_preload_styles()")
+    css = ""
+    if start != -1:
+        depth, i, body_start = 0, src.index("{", start), None
+        for i in range(src.index("{", start), len(src)):
+            if src[i] == "{":
+                depth += 1
+                if body_start is None:
+                    body_start = i
+            elif src[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+        body = src[body_start:i]
+        # Strip comments first: an apostrophe in prose ("Avada's rule") would
+        # otherwise be read as a string delimiter and shred the extraction.
+        body = re.sub(r"/\*.*?\*/", " ", body, flags=re.S)
+        body = re.sub(r"^\s*//.*$", " ", body, flags=re.M)
+        css = "".join(re.findall(r"'([^']*)'", body))
+
+    if not css:
+        fails.append("no .sfa-preload styles found — the shortcode output sits "
+                     "outside .pt-root, so the fragment's CSS cannot reach it")
+    else:
+        for tag in TABLE_ELEMENTS:
+            body = ""
+            for sel, rule in re.findall(r"([^{}]*)\{([^{}]*)\}", css):
+                for one in sel.split(","):
+                    one = one.strip()
+                    if re.search(r"(^|[\s>+~])" + tag + r"([\s.:\[]|$)", one):
+                        body += rule + ";"
+            flat = re.sub(r"\s+", "", body)
+            if not flat:
+                fails.append(f"preload CSS never styles <{tag}> — Avada's theme "
+                             f"rules will win by specificity")
+                continue
+            if not re.search(r"(^|[;{])font(-family)?:", ";" + flat):
+                fails.append(f"preload <{tag}> does not declare font")
+            if not re.search(r"(^|[;{])color:", ";" + flat):
+                fails.append(f"preload <{tag}> does not declare color — the theme "
+                             f"will tint the team column")
+
+    print(("FAIL  " if fails else "ok    ") + "wordpress/sfa-preloads.php")
+    for f in fails:
+        print("      x " + f)
+    return not fails
+
+
 def main():
     args = sys.argv[1:]
     paths = [Path(a) for a in args] if args else sorted(
@@ -180,7 +255,10 @@ def main():
     if not paths:
         print("no tool.html files found")
         return 1
-    return 0 if all(lint(p) for p in paths) else 1
+    ok = all(lint(p) for p in paths)
+    if not args:
+        ok = lint_php_preload() and ok
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

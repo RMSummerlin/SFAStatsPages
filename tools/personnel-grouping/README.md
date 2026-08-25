@@ -105,7 +105,6 @@ Ships a 32-row static table between the `SFA:PRELOAD` markers. Refresh with:
 
 ```
 python scripts/pull_personnel_grouping.py
-python scripts/refresh_preload.py
 ```
 
 then re-paste `tool.html` into Avada.

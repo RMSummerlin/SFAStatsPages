@@ -107,9 +107,6 @@ markers. Pick one per article.
   readers, since the personnel tool's baked copy is inside `#pg-body` and gets wiped
   on render, and the pace tool's is visually hidden. It is a duplicate-content signal
   to crawlers, which is the thing the preload was built to manage in the first place.
-- **Strip the baked copy** with `python scripts/refresh_preload.py --strip`, then
-  re-paste the fragment. The shortcode becomes the only crawlable table. If Code
-  Snippets is ever disabled, that article loses its crawlable table entirely.
 
 Only strip for tools whose article actually carries the shortcode.
 
@@ -126,5 +123,5 @@ Only strip for tools whose article actually carries the shortcode.
 
 The shortcodes stop resolving and render as literal bracket text on the page, which is
 visible to readers. Remove the shortcodes from the articles, or run
-`python scripts/refresh_preload.py` and re-paste to go back to baked-in tables. The
+paste the contents of `data/<tool>_preload.html` into a Text Block as raw HTML. The
 interactive tools are unaffected either way; they fetch their own data.

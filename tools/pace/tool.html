@@ -71,6 +71,9 @@
 .pt-root.pt-pc .pt-pop[hidden]{display:none}
 .pt-root.pt-pc .pt-pop .h{font-size:10px;font-weight:700;text-transform:uppercase;
   letter-spacing:.07em;color:var(--g1);margin-bottom:6px}
+.pt-root.pt-pc .pt-hmain{display:block;font-size:11px;line-height:1.2}
+.pt-root.pt-pc .pt-hunit{display:block;font-size:9px;font-weight:600;color:var(--g1);
+  text-transform:none;letter-spacing:0;line-height:1.2}
 .pt-root.pt-pc .pt-opts{display:flex;flex-wrap:wrap;gap:4px}
 .pt-root.pt-pc .pt-opt{min-height:38px;min-width:44px;padding:0 10px;border:1px solid var(--b1);
   font-size:13px;font-weight:700;background:var(--w)}
@@ -538,34 +541,40 @@
   // the table has room for it, which is most of the time on desktop.
   var COLUMNS = {
     tempo: [
-      {key:'sec', label:'Play Clock Used', short:'Clock Used', dp:1, low:true,
+      {key:'sec', label:'Play Clock Used', unit:'(Sec/Play)', dp:1, low:true,
        tip:'How many of the 40 seconds on the play clock the offense uses before snapping. Lower is faster.'},
-      {key:'neutral', label:'Neutral', short:'Neutral', dp:1, low:true,
+      {key:'neutral', label:'Neutral Script', unit:'(Sec/Play)', dp:1, low:true,
        tip:'Play clock used in quarters 1 to 3, inside 14 points, excluding the last two minutes of the half.'},
-      {key:'gear', label:'Gear Change', short:'Gear', dp:1, low:false, signed:true,
+      {key:'gear', label:'Gear Change', unit:'(Sec/Play)', dp:1, low:false, signed:true,
        tip:'Neutral play clock used minus play clock used when trailing by 5 or more. A positive number means the offense speeds up once it falls behind.'},
-      {key:'nohuddle', label:'No Huddle', short:'No Hud', dp:0, low:false, pct:true,
+      {key:'nohuddle', label:'No Huddle', unit:'(% of Plays)', dp:0, low:false, pct:true,
        tip:'Share of plays the offense runs without huddling.'}
     ],
     volume: [
-      {key:'playsGame', label:'Plays/Game', short:'Plays/G', dp:1, low:false,
+      {key:'playsGame', label:'Plays per Game', dp:1, low:false,
        tip:'Offensive plays per game. Kneels and spikes are excluded.'},
-      {key:'adjPlaysGame', label:'Adjusted Plays/Game', short:'Adj P/G', dp:1, low:false,
+      {key:'adjPlaysGame', label:'Adjusted Plays per Game', dp:1, low:false,
        tip:'Plays per game adjusted for how many plays each defense faced. This moves teams by up to four rank positions.'},
-      {key:'playsDrive', label:'Plays/Drive', short:'Plays/D', dp:2, low:false,
+      {key:'playsDrive', label:'Plays per Drive', dp:2, low:false,
        tip:'Plays per drive. This barely correlates with play clock used, so it measures sustaining drives rather than tempo.'},
-      {key:'drivesGame', label:'Drives/Game', short:'Drives', dp:2, low:false,
+      {key:'drivesGame', label:'Drives per Game', dp:2, low:false,
        tip:'Drives per game. Largely a function of the defense and the opponent.'},
-      {key:'top', label:'Time of Possession', short:'TOP', dp:1, low:false,
+      {key:'top', label:'Time of Possession', unit:'(Minutes)', dp:1, low:false,
        tip:'Time of possession per game, in minutes. Drives that ended because the half ran out are excluded.'}
     ]
   };
 
   function cols(){ return COLUMNS[STATE.mode]; }
-  function headerFor(c){
-    var w = ROOT.clientWidth || 0;
-    var budget = STATE.mode === 'tempo' ? 560 : 700;
-    return w >= budget ? c.label : c.short;
+  /* The full label is always in the DOM. The previous version swapped in a
+     short form below a width threshold, so anything rendering without layout
+     — a crawler included — only ever saw the abbreviation. The unit goes on a
+     second line so the column still fits a phone. */
+  function headerHtml(c){
+    var esc = function(t){
+      return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    };
+    return '<span class="pt-hmain">' + esc(c.label) + '</span>' +
+      (c.unit ? '<span class="pt-hunit"> ' + esc(c.unit) + '</span>' : '');
   }
 
   // ------------------------------------------------------------------ render
@@ -626,11 +635,12 @@
 
     var table = el('table', 'pt-grid');
     var thead = el('thead'), hr = el('tr');
-    hr.appendChild(el('th', 'pt-rank', 'Rank'));
+    hr.appendChild(el('th', 'pt-rank', '#'));
     hr.appendChild(el('th', 'pt-team', 'Offense'));
     list.forEach(function(c){
       var th = el('th');
-      var b = el('button', null, headerFor(c));
+      var b = el('button', null, null);
+      b.innerHTML = headerHtml(c);
       b.type = 'button';
       b.title = c.tip;
       if (c.key === STATE.sort){
@@ -997,17 +1007,23 @@
       bar.appendChild(b);
     });
 
-    var reset = el('button', 'pt-reset', 'Reset');
+    var reset = el('button', 'pt-reset', 'Clear all');
     reset.type = 'button';
-    reset.hidden = !anyFilter();
+    reset.hidden = !anyFilter() && STATE.seasons.length <= 1;
     reset.addEventListener('click', function(){
       STATE.weeks = []; STATE.qtrs = []; STATE.downs = [];
       STATE.venue = []; STATE.huddle = [];
-      closePop(); buildBar(); render();
+      closePop();
+      // Season goes back to the newest too, matching the personnel tool.
+      // Narrowing to a season already in memory fetches nothing.
+      var latest = STATE.index.default ||
+        Math.max.apply(null, STATE.index.seasons);
+      if (STATE.seasons.length !== 1 || STATE.seasons[0] !== latest){
+        applySeasons([latest]);
+        return;
+      }
+      buildBar(); render();
     });
-    // Season is deliberately not cleared here: Reset is for narrowing filters,
-    // and silently reloading four extra seasons would be a surprising thing for
-    // it to do.
     bar.appendChild(reset);
   }
 
@@ -1057,13 +1073,18 @@
           node2.setAttribute('aria-pressed',
             pick.indexOf(opts[i][0]) > -1 ? 'true' : 'false');
         });
+        // Applied on the tap, popover left open so several can be picked in a
+        // row. Matches the personnel grouping tool; there is no Apply step.
+        var chosen = pick.slice().sort(function(a, b){ return a - b; });
+        if (f.key === 'seasons'){ applySeasons(chosen); return; }
+        STATE[f.key] = chosen; buildBar(); render();
       });
       box.appendChild(b);
     });
     p.appendChild(box);
 
     var foot = el('div', 'pt-popfoot');
-    var clear = el('button', null, f.required ? 'Latest' : 'Clear');
+    var clear = el('button', null, 'Reset');
     clear.type = 'button';
     clear.addEventListener('click', function(){
       if (f.required){
@@ -1074,14 +1095,9 @@
       }
       closePop(); buildBar(); render();
     });
-    var go = el('button', 'go', 'Apply');
+    var go = el('button', 'go', 'Done');
     go.type = 'button';
-    go.addEventListener('click', function(){
-      pick.sort(function(a, b){ return a - b; });
-      closePop();
-      if (f.key === 'seasons'){ applySeasons(pick); return; }
-      STATE[f.key] = pick; buildBar(); render();
-    });
+    go.addEventListener('click', closePop);
     foot.appendChild(clear);
     foot.appendChild(go);
     p.appendChild(foot);

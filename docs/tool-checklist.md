@@ -25,12 +25,11 @@ are needed for a normal new tool.
 
 The `pull_*.py` glob covers the pull itself. These three do not happen on their own, and forgetting them fails quietly rather than loudly:
 
-- [ ] `scripts/refresh_preload.py` — add the tool to the `PAIRS` dict, or its crawlable table never gets injected and search engines see an empty embed
 - [ ] `index.html` — add the tool to the `TOOLS` array so its endpoints show on the status page
 - [ ] `docs/<tool>-data.md` — write down the data decisions while the reasoning is fresh, and link it from the tool's README
 
 Helper scripts that should *not* run on the schedule must not be named `pull_*` — that is
-why the linter is `lint_embed.py` and the preload refresher is `refresh_preload.py`.
+why the linter is `lint_embed.py` and the manifest builder is `preloads.py`.
 
 ## 1b. Crawlable preload table
 
@@ -45,7 +44,6 @@ why the linter is `lint_embed.py` and the preload refresher is `refresh_preload.
 - [ ] Put the shortcode in an Avada **Text Block**, not a Code Block. Code Blocks never
       run `do_shortcode`, so the shortcode renders as literal bracket text
 - [ ] Decide one crawlable table per article: keep the baked-in copy, or run
-      `python scripts/refresh_preload.py --strip` so the shortcode is the only one
 - [ ] Full detail in `wordpress/README.md`
 
 ## 2. Tool build (HTML/CSS/JS fragment)
@@ -137,7 +135,7 @@ always leave the box unticked, so archives are never rebuilt on a timer.
 - [ ] Pull script runs cleanly and produces the expected JSON
 - [ ] Numbers spot-checked against the raw sheet, not just against the tool's own output
 - [ ] Tool fetches and renders that JSON correctly
-- [ ] Static preload table refreshed (`python scripts/refresh_preload.py`) and present with JavaScript disabled
+- [ ] `[sharp_football_<tool>]` shortcode added to the page in an Avada Text Block, and the table is present with JavaScript disabled
 - [ ] Tested inside an actual Avada custom code block on a staging page, not just standalone
 - [ ] Tested at phone width first, then desktop
 - [ ] Confirmed whether `update-data.yml` needed any changes (usually: no)

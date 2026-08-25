@@ -192,14 +192,26 @@ function sfa_preload_styles() {
 		return '';
 	}
 	$done = true;
+	/*
+	 * Every property is declared on the table elements themselves rather than
+	 * left to inherit. Inheritance loses to any theme rule matching th or td
+	 * directly, which is how Avada's red heading colour was reaching the team
+	 * column. Deliberately plain: only crawlers and no-JS visitors see this.
+	 */
 	return '<style>'
 		. '.sfa-preload{margin:0 0 18px;overflow-x:auto}'
-		. '.sfa-preload table{border-collapse:collapse;width:100%;font-size:12px;'
-		. 'font-family:inherit;color:#111}'
-		. '.sfa-preload caption{text-align:left;padding:10px 12px;color:#7f8c9a;font-size:12px}'
-		. '.sfa-preload th,.sfa-preload td{border:1px solid #dde2e8;padding:5px 7px;text-align:center}'
-		. '.sfa-preload th[scope=row]{text-align:left;font-weight:700}'
-		. '.sfa-preload thead th{background:#f4f5f7}'
+		. '.sfa-preload table,.sfa-preload thead,.sfa-preload tbody,'
+		. '.sfa-preload tfoot,.sfa-preload tr,.sfa-preload th,.sfa-preload td,'
+		. '.sfa-preload caption,.sfa-preload abbr{'
+		. 'font:inherit;color:#111;background:none;border:0;text-align:left;'
+		. 'text-transform:none;letter-spacing:normal;text-decoration:none;'
+		. 'text-shadow:none;box-shadow:none;vertical-align:middle;margin:0}'
+		. '.sfa-preload table{border-collapse:collapse;width:100%;font-size:12px}'
+		. '.sfa-preload caption{padding:10px 12px;color:#555;font-size:12px}'
+		. '.sfa-preload th,.sfa-preload td{border:1px solid #dde2e8;'
+		. 'padding:5px 7px;text-align:center;color:#111}'
+		. '.sfa-preload th[scope=row]{text-align:left;font-weight:700;color:#111}'
+		. '.sfa-preload thead th{background:#f4f5f7;font-weight:700;color:#111}'
 		. '</style>';
 }
 
