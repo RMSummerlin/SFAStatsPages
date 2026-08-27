@@ -19,7 +19,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DOC_LEVEL_TAGS = ["<!doctype", "<html", "<head", "<body", "<meta", "<title"]
 LANDMARKS = ["header", "footer", "nav", "main", "section", "article", "aside"]
 BRAND_COLORS = {"#cc0000", "#000", "#111", "#7f8c9a", "#b0bec5",
-                "#cdd5de", "#dde2e8", "#f4f5f7", "#f9fafb", "#fff"}
+                "#cdd5de", "#dde2e8", "#f4f5f7", "#f9fafb", "#fff",
+                # Two deliberate exceptions, both in the masthead: #cc0000 is
+                # unreadable on black, and the toggle border needs a mid grey
+                # that is not in the body palette.
+                "#ff5a4d", "#5c6773"}
 # Elements Avada styles heavily enough that leaving them undeclared is a bug.
 TABLE_ELEMENTS = ["table", "thead", "tbody", "tr", "th", "td", "caption"]
 
@@ -161,8 +165,18 @@ def lint(path: Path):
                 fails.append(f"uses {api} — not permitted in an embed")
         if re.search(r"\bapi[_-]?key\b|secret|Bearer ", js, re.I):
             fails.append("looks like it contains a credential — embeds must stay public-only")
-        if "SFA:PRELOAD:START" not in src:
-            warns.append("no crawlable preload block — search engines will see an empty tool")
+        # The crawlable table used to be pasted into the fragment between
+        # SFA:PRELOAD markers. It is now rendered by the shortcode in
+        # wordpress/sfa-preloads.php and hidden once the tool paints, so the
+        # thing to check is that the tool actually hides it — a fragment that
+        # does not leaves a duplicate table on the page forever.
+        if "data-sfa-preload" not in src:
+            warns.append("never hides the shortcode preload table — add "
+                         "hideServerPreload() and call it from render(), or the "
+                         "server-rendered table stays on the page")
+        elif "hideServerPreload" in src and "hideServerPreload()" not in \
+                re.sub(r"function\s+hideServerPreload\s*\(\)", "", src):
+            warns.append("defines hideServerPreload() but never calls it")
 
     label = str(path.relative_to(REPO_ROOT)) if REPO_ROOT in path.parents else str(path)
     print(("FAIL  " if fails else "ok    ") + label)
