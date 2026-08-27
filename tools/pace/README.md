@@ -3,7 +3,7 @@
 Offensive tempo and play volume by team, with filters for week, quarter, down,
 venue and huddle. Two metric groups behind a toggle:
 
-- **Tempo** — play clock used, neutral play clock used, gear change, no-huddle rate
+- **Tempo** — play clock used, neutral play clock used, neutral pass rate, gear change, no-huddle rate
 - **Volume** — plays per game, opponent-adjusted plays per game, plays per drive, drives per game, time of possession
 
 Tempo is **play clock used**: 40 minus the seconds left on the play clock at the
@@ -90,6 +90,16 @@ scaled by rank rather than by raw value so the full colour range is always used 
 which means the colours show *order* reliably but should not be read as showing
 *distance*. The numbers themselves do that.
 
+**Pass rate sits on the Tempo tab but is not a tempo stat.** It correlates with
+plays per game at about +0.31 and with play clock used at roughly zero — passing
+buys extra snaps by stopping the clock, it does not get an offense to the line
+faster. It is on the first page because it is a headline number for fantasy and
+totals, not because it measures pace. The tooltip says as much.
+
+**Pass rate's denominator is wider than the Neutral column next to it.** It needs
+no 40-second play clock, so it counts every neutral play (~19,400 in 2025) rather
+than only the tempo-eligible ones (~14,900).
+
 **Washington's no-huddle rate is enormous.** 61% against a 9.9% league average.
 It comes through that way in the source data. See the note in
 `docs/pace-data.md`.
@@ -106,24 +116,7 @@ The static table inside the `SFA:PRELOAD` markers is what search engines see.
 Regenerate it after a data pull with:
 
 ```
-python scripts/pull_pace.py
+python scripts/refresh_preload.py
 ```
 
 then re-paste `tool.html` into Avada. Worth doing every week or two in season.
-
-## Convergence with the personnel grouping tool
-
-Both tools deliberately behave the same way, so a reader who learns one is not
-surprised by the other:
-
-- Filter options apply on tap, with the popover left open. There is no Apply step.
-- Each popover has its own **Reset**; the bar has **Clear all**, which also returns the
-  season scope to the newest season.
-- The rank column header is `#`.
-- Column headers carry their full text in the DOM with the unit on a second line, so a
-  crawler sees "Play Clock Used (Sec/Play)" rather than an abbreviation. The old version
-  swapped in a short label below a width threshold, which meant anything rendering
-  without layout only ever saw the short form.
-- The metric formerly labelled "Neutral" is now **Neutral Script**, because "neutral
-  script" is a filter in the personnel tool and the same word meaning two things across
-  two tools on one site is a comprehension problem.

@@ -38,8 +38,8 @@ SFAStatsPages/
 │   ├── requirements.txt
 │   ├── pull_personnel_grouping.py  ← pull + transform (auto-run by the workflow)
 │   ├── lint_embed.py               ← checks a fragment against the embed rules
+│   └── refresh_preload.py          ← injects the crawlable static table into tools
 ├── index.html                      ← endpoint health check, served at the Pages root
-├── wordpress/                      ← server-side preload shortcodes (Code Snippets)
 ├── tools/
 │   └── personnel-grouping/         ← the shipped tool
 └── .github/
@@ -78,6 +78,8 @@ python scripts/pull_pace.py --csv ~/Downloads/export.csv --season 2025
 python scripts/test_pace.py
 python scripts/test_dead_ball.py
 
+# refresh the crawlable static tables inside the tool fragments
+python scripts/refresh_preload.py
 
 # check the fragments against the embed rules
 python scripts/lint_embed.py

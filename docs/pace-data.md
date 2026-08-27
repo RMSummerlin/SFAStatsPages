@@ -243,6 +243,69 @@ carry the pace columns, run the workflow with **Rebuild every season** ticked an
 read the log: every season missing them prints a warning and is left out of
 `pace_index.json`, so the tool only offers seasons that will actually render.
 
+## Neutral pass rate
+
+Added because passing and pace feel related. The relationship is real, but it is
+not the one it is usually described as.
+
+**Correlation with tempo is nil.** Neutral pass rate against neutral play clock
+used: **−0.033**. Against snap-to-snap seconds, in case the older metric was
+hiding it: **+0.015**. Both are zero. Pass-heavy offenses do not get to the line
+faster.
+
+**Correlation with volume is real.** Against plays per game: **+0.31**. That is
+the actual mechanism — incompletions and sideline throws stop the clock, so
+passing buys extra snaps. It drives *how many* plays, not *how quickly* they are
+run. Anyone reading the column as a tempo indicator will draw the wrong
+conclusion, so its tooltip says so outright.
+
+It is worth having: signal SD 3.02 percentage points against binomial noise of
+2.01, and a 15-point spread from Arizona at 65.3% down to the Jets at 49.9%.
+
+### Dropbacks, not PlayType
+
+Pass rate here counts **dropbacks**. Sacks already arrive as `PlayType = PASS`,
+which is right — the play call was a pass. Scrambles arrive as `RUSH` even though
+they were also called passes, so they are folded back in.
+
+Not a cosmetic choice. There were 1,102 scrambles in 2025, and switching
+definitions moves teams by up to **eleven rank positions** — Kansas City reads
+56.5% on `PlayType` alone and 63.1% counting scrambles, the Jets 44.3% against
+49.9%. `PlayType` alone measures quarterback mobility as much as play calling.
+
+### A wider denominator than the column beside it
+
+Pass rate needs no 40-second play clock, so its denominator is **every** neutral
+play, not only the tempo-eligible ones: about 19,400 rather than 14,900 in 2025.
+The two neighbouring columns deliberately rest on different bases, which is why
+`test_pace.py` pins pass rate against a fixture whose `TimeSinceSnap` is blank
+throughout.
+
+## Passing gear change: measured and rejected
+
+The natural companion — how much more a team passes when trailing — was tested
+and is not a real team trait at single-season sample sizes.
+
+| | Value |
+|---|---|
+| League mean shift when trailing by 5+ | **+8.3 points** |
+| Observed spread between teams | 3.69 pp SD |
+| Spread expected from sampling noise alone | 3.58 pp SD |
+| Implied signal | 0.91 pp |
+| Odd/even week split-half r | **0.00** |
+
+Every team passes far more when behind, and the *differences* between teams are
+very nearly all noise: a team's first-half-of-season figure carries no
+information about its second half. The column would rank 32 teams on a coin
+flip, and the ordering would look plausible enough that nobody would notice.
+
+More seasons would not rescue it. A split-half of zero says the signal is absent
+rather than merely under-sampled, so pooling years would shrink every team toward
++8.3 rather than resolve differences between them.
+
+Not the same conclusion as the tempo gear change, which survived the same test at
+r = 0.58 and is in the tool.
+
 ## Pooling seasons
 
 The tool's season control is multi-select, so all the aggregation runs over

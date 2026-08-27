@@ -1,7 +1,3 @@
-<!-- Pace Statistics.
-     The crawlable stat table is NOT in this fragment. It comes from the
-     [sharp_football_pace] shortcode, which must be on the page in an Avada
-     Text Block. Without it, crawlers and no-JS visitors see an empty tool. -->
 <style>
 /* Pace Statistics
    Every selector is scoped under .pt-root.pt-pc. See docs/avada-embed-rules.md.
@@ -38,18 +34,15 @@
 .pt-root.pt-pc :focus-visible{outline:2px solid var(--red);outline-offset:1px}
 
 /* ---------- header ---------- */
-.pt-root.pt-pc .pt-head{flex:0 0 auto;background:var(--ink);color:var(--w)}
-.pt-root.pt-pc .pt-headin{padding:13px 12px 12px;border-left:5px solid var(--red)}
-.pt-root.pt-pc .pt-kick{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:#ff5a4d}
-.pt-root.pt-pc .pt-title{margin-top:4px;font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:.005em;line-height:1.04}
-.pt-root.pt-pc .pt-sub{margin-top:4px;font-size:13px;color:var(--g2)}
-.pt-root.pt-pc .pt-sub b{color:var(--w);font-weight:700}
-.pt-root.pt-pc .pt-modewrap{display:flex;padding:0 12px 12px}
-.pt-root.pt-pc .pt-modes{display:flex;width:100%;border:1px solid #5c6773}
-.pt-root.pt-pc .pt-mode{flex:1;min-height:44px;padding:0 16px;font-size:13px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.04em;color:var(--g2);white-space:nowrap}
-.pt-root.pt-pc .pt-mode+.pt-mode{border-left:1px solid #5c6773}
-.pt-root.pt-pc .pt-mode[aria-pressed="true"]{background:var(--red);color:var(--w)}
+.pt-root.pt-pc .pt-head{flex:0 0 auto;padding:12px 12px 10px;border-bottom:2px solid var(--ink)}
+.pt-root.pt-pc .pt-title{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.01em}
+.pt-root.pt-pc .pt-sub{margin-top:3px;font-size:13px;color:var(--g1)}
+.pt-root.pt-pc .pt-sub b{color:var(--ink);font-weight:700}
+.pt-root.pt-pc .pt-modes{display:flex;margin-top:10px;border:1px solid var(--b1)}
+.pt-root.pt-pc .pt-mode{flex:1;min-height:44px;padding:0 14px;font-size:13px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--g1)}
+.pt-root.pt-pc .pt-mode+.pt-mode{border-left:1px solid var(--b1)}
+.pt-root.pt-pc .pt-mode[aria-pressed="true"]{background:var(--ink);color:var(--w)}
 
 /* ---------- filter bar ---------- */
 .pt-root.pt-pc .pt-bar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;
@@ -71,9 +64,6 @@
 .pt-root.pt-pc .pt-pop[hidden]{display:none}
 .pt-root.pt-pc .pt-pop .h{font-size:10px;font-weight:700;text-transform:uppercase;
   letter-spacing:.07em;color:var(--g1);margin-bottom:6px}
-.pt-root.pt-pc .pt-hmain{display:block;font-size:11px;line-height:1.2}
-.pt-root.pt-pc .pt-hunit{display:block;font-size:9px;font-weight:600;color:var(--g1);
-  text-transform:none;letter-spacing:0;line-height:1.2}
 .pt-root.pt-pc .pt-opts{display:flex;flex-wrap:wrap;gap:4px}
 .pt-root.pt-pc .pt-opt{min-height:38px;min-width:44px;padding:0 10px;border:1px solid var(--b1);
   font-size:13px;font-weight:700;background:var(--w)}
@@ -120,7 +110,18 @@
 /* Data columns need a floor or long headers stretch them and the table blows
    past the panel on a narrow screen. */
 .pt-root.pt-pc .pt-grid td:not(.pt-rank):not(.pt-team),
-.pt-root.pt-pc .pt-grid th:not(.pt-rank):not(.pt-team){min-width:56px}
+.pt-root.pt-pc .pt-grid th:not(.pt-rank):not(.pt-team){min-width:52px}
+/* Five tempo columns plus rank and team come to about 388px, which overflows a
+   390px phone once the page scrollbar is accounted for and clips the last
+   column. At abbreviation width the fixed columns give back what is needed:
+   30 + 56 + 5x50 = 336. The table can still scroll sideways if a future column
+   pushes past that, which is what the sticky team column is there for. */
+.pt-root.pt-pc.pt-tight .pt-rank{width:30px}
+.pt-root.pt-pc.pt-tight .pt-team{left:30px;max-width:58px}
+.pt-root.pt-pc.pt-tight .pt-teamcell{gap:4px;padding:0 4px}
+.pt-root.pt-pc.pt-tight .pt-grid td:not(.pt-rank):not(.pt-team),
+.pt-root.pt-pc.pt-tight .pt-grid th:not(.pt-rank):not(.pt-team){min-width:50px}
+.pt-root.pt-pc.pt-tight .pt-num{padding:0 3px}
 .pt-root.pt-pc .pt-teamcell{display:flex;align-items:center;gap:6px;min-height:44px;
   width:100%;padding:0 8px;font:inherit;color:inherit;text-align:left}
 .pt-root.pt-pc .pt-teamcell::before{content:'\25B8';font-size:9px;color:var(--g2);
@@ -163,12 +164,17 @@
   background:var(--bg2);font-size:11px;color:var(--g1)}
 .pt-root.pt-pc .pt-foot b{color:var(--ink);font-weight:700}
 
+/* ---------- crawlable preload ---------- */
+.pt-root.pt-pc .pt-seo{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);
+  clip-path:inset(50%);white-space:nowrap}
+.pt-root.pt-pc .pt-seo table,.pt-root.pt-pc .pt-seo th,.pt-root.pt-pc .pt-seo td,
+.pt-root.pt-pc .pt-seo caption{font:inherit;color:inherit}
+.pt-root.pt-pc .pt-seo th,.pt-root.pt-pc .pt-seo td{border:1px solid var(--b2);padding:5px 7px;
+  text-align:center}
+
 /* ---------- desktop enhancement ---------- */
 @media (min-width:641px){
-.pt-root.pt-pc .pt-head{display:grid;grid-template-columns:1fr auto;align-items:end}
-  .pt-root.pt-pc .pt-headin{padding:17px 18px 16px}
-  .pt-root.pt-pc .pt-modewrap{padding:0 18px 16px;align-items:flex-end}
-  .pt-root.pt-pc .pt-title{font-size:30px}
+  .pt-root.pt-pc .pt-title{font-size:25px}
   .pt-root.pt-pc .pt-grid{font-size:14px}
   .pt-root.pt-pc .pt-grid thead th{font-size:11px}
   .pt-root.pt-pc .pt-rank{width:44px;font-size:12px}
@@ -181,16 +187,11 @@
 
 <div class="pt-root pt-pc">
   <div class="pt-head">
-    <div class="pt-headin">
-      <div class="pt-kick">Sharp Football Analysis · NFL Stats</div>
-      <div class="pt-title">Offensive Pace</div>
-      <div class="pt-sub" data-role="sub">Loading pace data…</div>
-    </div>
-    <div class="pt-modewrap">
-      <div class="pt-modes" role="group" aria-label="Metric group">
-        <button type="button" class="pt-mode" data-mode="tempo" aria-pressed="true">Tempo</button>
-        <button type="button" class="pt-mode" data-mode="volume" aria-pressed="false">Volume</button>
-      </div>
+    <div class="pt-title">Offensive Pace</div>
+    <div class="pt-sub" data-role="sub">Loading pace data…</div>
+    <div class="pt-modes" role="group" aria-label="Metric group">
+      <button type="button" class="pt-mode" data-mode="tempo" aria-pressed="true">Tempo</button>
+      <button type="button" class="pt-mode" data-mode="volume" aria-pressed="false">Volume</button>
     </div>
   </div>
 
@@ -202,6 +203,12 @@
   </div>
 
   <div class="pt-foot" data-role="foot"></div>
+
+  <div class="pt-seo">
+    <!-- SFA:PRELOAD:START -->
+<table class="pt-pre"><caption>2025 offensive pace by team, with no filters applied. Play clock used is how many of the 40 seconds an offense burns before snapping the ball, so it measures the huddle and the walk to the line rather than how long the previous play took to finish. Neutral covers quarters 1 to 3 inside 14 points, excluding the final two minutes of the half. Gear change is neutral play clock used minus play clock used when trailing by 5 or more, so a positive number means the offense speeds up once it falls behind. Lower is faster. Pass rate is a dropback rate in the same neutral situations, counting sacks and scrambles as passes.</caption><thead><tr><th scope="col">Rank</th><th scope="col">Offense</th><th scope="col">Play Clock Used</th><th scope="col">Neutral</th><th scope="col">Neutral Pass Rate</th><th scope="col">Gear Change</th><th scope="col">No Huddle</th><th scope="col">Plays/Game</th><th scope="col">Plays/Drive</th><th scope="col">Time of Possession</th><th scope="col">Plays</th></tr></thead><tbody><tr><td>1</td><th scope="row">NO</th><td>28.61</td><td>29.11</td><td>56.6%</td><td>0.52</td><td>23%</td><td>62.4</td><td>6.17</td><td>27.8</td><td>1,061</td></tr><tr><td>2</td><th scope="row">DAL</th><td>29.4</td><td>30.22</td><td>57.8%</td><td>2.5</td><td>9%</td><td>64.8</td><td>6.36</td><td>29.7</td><td>1,101</td></tr><tr><td>3</td><th scope="row">NYG</th><td>30.66</td><td>30.58</td><td>55.9%</td><td>-0.05</td><td>21%</td><td>63.2</td><td>6.44</td><td>30.4</td><td>1,075</td></tr><tr><td>4</td><th scope="row">WAS</th><td>31.39</td><td>31.67</td><td>58.1%</td><td>0.01</td><td>61%</td><td>57.2</td><td>6.11</td><td>27.9</td><td>972</td></tr><tr><td>5</td><th scope="row">SF</th><td>31.67</td><td>31.76</td><td>54.7%</td><td>1.6</td><td>4%</td><td>62.4</td><td>6.42</td><td>30.0</td><td>1,060</td></tr><tr><td>6</td><th scope="row">CHI</th><td>31.99</td><td>32.11</td><td>54.3%</td><td>1.13</td><td>5%</td><td>64.1</td><td>6.19</td><td>30.0</td><td>1,090</td></tr><tr><td>7</td><th scope="row">LAR</th><td>32.14</td><td>32.46</td><td>61.3%</td><td>0.31</td><td>7%</td><td>62.2</td><td>6.07</td><td>29.1</td><td>1,057</td></tr><tr><td>8</td><th scope="row">NE</th><td>32.3</td><td>32.57</td><td>59.3%</td><td>0.11</td><td>2%</td><td>59.6</td><td>6.11</td><td>29.7</td><td>1,014</td></tr><tr><td>9</td><th scope="row">NYJ</th><td>31.1</td><td>32.65</td><td>49.9%</td><td>1.68</td><td>10%</td><td>58.9</td><td>5.66</td><td>27.5</td><td>1,001</td></tr><tr><td>10</td><th scope="row">LV</th><td>31.31</td><td>32.67</td><td>59.8%</td><td>1.91</td><td>9%</td><td>55.2</td><td>5.34</td><td>27.1</td><td>939</td></tr><tr><td>11</td><th scope="row">KC</th><td>32.54</td><td>32.69</td><td>63.1%</td><td>-0.03</td><td>2%</td><td>61.5</td><td>6.37</td><td>29.4</td><td>1,045</td></tr><tr><td>12</td><th scope="row">DET</th><td>32.41</td><td>32.71</td><td>54.9%</td><td>0.74</td><td>6%</td><td>61.8</td><td>5.77</td><td>29.8</td><td>1,050</td></tr><tr><td>13</td><th scope="row">DEN</th><td>32.6</td><td>32.82</td><td>59.8%</td><td>1.77</td><td>13%</td><td>63.1</td><td>6.03</td><td>30.4</td><td>1,073</td></tr><tr><td>14</td><th scope="row">ATL</th><td>32.44</td><td>33.01</td><td>53.6%</td><td>1.9</td><td>11%</td><td>60.7</td><td>5.9</td><td>29.4</td><td>1,032</td></tr><tr><td>15</td><th scope="row">LAC</th><td>32.69</td><td>33.01</td><td>61.2%</td><td>0.96</td><td>4%</td><td>63.5</td><td>6.27</td><td>31.8</td><td>1,079</td></tr><tr><td>16</td><th scope="row">BAL</th><td>32.86</td><td>33.02</td><td>50.1%</td><td>0.78</td><td>3%</td><td>56.1</td><td>5.58</td><td>28.2</td><td>954</td></tr><tr><td>17</td><th scope="row">HOU</th><td>32.79</td><td>33.08</td><td>58.3%</td><td>1.53</td><td>4%</td><td>63.1</td><td>5.79</td><td>30.6</td><td>1,072</td></tr><tr><td>18</td><th scope="row">CLE</th><td>31.99</td><td>33.09</td><td>55.0%</td><td>2.43</td><td>9%</td><td>60.2</td><td>5.36</td><td>29.1</td><td>1,024</td></tr><tr><td>19</td><th scope="row">ARI</th><td>30.99</td><td>33.22</td><td>65.3%</td><td>5.09</td><td>12%</td><td>62.9</td><td>6.33</td><td>29.6</td><td>1,070</td></tr><tr><td>20</td><th scope="row">GB</th><td>32.81</td><td>33.22</td><td>53.7%</td><td>2.84</td><td>8%</td><td>58.3</td><td>6.35</td><td>29.0</td><td>991</td></tr><tr><td>21</td><th scope="row">SEA</th><td>32.82</td><td>33.24</td><td>53.4%</td><td>1.58</td><td>7%</td><td>58.5</td><td>5.52</td><td>29.2</td><td>994</td></tr><tr><td>22</td><th scope="row">IND</th><td>32.92</td><td>33.28</td><td>60.1%</td><td>2.29</td><td>5%</td><td>59.1</td><td>5.98</td><td>29.0</td><td>1,004</td></tr><tr><td>23</td><th scope="row">PHI</th><td>33.2</td><td>33.31</td><td>56.7%</td><td>1.71</td><td>19%</td><td>58.4</td><td>5.7</td><td>29.3</td><td>992</td></tr><tr><td>24</td><th scope="row">CIN</th><td>32.81</td><td>33.4</td><td>61.9%</td><td>1.0</td><td>3%</td><td>61.4</td><td>6.0</td><td>29.9</td><td>1,044</td></tr><tr><td>25</td><th scope="row">JAX</th><td>33.56</td><td>33.62</td><td>60.6%</td><td>2.31</td><td>7%</td><td>62.9</td><td>5.94</td><td>30.9</td><td>1,070</td></tr><tr><td>26</td><th scope="row">MIN</th><td>32.75</td><td>33.64</td><td>57.9%</td><td>0.78</td><td>8%</td><td>55.2</td><td>5.37</td><td>27.1</td><td>939</td></tr><tr><td>27</td><th scope="row">BUF</th><td>33.54</td><td>33.71</td><td>55.8%</td><td>1.27</td><td>6%</td><td>62.1</td><td>6.29</td><td>31.8</td><td>1,056</td></tr><tr><td>28</td><th scope="row">CAR</th><td>33.08</td><td>33.87</td><td>54.9%</td><td>1.11</td><td>6%</td><td>58.3</td><td>6.23</td><td>29.3</td><td>991</td></tr><tr><td>29</td><th scope="row">TEN</th><td>32.56</td><td>33.89</td><td>57.1%</td><td>1.98</td><td>10%</td><td>58.5</td><td>5.56</td><td>28.6</td><td>995</td></tr><tr><td>30</td><th scope="row">PIT</th><td>33.07</td><td>34.05</td><td>57.5%</td><td>2.08</td><td>11%</td><td>57.3</td><td>5.8</td><td>27.8</td><td>974</td></tr><tr><td>31</td><th scope="row">TB</th><td>33.74</td><td>34.17</td><td>54.6%</td><td>0.17</td><td>6%</td><td>62.2</td><td>6.07</td><td>31.6</td><td>1,057</td></tr><tr><td>32</td><th scope="row">MIA</th><td>34.23</td><td>34.51</td><td>52.1%</td><td>0.15</td><td>4%</td><td>55.2</td><td>5.49</td><td>28.3</td><td>939</td></tr></tbody></table>
+<!-- SFA:PRELOAD:END -->
+  </div>
 </div>
 
 <script>
@@ -215,18 +222,6 @@
   }
   if (!ROOT || ROOT.getAttribute('data-init') === '1') return;
   ROOT.setAttribute('data-init', '1');
-
-  /* The server-rendered preload table sits outside this fragment: it comes from
-     the shortcode, so in Avada it is a sibling of the code block, not a child of
-     ROOT. Hide it once the live tool has painted. If the data fetch fails,
-     render() never runs and the table stays visible as the fallback. */
-  var SEO_HIDDEN = false;
-  function hideServerPreload(){
-    if (SEO_HIDDEN) return;
-    SEO_HIDDEN = true;
-    var n = document.querySelectorAll('[data-sfa-preload="pace"]');
-    for (var i = 0; i < n.length; i++) n[i].style.display = 'none';
-  }
 
   var BASE = 'https://rmsummerlin.github.io/SFAStatsPages/data/';
 
@@ -372,6 +367,7 @@
       team: globalise(c.t), opp: globalise(c.o),
       week: one(c.w), qtr: one(c.q),
       down: one(c.d), drive: one(c.v), sec: one(c.s), nh: one(c.n),
+      pass: c.p ? one(c.p) : null,
       home: one(c.hm), l2: one(c.l2),
       margin: two(c.mh, c.ml, blob.margin_offset),
       dn: d ? d.t.length : 0,
@@ -425,6 +421,7 @@
       acc.push({
         team: TEAMS[t], plays: 0, nh: 0,
         secSum: 0, secN: 0, neuSum: 0, neuN: 0, traSum: 0, traN: 0,
+        passN: 0, passD: 0,
         games: {}, drives: {}, faced: 0, facedGames: {}, oppList: {},
         driveSecs: 0
       });
@@ -447,13 +444,20 @@
         f.faced++;
         f.facedGames[g] = 1;
 
+        var isNeutral = D.qtr[i] <= 3 && D.margin[i] <= NEUTRAL_MARGIN &&
+                        D.margin[i] >= -NEUTRAL_MARGIN && !D.l2[i];
+
+        // Pass rate needs no 40-second play clock, so it counts every neutral
+        // play rather than only the tempo-eligible ones. Wider denominator than
+        // the column next to it, on purpose.
+        if (isNeutral && D.pass){
+          a.passN += D.pass[i]; a.passD++;
+        }
+
         var sec = D.sec[i];
         if (sec > 0){
           a.secSum += sec; a.secN++;
-          if (D.qtr[i] <= 3 && D.margin[i] <= NEUTRAL_MARGIN &&
-              D.margin[i] >= -NEUTRAL_MARGIN && !D.l2[i]){
-            a.neuSum += sec; a.neuN++;
-          }
+          if (isNeutral){ a.neuSum += sec; a.neuN++; }
           if (D.margin[i] <= TRAIL_BY && !D.l2[i]){
             a.traSum += sec; a.traN++;
           }
@@ -492,6 +496,7 @@
         sec: x.secN ? x.secSum / x.secN : null, secN: x.secN,
         neutral: x.neuN ? x.neuSum / x.neuN : null, neuN: x.neuN,
         trailing: x.traN ? x.traSum / x.traN : null, traN: x.traN,
+        passrate: x.passD ? 100 * x.passN / x.passD : null, passD: x.passD,
         nohuddle: x.plays ? 100 * x.nh / x.plays : null,
         playsGame: g2 ? x.plays / g2 : null,
         playsDrive: dv ? x.plays / dv : null,
@@ -507,6 +512,7 @@
                 r.neuN >= MIN_SPLIT && r.traN >= MIN_SPLIT)
         ? r.neutral - r.trailing : null;
       if (r.neuN < MIN_SPLIT) r.neutral = null;
+      if (r.passD < MIN_SPLIT) r.passrate = null;
     });
 
     // Opponent adjustment for volume. Each defense's plays allowed per game is
@@ -541,40 +547,37 @@
   // the table has room for it, which is most of the time on desktop.
   var COLUMNS = {
     tempo: [
-      {key:'sec', label:'Play Clock Used', unit:'(Sec/Play)', dp:1, low:true,
+      {key:'sec', label:'Play Clock Used', short:'Clock Used', dp:1, low:true,
        tip:'How many of the 40 seconds on the play clock the offense uses before snapping. Lower is faster.'},
-      {key:'neutral', label:'Neutral Script', unit:'(Sec/Play)', dp:1, low:true,
+      {key:'neutral', label:'Neutral', short:'Neutral', dp:1, low:true,
        tip:'Play clock used in quarters 1 to 3, inside 14 points, excluding the last two minutes of the half.'},
-      {key:'gear', label:'Gear Change', unit:'(Sec/Play)', dp:1, low:false, signed:true,
+      {key:'passrate', label:'Neutral Pass Rate', short:'Pass %', dp:1,
+       low:false, pct:true,
+       tip:'Share of neutral-situation plays that were dropbacks, counting sacks and scrambles as passes. A driver of play volume rather than of tempo — it correlates with plays per game at about +0.31 but with play clock used at roughly zero.'},
+      {key:'gear', label:'Gear Change', short:'Gear', dp:1, low:false, signed:true,
        tip:'Neutral play clock used minus play clock used when trailing by 5 or more. A positive number means the offense speeds up once it falls behind.'},
-      {key:'nohuddle', label:'No Huddle', unit:'(% of Plays)', dp:0, low:false, pct:true,
+      {key:'nohuddle', label:'No Huddle', short:'No Hud', dp:0, low:false, pct:true,
        tip:'Share of plays the offense runs without huddling.'}
     ],
     volume: [
-      {key:'playsGame', label:'Plays per Game', dp:1, low:false,
+      {key:'playsGame', label:'Plays/Game', short:'Plays/G', dp:1, low:false,
        tip:'Offensive plays per game. Kneels and spikes are excluded.'},
-      {key:'adjPlaysGame', label:'Adjusted Plays per Game', dp:1, low:false,
+      {key:'adjPlaysGame', label:'Adjusted Plays/Game', short:'Adj P/G', dp:1, low:false,
        tip:'Plays per game adjusted for how many plays each defense faced. This moves teams by up to four rank positions.'},
-      {key:'playsDrive', label:'Plays per Drive', dp:2, low:false,
+      {key:'playsDrive', label:'Plays/Drive', short:'Plays/D', dp:2, low:false,
        tip:'Plays per drive. This barely correlates with play clock used, so it measures sustaining drives rather than tempo.'},
-      {key:'drivesGame', label:'Drives per Game', dp:2, low:false,
+      {key:'drivesGame', label:'Drives/Game', short:'Drives', dp:2, low:false,
        tip:'Drives per game. Largely a function of the defense and the opponent.'},
-      {key:'top', label:'Time of Possession', unit:'(Minutes)', dp:1, low:false,
+      {key:'top', label:'Time of Possession', short:'TOP', dp:1, low:false,
        tip:'Time of possession per game, in minutes. Drives that ended because the half ran out are excluded.'}
     ]
   };
 
   function cols(){ return COLUMNS[STATE.mode]; }
-  /* The full label is always in the DOM. The previous version swapped in a
-     short form below a width threshold, so anything rendering without layout
-     — a crawler included — only ever saw the abbreviation. The unit goes on a
-     second line so the column still fits a phone. */
-  function headerHtml(c){
-    var esc = function(t){
-      return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-    };
-    return '<span class="pt-hmain">' + esc(c.label) + '</span>' +
-      (c.unit ? '<span class="pt-hunit"> ' + esc(c.unit) + '</span>' : '');
+  function headerFor(c){
+    var w = ROOT.clientWidth || 0;
+    var budget = STATE.mode === 'tempo' ? 720 : 780;
+    return w >= budget ? c.label : c.short;
   }
 
   // ------------------------------------------------------------------ render
@@ -603,10 +606,14 @@
   }
 
   function render(){
-    hideServerPreload();
     var rows = aggregate();
     var list = cols();
     var wrap = $('wrap');
+
+    // Abbreviated names mean a phone, which is where the column budget is
+    // tightest. Toggled here rather than in a media query because the tool can
+    // sit in a narrow column on a wide screen.
+    ROOT.classList.toggle('pt-tight', nameTier() === 0);
 
     var live = rows.filter(function(r){ return r.plays > 0; });
     if (!live.length){
@@ -635,12 +642,11 @@
 
     var table = el('table', 'pt-grid');
     var thead = el('thead'), hr = el('tr');
-    hr.appendChild(el('th', 'pt-rank', '#'));
+    hr.appendChild(el('th', 'pt-rank', 'Rank'));
     hr.appendChild(el('th', 'pt-team', 'Offense'));
     list.forEach(function(c){
       var th = el('th');
-      var b = el('button', null, null);
-      b.innerHTML = headerHtml(c);
+      var b = el('button', null, headerFor(c));
       b.type = 'button';
       b.title = c.tip;
       if (c.key === STATE.sort){
@@ -751,6 +757,9 @@
          r.neuN.toLocaleString() + ' plays');
     card('Trailing', r.trailing == null ? '\u2014' : r.trailing.toFixed(1) + 's',
          r.traN.toLocaleString() + ' plays');
+    card('Neutral Pass Rate',
+         r.passrate == null ? '\u2014' : r.passrate.toFixed(1) + '%',
+         r.passD.toLocaleString() + ' plays');
     card('No Huddle', r.nohuddle == null ? '\u2014' : Math.round(r.nohuddle) + '%',
          r.plays.toLocaleString() + ' plays');
     card('Plays/Drive', r.playsDrive == null ? '\u2014' : r.playsDrive.toFixed(2),
@@ -1007,23 +1016,17 @@
       bar.appendChild(b);
     });
 
-    var reset = el('button', 'pt-reset', 'Clear all');
+    var reset = el('button', 'pt-reset', 'Reset');
     reset.type = 'button';
-    reset.hidden = !anyFilter() && STATE.seasons.length <= 1;
+    reset.hidden = !anyFilter();
     reset.addEventListener('click', function(){
       STATE.weeks = []; STATE.qtrs = []; STATE.downs = [];
       STATE.venue = []; STATE.huddle = [];
-      closePop();
-      // Season goes back to the newest too, matching the personnel tool.
-      // Narrowing to a season already in memory fetches nothing.
-      var latest = STATE.index.default ||
-        Math.max.apply(null, STATE.index.seasons);
-      if (STATE.seasons.length !== 1 || STATE.seasons[0] !== latest){
-        applySeasons([latest]);
-        return;
-      }
-      buildBar(); render();
+      closePop(); buildBar(); render();
     });
+    // Season is deliberately not cleared here: Reset is for narrowing filters,
+    // and silently reloading four extra seasons would be a surprising thing for
+    // it to do.
     bar.appendChild(reset);
   }
 
@@ -1073,18 +1076,13 @@
           node2.setAttribute('aria-pressed',
             pick.indexOf(opts[i][0]) > -1 ? 'true' : 'false');
         });
-        // Applied on the tap, popover left open so several can be picked in a
-        // row. Matches the personnel grouping tool; there is no Apply step.
-        var chosen = pick.slice().sort(function(a, b){ return a - b; });
-        if (f.key === 'seasons'){ applySeasons(chosen); return; }
-        STATE[f.key] = chosen; buildBar(); render();
       });
       box.appendChild(b);
     });
     p.appendChild(box);
 
     var foot = el('div', 'pt-popfoot');
-    var clear = el('button', null, 'Reset');
+    var clear = el('button', null, f.required ? 'Latest' : 'Clear');
     clear.type = 'button';
     clear.addEventListener('click', function(){
       if (f.required){
@@ -1095,9 +1093,14 @@
       }
       closePop(); buildBar(); render();
     });
-    var go = el('button', 'go', 'Done');
+    var go = el('button', 'go', 'Apply');
     go.type = 'button';
-    go.addEventListener('click', closePop);
+    go.addEventListener('click', function(){
+      pick.sort(function(a, b){ return a - b; });
+      closePop();
+      if (f.key === 'seasons'){ applySeasons(pick); return; }
+      STATE[f.key] = pick; buildBar(); render();
+    });
     foot.appendChild(clear);
     foot.appendChild(go);
     p.appendChild(foot);

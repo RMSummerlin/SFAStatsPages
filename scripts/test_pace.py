@@ -210,6 +210,44 @@ check("season without drives is flagged", bare_payload["has_drives"], False)
 check("season without tempo has no drive rows", bare_payload["drives"], 0)
 
 
+# ---------------------------------------------------------------- pass rate
+#
+# A dropback rate, not a PlayType rate. Sacks already arrive as PASS; scrambles
+# arrive as RUSH despite the play call being a pass, and folding them back in
+# moves teams by up to eleven rank positions, so the two definitions are not
+# interchangeable.
+
+pass_rows = [
+    row(opponent="AAA", PlayId="10", PlayType="PASS"),
+    row(opponent="AAA", PlayId="20", PlayType="RUSH"),
+    row(opponent="AAA", PlayId="30", PlayType="RUSH", **{"Scramble?": "1"}),
+    row(opponent="AAA", PlayId="40", PlayType="RUSH", **{"Scramble?": "TRUE"}),
+    row(opponent="AAA", PlayId="50", PlayType="RUSH", **{"Scramble?": "0"}),
+]
+P.mark_prior_penalties(pass_rows, set(P.OPTIONAL_COLUMNS))
+pass_payload, pass_summary = P.build_season(pass_rows, 2025, set(P.OPTIONAL_COLUMNS))
+flags = [P.ALPHABET.index(ch) for ch in pass_payload["cols"]["p"]]
+check("a pass counts as a pass", flags[0], 1)
+check("a run does not", flags[1], 0)
+check("a scramble flagged 1 counts as a pass", flags[2], 1)
+check("a scramble flagged TRUE counts as a pass", flags[3], 1)
+check("a scramble flagged 0 does not", flags[4], 0)
+check("neutral pass rate is 3 of 5", pass_summary["team"]["AAA"]["passrate"], 60.0)
+
+# Pass rate must not inherit the 40-second play clock gate — it has no need of
+# one, and sharing the tempo denominator would quietly shrink it by a quarter.
+gate_rows = [
+    row(opponent="AAA", PlayId="10", PlayType="PASS", TimeSinceSnap=""),
+    row(opponent="AAA", PlayId="20", PlayType="RUSH", TimeSinceSnap=""),
+]
+P.mark_prior_penalties(gate_rows, set(P.OPTIONAL_COLUMNS))
+_, gate_summary = P.build_season(gate_rows, 2025, set(P.OPTIONAL_COLUMNS))
+check("pass rate ignores the tempo gate",
+      gate_summary["team"]["AAA"]["passrate"], 50.0)
+check("tempo is still absent for those plays",
+      gate_summary["team"]["AAA"]["sec"], None)
+
+
 # ------------------------------------------------------------- team aliases
 #
 # Pooling seasons is by team code, so an unfolded rename shows up as a 33rd row

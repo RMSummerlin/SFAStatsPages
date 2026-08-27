@@ -65,7 +65,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config  # noqa: E402
-import preloads  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
@@ -83,7 +82,7 @@ REQUIRED_COLUMNS = [
 OPTIONAL_COLUMNS = [
     "TimeSinceSnap", "PlayClock", "Huddle", "HomeRoad", "GameClock", "GameId",
     "PlayId", "DriveStartClock", "DriveEndClock", "DriveResult",
-    "OffPenaltyYds", "DefPenaltyYds",
+    "OffPenaltyYds", "DefPenaltyYds", "Scramble?",
 ]
 
 # Encoding alphabet: printable ASCII 35..126 minus backslash. 91 symbols, all
@@ -117,12 +116,40 @@ LAST_TWO_MINUTES = 120
 DEAD_BALL_RE = re.compile(r"\bkneels?\b|spiked the ball", re.IGNORECASE)
 
 CLOCK_RE = re.compile(r"^\s*(\d{0,2}):(\d{2})\s*$")
-# Team abbreviations are normalised centrally so every tool folds history the
-# same way. Re-exported here because scripts/test_pace.py reaches them through
-# this module.
-TEAM_ALIASES = config.TEAM_ALIASES
-canonical_team = config.canonical_team
 
+# Franchises pooled under one code so a multi-season view shows 32 rows rather
+# than one row per name a franchise has worn. Without this, selecting 2021 next
+# to 2025 lists WFT and WAS as if they were different teams — which is exactly
+# what the tool did before this map existed.
+#
+# Two groups, both mapping to whatever the franchise is called now:
+#   * relocations and renames — WFT/WSH, OAK, SD, STL
+#   * alternate abbreviations for the same team, which differ between data
+#     providers and have a habit of changing when a sheet is rebuilt
+#
+# Rule of thumb for additions: normalise toward the CURRENT code, so history
+# folds into the present rather than the present being renamed into history.
+TEAM_ALIASES = {
+    # Washington: Redskins -> Football Team (2020-21) -> Commanders
+    "WFT": "WAS", "WSH": "WAS", "WAS": "WAS",
+    # Oakland -> Las Vegas, 2020
+    "OAK": "LV", "LVR": "LV", "RAI": "LV",
+    # San Diego -> Los Angeles, 2017
+    "SD": "LAC", "SDG": "LAC",
+    # St. Louis -> Los Angeles, 2016. "LA" is ambiguous in principle, but every
+    # feed that uses it means the Rams; the Chargers have always been LAC here.
+    "STL": "LAR", "SL": "LAR", "LA": "LAR", "RAM": "LAR",
+    # Same franchise, different house style
+    "JAC": "JAX", "ARZ": "ARI", "BLT": "BAL", "CLV": "CLE", "HST": "HOU",
+    "TAM": "TB", "KAN": "KC", "NOR": "NO", "SFO": "SF", "GNB": "GB",
+    "NWE": "NE", "NORL": "NO", "TBB": "TB",
+}
+
+
+def canonical_team(code):
+    """Fold a team abbreviation onto the franchise's current code."""
+    code = (code or "").strip().upper()
+    return TEAM_ALIASES.get(code, code)
 
 
 # --------------------------------------------------------------------------- io
@@ -380,6 +407,15 @@ def build_season(rows, season, present):
             elif remaining is not None:
                 capped += 1
 
+        # Pass rate is a DROPBACK rate: sacks already arrive as PlayType PASS,
+        # and scrambles arrive as RUSH even though the play call was a pass, so
+        # they are folded back in. This is not cosmetic — 1,102 scrambles in 2025
+        # move teams by up to eleven rank positions (Kansas City 56.5% to 63.1%),
+        # because it tracks quarterback mobility rather than play calling.
+        scramble = (row.get("Scramble?") or "").strip()
+        is_pass = 1 if (play_type == "PASS" or scramble in ("1", "TRUE", "True",
+                                                           "Yes", "YES", "Y")) else 0
+
         huddle = (row.get("Huddle") or "").strip().lower()
         no_huddle = 1 if huddle.startswith("no") else 0
         home = 1 if (row.get("HomeRoad") or "").strip().lower().startswith("h") else 0
@@ -392,6 +428,7 @@ def build_season(rows, season, present):
             "down": down,
             "drive": min(drive_no, BASE - 1),
             "tempo": tempo_code,
+            "pass": is_pass,
             "nh": no_huddle,
             "home": home,
             "l2": 1 if in_last_two_minutes(qtr, clock) else 0,
@@ -486,6 +523,7 @@ def build_season(rows, season, present):
             "d": enc(p["down"] for p in plays),
             "v": enc(p["drive"] for p in plays),
             "s": enc(p["tempo"] for p in plays),
+            "p": enc(p["pass"] for p in plays),
             "n": enc(p["nh"] for p in plays),
             "hm": enc(p["home"] for p in plays),
             "l2": enc(p["l2"] for p in plays),
@@ -512,6 +550,7 @@ def summarise(plays, drive_rows, teams):
     trailing = defaultdict(lambda: [0, 0])
     counts = Counter()
     nohuddle = Counter()
+    neupass = defaultdict(lambda: [0, 0])       # team -> [passes, plays]
     games = defaultdict(set)
     drive_keys = defaultdict(set)
 
@@ -521,6 +560,14 @@ def summarise(plays, drive_rows, teams):
         nohuddle[t] += p["nh"]
         games[t].add(p["week"])
         drive_keys[t].add((p["week"], p["drive"]))
+
+        # Pass rate needs no 40-second gate, so its denominator is every neutral
+        # play rather than only those carrying a tempo figure — about 19,400
+        # against 14,900 in 2025. Deliberately a wider base than the column
+        # beside it.
+        if p["qtr"] <= 3 and abs(p["margin"]) <= 14 and not p["l2"]:
+            neupass[t][0] += p["pass"]
+            neupass[t][1] += 1
 
         if p["tempo"] == TEMPO_MISSING:
             continue
@@ -554,6 +601,8 @@ def summarise(plays, drive_rows, teams):
             "gear": (round(neu - tra, 2)
                      if neu is not None and tra is not None
                      and trailing[t][1] >= MIN_GEAR_PLAYS else None),
+            "passrate": (round(100 * neupass[t][0] / neupass[t][1], 1)
+                         if neupass[t][1] else None),
             "nohuddle": round(100 * nohuddle[t] / counts[t]) if counts[t] else 0,
             "plays": counts[t],
             "plays_game": round(counts[t] / n_games, 1),
@@ -588,9 +637,10 @@ def preload_main(summary, season):
     for i, t in enumerate(ranked, 1):
         c = summary["team"][t]
         rows.append(
-            f'<tr><td>{i}</td><th scope="row"><abbr title="{config.team_name(t)}">{t}</abbr> {config.team_name(t)}</th>'
+            f'<tr><td>{i}</td><th scope="row">{t}</th>'
             f'<td>{fmt(c["sec"])}</td>'
             f'<td>{fmt(c["neutral"])}</td>'
+            f'<td>{fmt(c["passrate"], "%")}</td>'
             f'<td>{fmt(c["gear"])}</td>'
             f'<td>{c["nohuddle"]}%</td>'
             f'<td>{c["plays_game"]}</td>'
@@ -606,15 +656,15 @@ def preload_main(summary, season):
         "covers quarters 1 to 3 inside 14 points, excluding the final two minutes "
         "of the half. Gear change is neutral play clock used minus play clock used "
         "when trailing by 5 or more, so a positive number means the offense speeds "
-        "up once it falls behind. Lower is faster."
+        "up once it falls behind. Lower is faster. Pass rate is a dropback rate in the "
+        "same neutral situations, counting sacks and scrambles as passes."
         "</caption>"
-        '<thead><tr><th scope="col">#</th><th scope="col">Offense</th>'
-        '<th scope="col">Play Clock Used (Sec/Play)</th>'
-        '<th scope="col">Neutral Script (Sec/Play)</th>'
-        '<th scope="col">Gear Change (Sec/Play)</th>'
-        '<th scope="col">No Huddle (% of Plays)</th>'
-        '<th scope="col">Plays per Game</th><th scope="col">Plays per Drive</th>'
-        '<th scope="col">Time of Possession (Minutes)</th>'
+        '<thead><tr><th scope="col">Rank</th><th scope="col">Offense</th>'
+        '<th scope="col">Play Clock Used</th><th scope="col">Neutral</th>'
+        '<th scope="col">Neutral Pass Rate</th>'
+        '<th scope="col">Gear Change</th><th scope="col">No Huddle</th>'
+        '<th scope="col">Plays/Game</th><th scope="col">Plays/Drive</th>'
+        '<th scope="col">Time of Possession</th>'
         '<th scope="col">Plays</th></tr></thead>'
         "<tbody>" + "".join(rows) + "</tbody></table>"
     )
@@ -729,8 +779,6 @@ def main():
         (DATA_DIR / "pace_preload.html").write_text(
             preload_main(summary, season) + "\n", encoding="utf-8")
         print("Refreshed the crawlable preload table in data/.")
-        if preloads.write_manifest():
-            print("Rebuilt data/preloads.json for the WordPress shortcodes.")
 
 
 if __name__ == "__main__":

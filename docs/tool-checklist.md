@@ -25,26 +25,12 @@ are needed for a normal new tool.
 
 The `pull_*.py` glob covers the pull itself. These three do not happen on their own, and forgetting them fails quietly rather than loudly:
 
+- [ ] `scripts/refresh_preload.py` — add the tool to the `PAIRS` dict, or its crawlable table never gets injected and search engines see an empty embed
 - [ ] `index.html` — add the tool to the `TOOLS` array so its endpoints show on the status page
 - [ ] `docs/<tool>-data.md` — write down the data decisions while the reasoning is fresh, and link it from the tool's README
 
 Helper scripts that should *not* run on the schedule must not be named `pull_*` — that is
-why the linter is `lint_embed.py` and the manifest builder is `preloads.py`.
-
-## 1b. Crawlable preload table
-
-- [ ] The pull script writes `data/<name>_preload.html`; `scripts/preloads.py` folds every
-      one of those into `data/preloads.json` automatically, so no wiring is needed
-- [ ] Add a shortcode function + `add_shortcode(...)` pair to `wordpress/sfa-preloads.php`.
-      Named function, not a closure, and no top-level `return` or `define()` anywhere in
-      that file — Code Snippets evaluates the body and all three misbehave there
-- [ ] Add `hideServerPreload()` to the new tool's render path so the server-rendered table
-      is hidden once the interactive one draws — see either existing tool. It must query
-      `document`, not the tool root: the shortcode renders as a sibling in Avada
-- [ ] Put the shortcode in an Avada **Text Block**, not a Code Block. Code Blocks never
-      run `do_shortcode`, so the shortcode renders as literal bracket text
-- [ ] Decide one crawlable table per article: keep the baked-in copy, or run
-- [ ] Full detail in `wordpress/README.md`
+why the linter is `lint_embed.py` and the preload refresher is `refresh_preload.py`.
 
 ## 2. Tool build (HTML/CSS/JS fragment)
 
@@ -122,20 +108,12 @@ or, with no local setup at all, trigger it from the Actions tab: **Update Stats 
 pull script that advertises the flag, and commits the new JSON itself. Scheduled runs
 always leave the box unticked, so archives are never rebuilt on a timer.
 
-## Team codes
-
-- [ ] Any script reading a team column normalises it with `config.canonical_team()`
-- [ ] When adding a season, check whether its codes match the existing ones. They are not
-      stable in the source data. Add new variants to `TEAM_ALIASES` in `scripts/config.py`
-- [ ] After changing the map, rebuild archived seasons: manual workflow run with
-      **all_seasons** ticked. `scripts/test_teams.py` warns until that happens
-
 ## 6. Before calling it done
 
 - [ ] Pull script runs cleanly and produces the expected JSON
 - [ ] Numbers spot-checked against the raw sheet, not just against the tool's own output
 - [ ] Tool fetches and renders that JSON correctly
-- [ ] `[sharp_football_<tool>]` shortcode added to the page in an Avada Text Block, and the table is present with JavaScript disabled
+- [ ] Static preload table refreshed (`python scripts/refresh_preload.py`) and present with JavaScript disabled
 - [ ] Tested inside an actual Avada custom code block on a staging page, not just standalone
 - [ ] Tested at phone width first, then desktop
 - [ ] Confirmed whether `update-data.yml` needed any changes (usually: no)
