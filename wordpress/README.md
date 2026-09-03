@@ -97,18 +97,17 @@ Two consequences:
 
 A failed fetch is separate from this schedule: last good copy, retry after two minutes.
 
-## One table or two
+## One table, not two
 
-A page carrying the shortcode has two crawlable copies of the same table: the one the
-shortcode renders, and the one baked into `tool.html` between the `SFA:PRELOAD`
-markers. Pick one per article.
+The shortcode is the only crawlable copy. Earlier builds also baked a static table
+into `tool.html` between `SFA:PRELOAD` markers, which meant two copies of the same
+table in the raw HTML of any article carrying the shortcode — a duplicate-content
+signal to crawlers, which is the thing the preload existed to manage. Those markers
+were removed from both fragments and the script that filled them has been retired.
 
-- **Keep both** (default). Duplicate table markup in the raw HTML. Harmless to
-  readers, since the personnel tool's baked copy is inside `#pg-body` and gets wiped
-  on render, and the pace tool's is visually hidden. It is a duplicate-content signal
-  to crawlers, which is the thing the preload was built to manage in the first place.
-
-Only strip for tools whose article actually carries the shortcode.
+A new tool's fragment should therefore ship no static table of its own. It only needs
+`hideServerPreload()` on its render path so the shortcode's table is replaced by the
+live tool rather than left stacked above it.
 
 ## Adding a tool
 
@@ -122,6 +121,7 @@ Only strip for tools whose article actually carries the shortcode.
 ## If Code Snippets is ever removed
 
 The shortcodes stop resolving and render as literal bracket text on the page, which is
-visible to readers. Remove the shortcodes from the articles, or run
-paste the contents of `data/<tool>_preload.html` into a Text Block as raw HTML. The
-interactive tools are unaffected either way; they fetch their own data.
+visible to readers. Either remove the shortcodes from the articles, or replace each one
+with the contents of `data/<tool>_preload.html` pasted into a Text Block as raw HTML.
+That copy is a frozen snapshot and will not refresh on its own. The interactive tools
+are unaffected either way; they fetch their own data.

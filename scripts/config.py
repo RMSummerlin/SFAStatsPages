@@ -10,12 +10,18 @@ so a season rollover is a one-line edit that updates every tool at once.
 
 # season -> Google Sheet ID (the long string in the sheet URL between /d/ and /edit)
 SEASON_SHEETS = {
+    # Added ahead of the 2026 season, before the sheet had any rows in it. An
+    # empty sheet is not an error: each pull_*.py skips a season with no plays,
+    # writes no JSON for it, and leaves it out of the tool's index, so 2026 does
+    # not appear in any dropdown until real data lands. Nothing needs changing
+    # here on the day it does — the next scheduled run publishes it.
+    2026: "1hhkQyl05pFOenukL5hN_jpXiYEDauWB1m-UYEwgp-3c",
     2025: "16um740-9z4_1PUvelr1JHfISOnEqtTQ3bLJl21UoM6s",
     2024: "1s_LyoK6k2EgAOZFXmDCq5u3WNzZPQJNjfmbHENX8vUo",
     2023: "1sa3x3IfkiAQzAaHw4swU9kgImZ9-_h543ocHMTP1DOE",
     2022: "1LXxpvBHbgmFxxDpFMvtJC40MVzg2EpwQNGdSIZhkgKc",
     2021: "17D8yT9Gh8WG4ijxBlWjPjWgp6ZqzgmLj0OjzTp0Dfk4",
-    # 2026: "...",   # add at the start of the 2026 season
+    # 2027: "...",   # add at the start of the 2027 season
 }
 
 # Tab (gid) within each sheet holding the play-by-play export.
@@ -25,6 +31,8 @@ SEASON_SHEETS = {
 # kept its id and is NOT the first tab. Without these overrides the pull would
 # silently read whatever sits on tab 0. Check the gid= in a new sheet's URL before
 # assuming it is 0.
+# The 2026 sheet was built fresh rather than copied, and play-by-play is its only
+# tab, so it takes DEFAULT_GID and needs no entry here.
 SEASON_GIDS = {
     2024: 1392276586,
     2023: 1392276586,

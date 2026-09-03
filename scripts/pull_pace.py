@@ -231,9 +231,18 @@ def fetch_csv(season: int) -> str:
 
 
 def read_rows(text: str):
-    """Return (rows, set of optional columns present)."""
+    """Return (rows, set of optional columns present), or (None, set()) if empty.
+
+    A sheet with no header row at all is a season that has been created but not
+    filled in yet — the normal state of the current season's sheet between being
+    set up and the first game. That is not a configuration error, so it returns
+    None and main() skips the season quietly. A sheet that has headers but the
+    wrong ones is a real misconfiguration and still fails loudly.
+    """
     reader = csv.DictReader(io.StringIO(text))
     fields = reader.fieldnames or []
+    if not fields:
+        return None, set()
     missing = [c for c in REQUIRED_COLUMNS if c not in fields]
     if missing:
         raise SystemExit(
@@ -698,7 +707,11 @@ def main():
     else:
         seasons = [config.CURRENT_SEASON]
 
-    newest_summary = None
+    # season -> summary, for whichever season ends up newest among those that
+    # actually produced data. Keyed rather than compared against max(seasons)
+    # so that skipping an empty newest season still refreshes the preload table
+    # from the newest season that has plays.
+    summaries = {}
     tempo_seasons = []
 
     for season in seasons:
@@ -708,6 +721,10 @@ def main():
             text = fetch_csv(season)
 
         rows, present = read_rows(text)
+        if not rows:
+            print(f"{season}: sheet has no rows yet — skipping. The season stays "
+                  f"out of pace_index.json, so the tool will not offer it.")
+            continue
         mark_prior_penalties(rows, present)
         missing = [c for c in OPTIONAL_COLUMNS if c not in present]
         if missing:
@@ -715,6 +732,11 @@ def main():
                   f"Publishing what is available.")
 
         payload, summary = build_season(rows, season, present)
+
+        if not payload["plays"]:
+            print(f"{season}: {len(rows):,} rows but no usable plays — skipping. "
+                  f"The season stays out of pace_index.json.")
+            continue
 
         if payload["renamed_teams"]:
             for pair, n in sorted(payload["renamed_teams"].items()):
@@ -740,8 +762,7 @@ def main():
                 if previous == payload:
                     print(f"{season}: no change ({payload['plays']:,} plays)")
                     payload["generated_utc"] = stamp
-                    if season == max(seasons):
-                        newest_summary = (summary, season)
+                    summaries[season] = summary
                     continue
             except (json.JSONDecodeError, OSError):
                 pass
@@ -753,8 +774,7 @@ def main():
               f"excluded {sum(payload['excluded'].values()):,} "
               f"({payload['excluded']})")
 
-        if season == max(seasons):
-            newest_summary = (summary, season)
+        summaries[season] = summary
 
     known = []
     for path in sorted(DATA_DIR.glob("pace_*.json")):
@@ -774,8 +794,9 @@ def main():
         "default": max(known) if known else None,
     })
 
-    if newest_summary:
-        summary, season = newest_summary
+    if summaries:
+        season = max(summaries)
+        summary = summaries[season]
         (DATA_DIR / "pace_preload.html").write_text(
             preload_main(summary, season) + "\n", encoding="utf-8")
         print("Refreshed the crawlable preload table in data/.")

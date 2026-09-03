@@ -25,12 +25,12 @@ are needed for a normal new tool.
 
 The `pull_*.py` glob covers the pull itself. These three do not happen on their own, and forgetting them fails quietly rather than loudly:
 
-- [ ] `scripts/refresh_preload.py` — add the tool to the `PAIRS` dict, or its crawlable table never gets injected and search engines see an empty embed
+- [ ] `wordpress/sfa-preloads.php` — add one function + `add_shortcode` pair matching the tool's key in `data/preloads.json`, or the crawlable table never reaches the page and search engines see an empty embed
 - [ ] `index.html` — add the tool to the `TOOLS` array so its endpoints show on the status page
 - [ ] `docs/<tool>-data.md` — write down the data decisions while the reasoning is fresh, and link it from the tool's README
 
 Helper scripts that should *not* run on the schedule must not be named `pull_*` — that is
-why the linter is `lint_embed.py` and the preload refresher is `refresh_preload.py`.
+why the linter is `lint_embed.py` and the manifest builder is `preloads.py`.
 
 ## 2. Tool build (HTML/CSS/JS fragment)
 
@@ -39,21 +39,25 @@ why the linter is `lint_embed.py` and the preload refresher is `refresh_preload.
 - [ ] `tools/<tool-name>/README.md` — what it does, which `data/*.json` file(s) it fetches, and any embed-specific notes
 - [ ] Fetches data via the GitHub Pages URL, e.g. `fetch('https://rmsummerlin.github.io/SFAStatsPages/data/<tool-or-data-name>.json')`
 - [ ] Root element carries a tool-specific class alongside `.pt-root` (e.g. `.pt-root.pt-pgf`) and **every** CSS selector is scoped to it, so two tools can be previewed on one page without clashing
-- [ ] Ships a static HTML table between `<!-- SFA:PRELOAD:START -->` / `<!-- SFA:PRELOAD:END -->` markers so the page is crawlable with JavaScript off
+- [ ] Calls `hideServerPreload()` on its first render, so the shortcode's crawlable table is replaced by the live tool rather than left stacked above it
+- [ ] `python scripts/build_embed.py` run, producing `tools/<tool-name>/embed.html` — the comment-free copy that actually goes into Avada
 
 ## 3. Avada embed rules — automated check
 
 Run the linter instead of eyeballing it:
 
 ```
-python scripts/lint_embed.py tools/<tool-name>/tool.html
+python scripts/lint_embed.py tools/<tool-name>/tool.html tools/<tool-name>/embed.html
 ```
+
+Lint both files. They should never differ in any way the linter can see, and if they do,
+the stripper has a bug.
 
 It fails on document-level tags, semantic landmark elements, unscoped CSS selectors,
 missing `font-family: inherit`, a missing brand font, browser storage APIs and anything
 that looks like a credential. It warns on `position: fixed`, missing 44px tap targets, an
-unbounded root panel, no `min-width: 641px` enhancement, off-brand colors and a missing
-preload block. Full detail in `docs/avada-embed-rules.md`.
+unbounded root panel, no `min-width: 641px` enhancement, off-brand colors and a fragment
+that never hides the shortcode's preload table. Full detail in `docs/avada-embed-rules.md`.
 
 - [ ] `lint_embed.py` passes with no failures, and every warning is understood
 - [ ] Mobile layout designed and verified first, before desktop enhancement at `min-width: 641px`
@@ -91,7 +95,8 @@ clean, frozen archive once it ends.
 - [ ] Leave the prior season's entry and its `data/*.json` in place — it's now a frozen archive. Scheduled runs only re-pull the current season
 - [ ] Confirm all `pull_*.py` scripts still go through `config.csv_url(season)` (no hardcoded old ID) so this one edit updates every script
 - [ ] Run a manual `workflow_dispatch` trigger after the change to confirm the pipeline pulls from the new sheet correctly before the season's first real game
-- [ ] Before Week 1 the new sheet is empty — confirm each tool shows a sensible empty state rather than an error, and that the season picker still offers last season
+- [ ] The new sheet can be added to `config.py` before it has any data in it. Each `pull_*.py` skips a season with no rows: no JSON written, no index entry, so the season simply does not appear in any picker until real data lands, and no further edit is needed on the day it does. `scripts/test_empty_season.py` guards this
+- [ ] Confirm the new sheet's headers match the old one exactly. Empty is fine; *wrong* still fails the run loudly, which is the intended difference
 
 Backfilling an old season works the same way: add it to `SEASON_SHEETS` (and
 `SEASON_GIDS` if the sheet's play-by-play is not on the first tab — check the `gid=`
@@ -113,7 +118,9 @@ always leave the box unticked, so archives are never rebuilt on a timer.
 - [ ] Pull script runs cleanly and produces the expected JSON
 - [ ] Numbers spot-checked against the raw sheet, not just against the tool's own output
 - [ ] Tool fetches and renders that JSON correctly
-- [ ] Static preload table refreshed (`python scripts/refresh_preload.py`) and present with JavaScript disabled
+- [ ] `data/<tool>_preload.html` generated and folded into `data/preloads.json`, and the shortcode's table renders on the article with JavaScript disabled
+- [ ] `python scripts/build_embed.py --check` is clean, so `embed.html` matches `tool.html`
+- [ ] The copy pasted into Avada came from `embed.html`, not `tool.html`
 - [ ] Tested inside an actual Avada custom code block on a staging page, not just standalone
 - [ ] Tested at phone width first, then desktop
 - [ ] Confirmed whether `update-data.yml` needed any changes (usually: no)

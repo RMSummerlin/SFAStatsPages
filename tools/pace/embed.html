@@ -1,0 +1,1099 @@
+<style>
+.pt-root.pt-pc *{box-sizing:border-box;margin:0;padding:0;font-family:inherit;color:inherit}
+.pt-root.pt-pc table,.pt-root.pt-pc thead,.pt-root.pt-pc tbody,.pt-root.pt-pc tfoot,
+.pt-root.pt-pc tr,.pt-root.pt-pc th,.pt-root.pt-pc td,.pt-root.pt-pc caption{
+  font:inherit;color:inherit;background:none;border:0;text-align:inherit;
+  text-transform:none;letter-spacing:normal;text-shadow:none;box-shadow:none;
+  vertical-align:middle;width:auto;height:auto}
+.pt-root.pt-pc{
+  --red:#cc0000; --ink:#111; --g1:#7f8c9a; --g2:#b0bec5;
+  --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --w:#fff;
+  font-family:'Interstate Condensed','Interstate','Roboto Condensed','Arial Narrow',
+    'Helvetica Neue',Arial,sans-serif;
+  color:var(--ink); background:var(--w);
+  border:1px solid var(--b1); line-height:1.25;
+  position:relative;
+  display:flex; flex-direction:column;
+  max-height:1000px;
+  max-height:clamp(1000px,120vh,1320px);
+  max-height:clamp(1000px,120svh,1320px);
+  overflow:hidden;
+  font-variant-numeric:tabular-nums;
+}
+.pt-root.pt-pc input,.pt-root.pt-pc select,.pt-root.pt-pc button,.pt-root.pt-pc textarea{
+  font:inherit;color:inherit;letter-spacing:inherit;text-transform:none}
+.pt-root.pt-pc button{background:none;border:0;cursor:pointer}
+.pt-root.pt-pc :focus-visible{outline:2px solid var(--red);outline-offset:1px}
+
+.pt-root.pt-pc .pt-head{flex:0 0 auto;padding:12px 12px 10px;border-bottom:2px solid var(--ink)}
+.pt-root.pt-pc .pt-title{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.01em}
+.pt-root.pt-pc .pt-sub{margin-top:3px;font-size:13px;color:var(--g1)}
+.pt-root.pt-pc .pt-sub b{color:var(--ink);font-weight:700}
+.pt-root.pt-pc .pt-modes{display:flex;margin-top:10px;border:1px solid var(--b1)}
+.pt-root.pt-pc .pt-mode{flex:1;min-height:44px;padding:0 14px;font-size:13px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--g1)}
+.pt-root.pt-pc .pt-mode+.pt-mode{border-left:1px solid var(--b1)}
+.pt-root.pt-pc .pt-mode[aria-pressed="true"]{background:var(--ink);color:var(--w)}
+
+.pt-root.pt-pc .pt-bar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;
+  padding:8px 12px;border-bottom:1px solid var(--b2);background:var(--bg2)}
+.pt-root.pt-pc .pt-fb{min-height:44px;padding:4px 10px;border:1px solid var(--b1);background:var(--w);
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;text-align:left}
+.pt-root.pt-pc .pt-fb[data-on="1"]{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+.pt-root.pt-pc .pt-fb .l{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--g1)}
+.pt-root.pt-pc .pt-fb .v{font-size:13px;font-weight:700;white-space:nowrap}
+.pt-root.pt-pc .pt-reset{margin-left:auto;min-height:44px;padding:0 12px;font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--red)}
+.pt-root.pt-pc .pt-reset[hidden]{display:none}
+
+.pt-root.pt-pc .pt-pop{position:absolute;z-index:40;min-width:170px;max-width:min(300px,92%);
+  background:var(--w);border:1px solid var(--ink);padding:8px;
+  box-shadow:0 6px 20px rgba(0,0,0,.16)}
+.pt-root.pt-pc .pt-pop[hidden]{display:none}
+.pt-root.pt-pc .pt-pop .h{font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--g1);margin-bottom:6px}
+.pt-root.pt-pc .pt-opts{display:flex;flex-wrap:wrap;gap:4px}
+.pt-root.pt-pc .pt-opt{min-height:38px;min-width:44px;padding:0 10px;border:1px solid var(--b1);
+  font-size:13px;font-weight:700;background:var(--w)}
+.pt-root.pt-pc .pt-opt[aria-pressed="true"]{background:var(--ink);color:var(--w);border-color:var(--ink)}
+.pt-root.pt-pc .pt-popfoot{display:flex;gap:6px;margin-top:8px;padding-top:8px;
+  border-top:1px solid var(--b2)}
+.pt-root.pt-pc .pt-popfoot button{flex:1;min-height:40px;font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--b1)}
+.pt-root.pt-pc .pt-popfoot .go{background:var(--ink);color:var(--w);border-color:var(--ink)}
+
+.pt-root.pt-pc .pt-wrap{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
+.pt-root.pt-pc .pt-grid{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+.pt-root.pt-pc .pt-grid th,.pt-root.pt-pc .pt-grid td{padding:0;text-align:center;white-space:nowrap;
+  border-bottom:1px solid var(--b2)}
+.pt-root.pt-pc .pt-grid thead th{position:sticky;top:0;z-index:3;background:var(--w);
+  border-bottom:2px solid var(--ink);font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--g1)}
+.pt-root.pt-pc .pt-grid thead th button{width:100%;min-height:44px;font:inherit;color:inherit;padding:3px 4px}
+.pt-root.pt-pc .pt-grid thead th[aria-sort]{color:var(--red)}
+.pt-root.pt-pc .pt-grid thead th[aria-sort]::after{content:' \25BC';font-size:8px}
+.pt-root.pt-pc .pt-grid thead th[aria-sort=ascending]::after{content:' \25B2';font-size:8px}
+.pt-root.pt-pc .pt-rank{position:sticky;left:0;z-index:2;width:34px;
+  background:var(--w);color:var(--g2);font-size:11px}
+.pt-root.pt-pc .pt-team{position:sticky;left:34px;z-index:2;
+  background:var(--w);text-align:left;font-weight:700;
+  border-right:1px solid var(--b2)}
+.pt-root.pt-pc .pt-grid thead .pt-rank,.pt-root.pt-pc .pt-grid thead .pt-team{z-index:4}
+.pt-root.pt-pc .pt-grid tfoot .pt-rank,.pt-root.pt-pc .pt-grid tfoot .pt-team{z-index:4}
+.pt-root.pt-pc .pt-alt .pt-rank,.pt-root.pt-pc .pt-alt .pt-team{background:var(--bg2)}
+.pt-root.pt-pc .pt-open .pt-rank,.pt-root.pt-pc .pt-open .pt-team{
+  background:var(--ink);color:var(--w)}
+.pt-root.pt-pc .pt-open .pt-teamcell{color:var(--w)}
+.pt-root.pt-pc .pt-open .pt-teamcell::before{color:var(--w)}
+.pt-root.pt-pc .pt-grid tbody td{transition:none}
+.pt-root.pt-pc .pt-grid td:not(.pt-rank):not(.pt-team),
+.pt-root.pt-pc .pt-grid th:not(.pt-rank):not(.pt-team){min-width:52px}
+.pt-root.pt-pc.pt-tight .pt-rank{width:30px}
+.pt-root.pt-pc.pt-tight .pt-team{left:30px;max-width:58px}
+.pt-root.pt-pc.pt-tight .pt-teamcell{gap:4px;padding:0 4px}
+.pt-root.pt-pc.pt-tight .pt-grid td:not(.pt-rank):not(.pt-team),
+.pt-root.pt-pc.pt-tight .pt-grid th:not(.pt-rank):not(.pt-team){min-width:50px}
+.pt-root.pt-pc.pt-tight .pt-num{padding:0 3px}
+.pt-root.pt-pc .pt-teamcell{display:flex;align-items:center;gap:6px;min-height:44px;
+  width:100%;padding:0 8px;font:inherit;color:inherit;text-align:left}
+.pt-root.pt-pc .pt-teamcell::before{content:'\25B8';font-size:9px;color:var(--g2);
+  transition:transform .12s}
+.pt-root.pt-pc .pt-open .pt-teamcell::before{transform:rotate(90deg);color:var(--red)}
+.pt-root.pt-pc .pt-num{display:block;min-height:44px;line-height:44px;padding:0 6px}
+.pt-root.pt-pc .pt-lead{font-weight:700}
+.pt-root.pt-pc .pt-thin{color:var(--g2)}
+.pt-root.pt-pc .pt-pos{color:var(--red)}
+.pt-root.pt-pc .pt-grid tfoot th,.pt-root.pt-pc .pt-grid tfoot td{position:sticky;bottom:0;z-index:3;
+  background:var(--w);border-top:2px solid var(--ink);border-bottom:0;font-size:12px;font-weight:700}
+
+.pt-root.pt-pc .pt-det td{padding:0;background:var(--bg2);
+  border-bottom:2px solid var(--ink);white-space:normal}
+.pt-root.pt-pc .pt-detin{position:sticky;left:0;padding:12px;box-sizing:border-box}
+.pt-root.pt-pc .pt-detname{font-size:14px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.04em;margin-bottom:8px}
+.pt-root.pt-pc .pt-cards{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.pt-root.pt-pc .pt-card{flex:1 1 88px;border:1px solid var(--b2);background:var(--w);padding:6px 8px}
+.pt-root.pt-pc .pt-card .k{font-size:9px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--g1)}
+.pt-root.pt-pc .pt-card .n{font-size:17px;font-weight:700}
+.pt-root.pt-pc .pt-card .r{font-size:10px;color:var(--g1)}
+.pt-root.pt-pc .pt-chart{margin-bottom:12px}
+.pt-root.pt-pc .pt-chart:last-child{margin-bottom:0}
+.pt-root.pt-pc .pt-ctitle{font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--g1);margin-bottom:4px}
+.pt-root.pt-pc .pt-chart svg{display:block;width:100%;height:auto;background:var(--w);
+  border:1px solid var(--b2)}
+.pt-root.pt-pc .pt-note{font-size:11px;color:var(--g1);margin-top:6px}
+
+.pt-root.pt-pc .pt-status{padding:26px 14px;text-align:center;font-size:13px;color:var(--g1)}
+.pt-root.pt-pc .pt-foot{flex:0 0 auto;padding:8px 12px;border-top:1px solid var(--b2);
+  background:var(--bg2);font-size:11px;color:var(--g1)}
+.pt-root.pt-pc .pt-foot b{color:var(--ink);font-weight:700}
+
+@media (min-width:641px){
+  .pt-root.pt-pc .pt-title{font-size:25px}
+  .pt-root.pt-pc .pt-grid{font-size:14px}
+  .pt-root.pt-pc .pt-grid thead th{font-size:11px}
+  .pt-root.pt-pc .pt-rank{width:44px;font-size:12px}
+  .pt-root.pt-pc .pt-team{left:44px}
+  .pt-root.pt-pc .pt-card{flex:1 1 112px}
+  .pt-root.pt-pc .pt-charts{display:flex;gap:12px}
+  .pt-root.pt-pc .pt-charts .pt-chart{flex:1;margin-bottom:0}
+}
+</style>
+
+<div class="pt-root pt-pc">
+  <div class="pt-head">
+    <div class="pt-title">Offensive Pace</div>
+    <div class="pt-sub" data-role="sub">Loading pace data…</div>
+    <div class="pt-modes" role="group" aria-label="Metric group">
+      <button type="button" class="pt-mode" data-mode="tempo" aria-pressed="true">Tempo</button>
+      <button type="button" class="pt-mode" data-mode="volume" aria-pressed="false">Volume</button>
+    </div>
+  </div>
+
+  <div class="pt-bar" data-role="bar"></div>
+  <div class="pt-pop" data-role="pop" hidden></div>
+
+  <div class="pt-wrap" data-role="wrap"></div>
+
+  <div class="pt-foot" data-role="foot"></div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var ROOT = document.currentScript && document.currentScript.previousElementSibling;
+  if (!ROOT || !ROOT.classList.contains('pt-pc')) {
+    var all = document.querySelectorAll('.pt-root.pt-pc');
+    ROOT = all[all.length - 1];
+  }
+  if (!ROOT || ROOT.getAttribute('data-init') === '1') return;
+  ROOT.setAttribute('data-init', '1');
+
+  var BASE = 'https://rmsummerlin.github.io/SFAStatsPages/data/';
+  var TOOL = 'pace';
+
+  var MIN_SPLIT = 75;
+  var TRAIL_BY = -5;
+  var NEUTRAL_MARGIN = 14;
+  var FULL_CLOCK = 40;
+
+  var NAMES = {
+    ARI:['Arizona Cardinals','Cardinals'], ATL:['Atlanta Falcons','Falcons'],
+    BAL:['Baltimore Ravens','Ravens'], BUF:['Buffalo Bills','Bills'],
+    CAR:['Carolina Panthers','Panthers'], CHI:['Chicago Bears','Bears'],
+    CIN:['Cincinnati Bengals','Bengals'], CLE:['Cleveland Browns','Browns'],
+    DAL:['Dallas Cowboys','Cowboys'], DEN:['Denver Broncos','Broncos'],
+    DET:['Detroit Lions','Lions'], GB:['Green Bay Packers','Packers'],
+    HOU:['Houston Texans','Texans'], IND:['Indianapolis Colts','Colts'],
+    JAX:['Jacksonville Jaguars','Jaguars'], KC:['Kansas City Chiefs','Chiefs'],
+    LAC:['Los Angeles Chargers','Chargers'], LAR:['Los Angeles Rams','Rams'],
+    LV:['Las Vegas Raiders','Raiders'], MIA:['Miami Dolphins','Dolphins'],
+    MIN:['Minnesota Vikings','Vikings'], NE:['New England Patriots','Patriots'],
+    NO:['New Orleans Saints','Saints'], NYG:['New York Giants','Giants'],
+    NYJ:['New York Jets','Jets'], PHI:['Philadelphia Eagles','Eagles'],
+    PIT:['Pittsburgh Steelers','Steelers'], SEA:['Seattle Seahawks','Seahawks'],
+    SF:['San Francisco 49ers','49ers'], TB:['Tampa Bay Buccaneers','Buccaneers'],
+    TEN:['Tennessee Titans','Titans'], WAS:['Washington Commanders','Commanders']
+  };
+
+  function nameTier(){
+    var w = ROOT.clientWidth || 0;
+    if (w >= 900) return 2;
+    if (w >= 620) return 1;
+    return 0;
+  }
+  function teamName(code){
+    var t = nameTier(), n = NAMES[code];
+    if (!n || t === 0) return code;
+    return t === 2 ? n[0] : n[1];
+  }
+
+  var GOOD = [[13,110,95],[74,164,148],[176,214,205],[246,248,249]];
+  var BAD  = [[246,248,249],[240,206,201],[224,122,112],[204,0,0]];
+  function mix(stops, t){
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    var x = t * (stops.length - 1), i = Math.floor(x), f = x - i;
+    var a = stops[i], b = stops[Math.min(i + 1, stops.length - 1)];
+    return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * f) + ',' +
+                    Math.round(a[1] + (b[1] - a[1]) * f) + ',' +
+                    Math.round(a[2] + (b[2] - a[2]) * f) + ')';
+  }
+  function fillFor(p){
+    return p <= 0.5 ? mix(GOOD, p * 2) : mix(BAD, (p - 0.5) * 2);
+  }
+  function darkFill(p){ return p < 0.17 || p > 0.83; }
+
+  var $ = function(role){ return ROOT.querySelector('[data-role="' + role + '"]'); };
+
+  var SEO_HIDDEN = false;
+  function hideServerPreload(){
+    if (SEO_HIDDEN) return;
+    SEO_HIDDEN = true;
+    var n = document.querySelectorAll('[data-sfa-preload="' + TOOL + '"]');
+    for (var i = 0; i < n.length; i++) n[i].style.display = 'none';
+  }
+
+  function showStatus(text){
+    var wrap = $('wrap');
+    wrap.innerHTML = '';
+    wrap.appendChild(el('div', 'pt-status', text));
+  }
+  var el = function(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  };
+
+  var STATE = {
+    seasons: [], mode: 'tempo', sort: 'neutral', asc: true,
+    weeks: [], qtrs: [], downs: [], venue: [], huddle: [],
+    open: null, index: null
+  };
+
+  var DB = {};
+
+  var TEAMS = [], TEAM_IX = {};
+  function registerTeams(list){
+    list.forEach(function(code){
+      if (!(code in TEAM_IX)){ TEAM_IX[code] = TEAMS.length; TEAMS.push(code); }
+    });
+  }
+  function loaded(){
+    return STATE.seasons.filter(function(y){ return DB[y]; })
+                        .map(function(y){ return DB[y]; });
+  }
+  function anyLoaded(){ return loaded().length > 0; }
+
+  function decode(blob){
+    var abet = blob.alphabet, map = {}, i;
+    for (i = 0; i < abet.length; i++) map[abet.charAt(i)] = i;
+    var base = abet.length;
+
+    function one(str){
+      var out = new Int16Array(str.length);
+      for (var j = 0; j < str.length; j++) out[j] = map[str.charAt(j)];
+      return out;
+    }
+    function two(hi, lo, offset){
+      var out = new Int16Array(hi.length);
+      for (var j = 0; j < hi.length; j++){
+        out[j] = map[hi.charAt(j)] * base + map[lo.charAt(j)] - offset;
+      }
+      return out;
+    }
+
+    var c = blob.cols, d = blob.dcols;
+
+    registerTeams(blob.teams);
+    var localToGlobal = blob.teams.map(function(code){ return TEAM_IX[code]; });
+    function globalise(str){
+      var out = new Int16Array(str.length);
+      for (var j = 0; j < str.length; j++) out[j] = localToGlobal[map[str.charAt(j)]];
+      return out;
+    }
+
+    return {
+      season: blob.season,
+      teams: blob.teams,
+      weeks: blob.weeks,
+      hasTempo: blob.has_tempo !== false,
+      hasDrives: blob.has_drives !== false,
+      generated: blob.generated_utc,
+      n: c.t.length,
+      team: globalise(c.t), opp: globalise(c.o),
+      week: one(c.w), qtr: one(c.q),
+      down: one(c.d), drive: one(c.v), sec: one(c.s), nh: one(c.n),
+      pass: c.p ? one(c.p) : null,
+      home: one(c.hm), l2: one(c.l2),
+      margin: two(c.mh, c.ml, blob.margin_offset),
+      dn: d ? d.t.length : 0,
+      dteam: d ? globalise(d.t) : null,
+      dweek: d ? one(d.w) : null,
+      ddrive: d ? one(d.v) : null,
+      dsec: d ? two(d.sh, d.sl, 0) : null,
+      dtimed: d ? one(d.k) : null
+    };
+  }
+
+  function passes(D, i){
+    if (STATE.weeks.length && STATE.weeks.indexOf(D.week[i]) === -1) return false;
+    if (STATE.qtrs.length && STATE.qtrs.indexOf(D.qtr[i]) === -1) return false;
+    if (STATE.downs.length && STATE.downs.indexOf(D.down[i]) === -1) return false;
+    if (STATE.venue.length === 1 && D.home[i] !== STATE.venue[0]) return false;
+    if (STATE.huddle.length === 1 && D.nh[i] !== STATE.huddle[0]) return false;
+    return true;
+  }
+
+  function gameKey(D, i){ return D.season * 100 + D.week[i]; }
+  function allWeeks(){
+    var seen = {};
+    loaded().forEach(function(D){
+      D.weeks.forEach(function(w){ seen[w] = 1; });
+    });
+    return Object.keys(seen).map(Number).sort(function(a, b){ return a - b; });
+  }
+
+  function anyFilter(){
+    return STATE.weeks.length || STATE.qtrs.length || STATE.downs.length ||
+           STATE.venue.length || STATE.huddle.length;
+  }
+
+  function aggregate(){
+    var T = TEAMS.length, i, t;
+    var acc = [];
+    for (t = 0; t < T; t++){
+      acc.push({
+        team: TEAMS[t], plays: 0, nh: 0,
+        secSum: 0, secN: 0, neuSum: 0, neuN: 0, traSum: 0, traN: 0,
+        passN: 0, passD: 0,
+        games: {}, drives: {}, faced: 0, facedGames: {}, oppList: {},
+        driveSecs: 0
+      });
+    }
+
+    var sets = loaded();
+
+    sets.forEach(function(D){
+      for (i = 0; i < D.n; i++){
+        if (!passes(D, i)) continue;
+        var g = gameKey(D, i);
+        var a = acc[D.team[i]];
+        a.plays++;
+        a.nh += D.nh[i];
+        a.games[g] = 1;
+        a.drives[g + ':' + D.drive[i]] = 1;
+        a.oppList[g] = D.opp[i];
+
+        var f = acc[D.opp[i]];
+        f.faced++;
+        f.facedGames[g] = 1;
+
+        var isNeutral = D.qtr[i] <= 3 && D.margin[i] <= NEUTRAL_MARGIN &&
+                        D.margin[i] >= -NEUTRAL_MARGIN && !D.l2[i];
+
+        if (isNeutral && D.pass){
+          a.passN += D.pass[i]; a.passD++;
+        }
+
+        var sec = D.sec[i];
+        if (sec > 0){
+          a.secSum += sec; a.secN++;
+          if (isNeutral){ a.neuSum += sec; a.neuN++; }
+          if (D.margin[i] <= TRAIL_BY && !D.l2[i]){
+            a.traSum += sec; a.traN++;
+          }
+        }
+      }
+    });
+
+    var seen = {};
+    sets.forEach(function(D){
+      if (!D.dn) return;
+      for (i = 0; i < D.dn; i++){
+        if (!D.dtimed[i]) continue;
+        seen[D.dteam[i] + ':' + (D.season * 100 + D.dweek[i]) + ':' + D.ddrive[i]] =
+          D.dsec[i];
+      }
+    });
+    for (t = 0; t < T; t++){
+      var a2 = acc[t], keys = Object.keys(a2.drives);
+      for (var k = 0; k < keys.length; k++){
+        var hit = seen[t + ':' + keys[k]];
+        if (hit != null) a2.driveSecs += hit;
+      }
+    }
+
+    var rows = [], leagueFaced = 0, leagueFacedGames = 0;
+    for (t = 0; t < T; t++){
+      var x = acc[t];
+      var g2 = Object.keys(x.games).length;
+      var dv = Object.keys(x.drives).length;
+      var fg = Object.keys(x.facedGames).length;
+      leagueFaced += x.faced; leagueFacedGames += fg;
+      rows.push({
+        team: x.team, ix: t, plays: x.plays, games: g2, driveCount: dv,
+        sec: x.secN ? x.secSum / x.secN : null, secN: x.secN,
+        neutral: x.neuN ? x.neuSum / x.neuN : null, neuN: x.neuN,
+        trailing: x.traN ? x.traSum / x.traN : null, traN: x.traN,
+        passrate: x.passD ? 100 * x.passN / x.passD : null, passD: x.passD,
+        nohuddle: x.plays ? 100 * x.nh / x.plays : null,
+        playsGame: g2 ? x.plays / g2 : null,
+        playsDrive: dv ? x.plays / dv : null,
+        drivesGame: g2 ? dv / g2 : null,
+        top: g2 ? x.driveSecs / g2 / 60 : null,
+        allowed: fg ? x.faced / fg : null,
+        opps: x.oppList
+      });
+    }
+
+    rows.forEach(function(r){
+      r.gear = (r.neutral != null && r.trailing != null &&
+                r.neuN >= MIN_SPLIT && r.traN >= MIN_SPLIT)
+        ? r.neutral - r.trailing : null;
+      if (r.neuN < MIN_SPLIT) r.neutral = null;
+      if (r.passD < MIN_SPLIT) r.passrate = null;
+    });
+
+    var leagueMean = leagueFacedGames ? leagueFaced / leagueFacedGames : null;
+    var allowedBy = {};
+    rows.forEach(function(r){ allowedBy[r.ix] = r.allowed; });
+    rows.forEach(function(r){
+      if (r.playsGame == null || leagueMean == null){ r.adjPlaysGame = null; return; }
+      var keys2 = Object.keys(r.opps), sum = 0, n = 0;
+      for (var j = 0; j < keys2.length; j++){
+        var a3 = allowedBy[r.opps[keys2[j]]];
+        if (a3 != null){ sum += a3; n++; }
+      }
+      r.adjPlaysGame = n ? r.playsGame - (sum / n) + leagueMean : null;
+    });
+
+    return rows;
+  }
+
+  var COLUMNS = {
+    tempo: [
+      {key:'sec', label:'Play Clock Used', short:'Clock Used', dp:1, low:true,
+       tip:'How many of the 40 seconds on the play clock the offense uses before snapping. Lower is faster.'},
+      {key:'neutral', label:'Neutral', short:'Neutral', dp:1, low:true,
+       tip:'Play clock used in quarters 1 to 3, inside 14 points, excluding the last two minutes of the half.'},
+      {key:'passrate', label:'Neutral Pass Rate', short:'Pass %', dp:1,
+       low:false, pct:true,
+       tip:'Share of neutral-situation plays that were dropbacks, counting sacks and scrambles as passes. A driver of play volume rather than of tempo — it correlates with plays per game at about +0.31 but with play clock used at roughly zero.'},
+      {key:'gear', label:'Gear Change', short:'Gear', dp:1, low:false, signed:true,
+       tip:'Neutral play clock used minus play clock used when trailing by 5 or more. A positive number means the offense speeds up once it falls behind.'},
+      {key:'nohuddle', label:'No Huddle', short:'No Hud', dp:0, low:false, pct:true,
+       tip:'Share of plays the offense runs without huddling.'}
+    ],
+    volume: [
+      {key:'playsGame', label:'Plays/Game', short:'Plays/G', dp:1, low:false,
+       tip:'Offensive plays per game. Kneels and spikes are excluded.'},
+      {key:'adjPlaysGame', label:'Adjusted Plays/Game', short:'Adj P/G', dp:1, low:false,
+       tip:'Plays per game adjusted for how many plays each defense faced. This moves teams by up to four rank positions.'},
+      {key:'playsDrive', label:'Plays/Drive', short:'Plays/D', dp:2, low:false,
+       tip:'Plays per drive. This barely correlates with play clock used, so it measures sustaining drives rather than tempo.'},
+      {key:'drivesGame', label:'Drives/Game', short:'Drives', dp:2, low:false,
+       tip:'Drives per game. Largely a function of the defense and the opponent.'},
+      {key:'top', label:'Time of Possession', short:'TOP', dp:1, low:false,
+       tip:'Time of possession per game, in minutes. Drives that ended because the half ran out are excluded.'}
+    ]
+  };
+
+  function cols(){ return COLUMNS[STATE.mode]; }
+  function headerFor(c){
+    var w = ROOT.clientWidth || 0;
+    var budget = STATE.mode === 'tempo' ? 720 : 780;
+    return w >= budget ? c.label : c.short;
+  }
+
+  function fmt(v, c){
+    if (v == null) return '\u2014';
+    var s = v.toFixed(c.dp);
+    if (c.signed && v > 0) s = '+' + s;
+    if (c.pct) s += '%';
+    return s;
+  }
+
+  function ranked(rows, c){
+    var vals = rows.filter(function(r){ return r[c.key] != null; })
+                   .map(function(r){ return r[c.key]; });
+    vals.sort(function(a, b){ return c.low ? a - b : b - a; });
+    return vals;
+  }
+
+  function rankOf(v, vals, c){
+    if (v == null) return null;
+    for (var i = 0; i < vals.length; i++){
+      if (c.low ? vals[i] >= v - 1e-9 : vals[i] <= v + 1e-9) return i + 1;
+    }
+    return vals.length;
+  }
+
+  function render(){
+    var rows = aggregate();
+    var list = cols();
+    var wrap = $('wrap');
+
+    ROOT.classList.toggle('pt-tight', nameTier() === 0);
+
+    hideServerPreload();
+
+    var live = rows.filter(function(r){ return r.plays > 0; });
+    if (!live.length){
+      wrap.innerHTML = '';
+      wrap.appendChild(el('div', 'pt-status',
+        'No plays match these filters. Try widening them.'));
+      paintFoot(rows);
+      return;
+    }
+
+    var sortCol = null;
+    list.forEach(function(c){ if (c.key === STATE.sort) sortCol = c; });
+    if (!sortCol){ sortCol = list[0]; STATE.sort = sortCol.key; STATE.asc = !!sortCol.low; }
+
+    live.sort(function(a, b){
+      var av = a[STATE.sort], bv = b[STATE.sort];
+      if (av == null && bv == null) return a.team < b.team ? -1 : 1;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (av === bv) return a.team < b.team ? -1 : 1;
+      return STATE.asc ? av - bv : bv - av;
+    });
+
+    var rankVals = {};
+    list.forEach(function(c){ rankVals[c.key] = ranked(live, c); });
+
+    var table = el('table', 'pt-grid');
+    var thead = el('thead'), hr = el('tr');
+    hr.appendChild(el('th', 'pt-rank', 'Rank'));
+    hr.appendChild(el('th', 'pt-team', 'Offense'));
+    list.forEach(function(c){
+      var th = el('th');
+      var b = el('button', null, headerFor(c));
+      b.type = 'button';
+      b.title = c.tip;
+      if (c.key === STATE.sort){
+        th.setAttribute('aria-sort', STATE.asc ? 'ascending' : 'descending');
+      }
+      b.addEventListener('click', function(){
+        if (STATE.sort === c.key) STATE.asc = !STATE.asc;
+        else { STATE.sort = c.key; STATE.asc = !!c.low; }
+        render();
+      });
+      th.appendChild(b);
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+
+    var tbody = el('tbody');
+    live.forEach(function(r, i){
+      var tr = el('tr');
+      var cls = (i % 2) ? 'pt-alt' : '';
+      if (STATE.open === r.team) cls += (cls ? ' ' : '') + 'pt-open';
+      if (cls) tr.className = cls;
+
+      var ownRank = rankOf(r[STATE.sort], rankVals[STATE.sort], sortCol);
+      tr.appendChild(el('td', 'pt-rank', ownRank == null ? '\u2014' : String(ownRank)));
+
+      var td = el('td', 'pt-team');
+      var btn = el('button', 'pt-teamcell', teamName(r.team));
+      btn.type = 'button';
+      btn.setAttribute('aria-expanded', STATE.open === r.team ? 'true' : 'false');
+      btn.addEventListener('click', function(){
+        STATE.open = (STATE.open === r.team) ? null : r.team;
+        render();
+      });
+      td.appendChild(btn);
+      tr.appendChild(td);
+
+      list.forEach(function(c){
+        var cell = el('td');
+        var span = el('span', 'pt-num', fmt(r[c.key], c));
+        var rk = rankOf(r[c.key], rankVals[c.key], c);
+        var total = rankVals[c.key].length;
+        if (rk != null && total > 1){
+          var p = (rk - 1) / (total - 1);
+          cell.style.background = fillFor(p);
+          if (darkFill(p)) cell.style.color = '#fff';
+        }
+        if (r[c.key] == null) span.classList.add('pt-thin');
+        span.title = rk ? (c.label + ': ' + fmt(r[c.key], c) + ' (rank ' + rk +
+                           ' of ' + total + ')')
+                        : (c.label + ': not enough plays under these filters');
+        cell.appendChild(span);
+        tr.appendChild(cell);
+      });
+      tbody.appendChild(tr);
+
+      if (STATE.open === r.team){
+        var dtr = el('tr', 'pt-det');
+        var dtd = el('td');
+        dtd.colSpan = list.length + 2;
+        var inner = detail(r, live, rankVals);
+        inner.style.width = (wrap.clientWidth || ROOT.clientWidth) + 'px';
+        dtd.appendChild(inner);
+        dtr.appendChild(dtd);
+        tbody.appendChild(dtr);
+      }
+    });
+    table.appendChild(tbody);
+
+    var tfoot = el('tfoot'), fr = el('tr');
+    fr.appendChild(el('th', 'pt-rank', ''));
+    fr.appendChild(el('th', 'pt-team', 'NFL Average'));
+    list.forEach(function(c){
+      var vals = live.filter(function(r){ return r[c.key] != null; });
+      var mean = vals.length
+        ? vals.reduce(function(s, r){ return s + r[c.key]; }, 0) / vals.length : null;
+      fr.appendChild(el('td', null, fmt(mean, c)));
+    });
+    tfoot.appendChild(fr);
+    table.appendChild(tfoot);
+
+    wrap.innerHTML = '';
+    wrap.appendChild(table);
+    paintFoot(live);
+  }
+
+  function detail(r, live, rankVals){
+    var box = el('div', 'pt-detin');
+    box.appendChild(el('div', 'pt-detname',
+      (NAMES[r.team] ? NAMES[r.team][0] : r.team) + ' \u2014 ' + seasonLabel()));
+
+    var cards = el('div', 'pt-cards');
+    function card(label, value, note){
+      var c = el('div', 'pt-card');
+      c.appendChild(el('div', 'k', label));
+      c.appendChild(el('div', 'n', value));
+      c.appendChild(el('div', 'r', note || ''));
+      cards.appendChild(c);
+    }
+    card('Neutral', r.neutral == null ? '\u2014' : r.neutral.toFixed(1) + 's',
+         r.neuN.toLocaleString() + ' plays');
+    card('Trailing', r.trailing == null ? '\u2014' : r.trailing.toFixed(1) + 's',
+         r.traN.toLocaleString() + ' plays');
+    card('Neutral Pass Rate',
+         r.passrate == null ? '\u2014' : r.passrate.toFixed(1) + '%',
+         r.passD.toLocaleString() + ' plays');
+    card('No Huddle', r.nohuddle == null ? '\u2014' : Math.round(r.nohuddle) + '%',
+         r.plays.toLocaleString() + ' plays');
+    card('Plays/Drive', r.playsDrive == null ? '\u2014' : r.playsDrive.toFixed(2),
+         r.driveCount.toLocaleString() + ' drives');
+    box.appendChild(cards);
+
+    var charts = el('div', 'pt-charts');
+    charts.appendChild(chartMargin(r));
+    charts.appendChild(chartWeeks(r));
+    box.appendChild(charts);
+
+    var n = el('div', 'pt-note');
+    n.textContent = 'Gear change compares neutral play clock used with play clock ' +
+      'used when trailing by 5 or more. Both sides need at least ' + MIN_SPLIT +
+      ' plays before a number is shown.';
+    box.appendChild(n);
+    return box;
+  }
+
+  function svg(){
+    var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('viewBox', '0 0 300 180');
+    s.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    s.setAttribute('role', 'img');
+    return s;
+  }
+  function node(tag, attrs, text){
+    var n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (var k in attrs) if (attrs.hasOwnProperty(k)) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function chartMargin(r){
+    var buckets = [
+      {label:'Down 9+', lo:-99, hi:-9},
+      {label:'Down 1-8', lo:-8, hi:-1},
+      {label:'Tied', lo:0, hi:0},
+      {label:'Up 1-8', lo:1, hi:8},
+      {label:'Up 9+', lo:9, hi:99}
+    ];
+    var sums = buckets.map(function(){ return [0, 0]; });
+    var lSum = 0, lN = 0;
+    loaded().forEach(function(D){
+      for (var i = 0; i < D.n; i++){
+        if (!passes(D, i)) continue;
+        var v = D.sec[i];
+        if (v <= 0 || D.l2[i]) continue;
+        lSum += v; lN++;
+        if (D.team[i] !== r.ix) continue;
+        var m = D.margin[i];
+        for (var b = 0; b < buckets.length; b++){
+          if (m >= buckets[b].lo && m <= buckets[b].hi){
+            sums[b][0] += v; sums[b][1]++; break;
+          }
+        }
+      }
+    });
+    var league = lN ? lSum / lN : 32;
+    var vals = sums.map(function(p){ return p[1] >= 25 ? p[0] / p[1] : null; });
+    var present = vals.filter(function(v){ return v != null; });
+    var lo = Math.min.apply(null, present.concat([league])) - 2;
+    var hi = Math.max.apply(null, present.concat([league])) + 2;
+    if (!present.length){ lo = 24; hi = FULL_CLOCK; }
+
+    var s = svg();
+    var x0 = 8, x1 = 292, y0 = 14, y1 = 148, w = (x1 - x0) / buckets.length;
+    var scale = function(v){ return y1 - (v - lo) / (hi - lo) * (y1 - y0); };
+
+    buckets.forEach(function(b, i){
+      var v = vals[i];
+      var cx = x0 + w * i + w / 2;
+      if (v == null){
+        s.appendChild(node('text', {x:cx, y:y1 - 4, 'text-anchor':'middle',
+          'font-size':8, fill:'#b0bec5'}, '\u2014'));
+      } else {
+        var y = scale(v);
+        s.appendChild(node('rect', {x:x0 + w * i + w * 0.18, y:y,
+          width:w * 0.64, height:Math.max(1, y1 - y),
+          fill: v < league ? '#cc0000' : '#7f8c9a'}));
+        s.appendChild(node('text', {x:cx, y:y - 3, 'text-anchor':'middle',
+          'font-size':9, 'font-weight':700, fill:'#111'}, v.toFixed(1)));
+      }
+      s.appendChild(node('text', {x:cx, y:162, 'text-anchor':'middle',
+        'font-size':8, fill:'#7f8c9a'}, b.label));
+    });
+    s.appendChild(node('line', {x1:x0, x2:x1, y1:y1, y2:y1, stroke:'#111', 'stroke-width':1}));
+
+    s.appendChild(node('line', {x1:x0, x2:x1, y1:scale(league), y2:scale(league),
+      stroke:'#7f8c9a', 'stroke-width':1, 'stroke-dasharray':'3 3'}));
+    var lbl = 'NFL avg ' + league.toFixed(1) + 's';
+    s.appendChild(node('rect', {x:x1 - lbl.length * 4.1 - 2, y:scale(league) - 11,
+      width:lbl.length * 4.1 + 2, height:10, fill:'#fff', opacity:.85}));
+    s.appendChild(node('text', {x:x1, y:scale(league) - 3, 'text-anchor':'end',
+      'font-size':8, fill:'#7f8c9a'}, lbl));
+    s.appendChild(node('title', {},
+      teamName(r.team) + ' play clock used by score margin'));
+
+    var box = el('div', 'pt-chart');
+    box.appendChild(el('div', 'pt-ctitle', 'Play Clock Used by Score Margin'));
+    box.appendChild(s);
+    return box;
+  }
+
+  function chartWeeks(r){
+    var byWeek = {};
+    loaded().forEach(function(D){
+      for (var i = 0; i < D.n; i++){
+        if (!passes(D, i) || D.team[i] !== r.ix) continue;
+        var v = D.sec[i];
+        if (v <= 0) continue;
+        var key = D.season * 100 + D.week[i];
+        if (!byWeek[key]) byWeek[key] = [0, 0];
+        byWeek[key][0] += v; byWeek[key][1]++;
+      }
+    });
+    var weeks = Object.keys(byWeek).map(Number).sort(function(a, b){ return a - b; });
+    var pts = weeks.filter(function(w){ return byWeek[w][1] >= 10; })
+                   .map(function(w){ return {w:w, v:byWeek[w][0] / byWeek[w][1]}; });
+
+    var s2 = svg();
+    var box = el('div', 'pt-chart');
+    box.appendChild(el('div', 'pt-ctitle',
+      STATE.seasons.length > 1 ? 'Play Clock Used by Week (All Seasons)'
+                               : 'Play Clock Used by Week'));
+
+    if (pts.length < 2){
+      s2.appendChild(node('text', {x:150, y:92, 'text-anchor':'middle',
+        'font-size':10, fill:'#b0bec5'}, 'Not enough weeks in this filter'));
+      box.appendChild(s2);
+      return box;
+    }
+
+    var vals = pts.map(function(p){ return p.v; });
+    var lo = Math.min.apply(null, vals) - 1.5, hi = Math.max.apply(null, vals) + 1.5;
+    var wLo = pts[0].w, wHi = pts[pts.length - 1].w;
+    function weekLabel(key){
+      var yr = Math.floor(key / 100), wk = key % 100;
+      return STATE.seasons.length > 1 ? (yr + ' W' + wk) : ('Week ' + wk);
+    }
+    var x0 = 20, x1 = 292, y0 = 14, y1 = 150;
+    var slot = {};
+    pts.forEach(function(pt, i){ slot[pt.w] = i; });
+    var sx = function(w){ return pts.length < 2 ? (x0 + x1) / 2
+      : x0 + slot[w] / (pts.length - 1) * (x1 - x0); };
+    var sy = function(v){ return y1 - (v - lo) / (hi - lo) * (y1 - y0); };
+
+    var mean = vals.reduce(function(a, b){ return a + b; }, 0) / vals.length;
+    s2.appendChild(node('line', {x1:x0, x2:x1, y1:sy(mean), y2:sy(mean),
+      stroke:'#dde2e8', 'stroke-width':1}));
+
+    var d = pts.map(function(p, i){
+      return (i ? 'L' : 'M') + sx(p.w).toFixed(1) + ' ' + sy(p.v).toFixed(1);
+    }).join(' ');
+    s2.appendChild(node('path', {d:d, fill:'none', stroke:'#cc0000', 'stroke-width':1.6}));
+    pts.forEach(function(p){
+      s2.appendChild(node('circle', {cx:sx(p.w), cy:sy(p.v), r:2, fill:'#cc0000'}));
+    });
+    s2.appendChild(node('text', {x:x0, y:166, 'font-size':8, fill:'#7f8c9a'},
+      weekLabel(wLo)));
+    s2.appendChild(node('text', {x:x1, y:166, 'text-anchor':'end', 'font-size':8,
+      fill:'#7f8c9a'}, weekLabel(wHi)));
+    s2.appendChild(node('text', {x:2, y:sy(mean) - 3, 'font-size':8, fill:'#7f8c9a'},
+      mean.toFixed(1)));
+    s2.appendChild(node('title', {}, teamName(r.team) + ' play clock used by week'));
+    box.appendChild(s2);
+    return box;
+  }
+
+  function paintFoot(rows){
+    var plays = rows.reduce(function(s, r){ return s + r.plays; }, 0);
+    var tempo = rows.reduce(function(s, r){ return s + r.secN; }, 0);
+    var f = $('foot');
+    f.innerHTML = '';
+    f.appendChild(el('b', null, plays.toLocaleString()));
+    f.appendChild(document.createTextNode(' plays in view, '));
+    f.appendChild(el('b', null, tempo.toLocaleString()));
+    f.appendChild(document.createTextNode(
+      ' on a full 40-second play clock. Snaps after a change of possession, ' +
+      'timeout, penalty, injury, review or the two-minute warning run on a ' +
+      '25-second clock and are left out of the tempo columns.'));
+  }
+
+  function seasonLabel(){
+    var y = STATE.seasons.slice().sort(function(a, b){ return a - b; });
+    if (!y.length) return '\u2014';
+    if (y.length === 1) return String(y[0]);
+    var run = y[y.length - 1] - y[0] + 1 === y.length;
+    return run ? (y[0] + '\u2013' + y[y.length - 1]) : (y.length + ' seasons');
+  }
+
+  var FILTERS = [
+    {key:'seasons', label:'Season', all:'All', multi:true, required:true},
+    {key:'weeks',  label:'Week',    all:'All',       multi:true},
+    {key:'qtrs',   label:'Quarter', all:'All',       multi:true,
+     opts:[[1,'1'],[2,'2'],[3,'3'],[4,'4'],[5,'OT']]},
+    {key:'downs',  label:'Down',    all:'All',       multi:true,
+     opts:[[1,'1st'],[2,'2nd'],[3,'3rd'],[4,'4th']]},
+    {key:'venue',  label:'Venue',   all:'Home + Road', multi:false,
+     opts:[[1,'Home'],[0,'Road']]},
+    {key:'huddle', label:'Huddle',  all:'Both',      multi:false,
+     opts:[[0,'Huddle'],[1,'No Huddle']]}
+  ];
+
+  function filterValue(f){
+    var v = STATE[f.key];
+    if (f.key === 'seasons') return seasonLabel();
+    if (!v.length) return f.all;
+    if (f.key === 'weeks'){
+      if (v.length === 1) return 'Week ' + v[0];
+      return v.length + ' weeks';
+    }
+    var names = v.map(function(x){
+      var hit = f.all;
+      f.opts.forEach(function(o){ if (o[0] === x) hit = o[1]; });
+      return hit;
+    });
+    return names.length <= 2 ? names.join(', ') : names.length + ' selected';
+  }
+
+  function buildBar(){
+    var bar = $('bar');
+    bar.innerHTML = '';
+
+    FILTERS.forEach(function(f){
+      if (f.key === 'seasons' &&
+          (!STATE.index || (STATE.index.seasons || []).length < 2)) return;
+      var b = el('button', 'pt-fb');
+      b.type = 'button';
+      var on = f.key === 'seasons'
+        ? (STATE.seasons.length !== 1 ||
+           STATE.seasons[0] !== (STATE.index && STATE.index.default))
+        : STATE[f.key].length > 0;
+      b.setAttribute('data-on', on ? '1' : '0');
+      b.appendChild(el('span', 'l', f.label));
+      b.appendChild(el('span', 'v', filterValue(f)));
+      b.addEventListener('click', function(){ openFilter(b, f); });
+      bar.appendChild(b);
+    });
+
+    var reset = el('button', 'pt-reset', 'Reset');
+    reset.type = 'button';
+    reset.hidden = !anyFilter();
+    reset.addEventListener('click', function(){
+      STATE.weeks = []; STATE.qtrs = []; STATE.downs = [];
+      STATE.venue = []; STATE.huddle = [];
+      closePop(); buildBar(); render();
+    });
+    bar.appendChild(reset);
+  }
+
+  function closePop(){ var p = $('pop'); p.hidden = true; p.innerHTML = ''; }
+
+  function placePop(anchor){
+    var p = $('pop');
+    var rb = ROOT.getBoundingClientRect(), ab = anchor.getBoundingClientRect();
+    p.hidden = false;
+    var left = ab.left - rb.left;
+    var maxLeft = ROOT.clientWidth - p.offsetWidth - 8;
+    p.style.left = Math.max(8, Math.min(left, maxLeft)) + 'px';
+    p.style.top = (ab.bottom - rb.top + 4) + 'px';
+  }
+
+  function openFilter(anchor, f){
+    var p = $('pop');
+    if (!p.hidden && p.getAttribute('data-for') === f.key){ closePop(); return; }
+    p.innerHTML = '';
+    p.setAttribute('data-for', f.key);
+    p.appendChild(el('div', 'h', f.label));
+
+    var opts = f.opts;
+    if (f.key === 'weeks'){
+      opts = allWeeks().map(function(w){ return [w, String(w)]; });
+    } else if (f.key === 'seasons'){
+      opts = (STATE.index.seasons || []).slice()
+        .sort(function(a, b){ return b - a; })
+        .map(function(y){ return [y, String(y)]; });
+    }
+    var pick = STATE[f.key].slice();
+    var box = el('div', 'pt-opts');
+    opts.forEach(function(o){
+      var b = el('button', 'pt-opt', o[1]);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', pick.indexOf(o[0]) > -1 ? 'true' : 'false');
+      b.addEventListener('click', function(){
+        var at = pick.indexOf(o[0]);
+        if (f.multi){
+          if (at > -1) pick.splice(at, 1); else pick.push(o[0]);
+          if (f.required && !pick.length) pick.push(o[0]);
+        } else {
+          pick = at > -1 ? [] : [o[0]];
+        }
+        box.querySelectorAll('.pt-opt').forEach(function(node2, i){
+          node2.setAttribute('aria-pressed',
+            pick.indexOf(opts[i][0]) > -1 ? 'true' : 'false');
+        });
+      });
+      box.appendChild(b);
+    });
+    p.appendChild(box);
+
+    var foot = el('div', 'pt-popfoot');
+    var clear = el('button', null, f.required ? 'Latest' : 'Clear');
+    clear.type = 'button';
+    clear.addEventListener('click', function(){
+      if (f.required){
+        applySeasons([STATE.index.default ||
+          Math.max.apply(null, STATE.index.seasons)]);
+      } else {
+        STATE[f.key] = [];
+      }
+      closePop(); buildBar(); render();
+    });
+    var go = el('button', 'go', 'Apply');
+    go.type = 'button';
+    go.addEventListener('click', function(){
+      pick.sort(function(a, b){ return a - b; });
+      closePop();
+      if (f.key === 'seasons'){ applySeasons(pick); return; }
+      STATE[f.key] = pick; buildBar(); render();
+    });
+    foot.appendChild(clear);
+    foot.appendChild(go);
+    p.appendChild(foot);
+    placePop(anchor);
+  }
+
+  ROOT.addEventListener('click', function(e){
+    var p = $('pop');
+    if (p.hidden) return;
+    if (p.contains(e.target)) return;
+    if (e.target.closest && e.target.closest('.pt-fb')) return;
+    closePop();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') closePop();
+  });
+
+  ROOT.querySelectorAll('.pt-mode').forEach(function(b){
+    b.addEventListener('click', function(){
+      if (STATE.mode === b.getAttribute('data-mode')) return;
+      STATE.mode = b.getAttribute('data-mode');
+      ROOT.querySelectorAll('.pt-mode').forEach(function(o){
+        o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
+      });
+      var first = cols()[0];
+      STATE.sort = first.key;
+      STATE.asc = !!first.low;
+      render();
+    });
+  });
+
+  function get(url){
+    return fetch(url, {cache:'no-cache'}).then(function(r){
+      if (!r.ok) throw new Error(url + ' returned ' + r.status);
+      return r.json();
+    });
+  }
+
+  function subtitle(){
+    var sets = loaded();
+    var when = '';
+    var newest = null;
+    sets.forEach(function(D){
+      if (D.generated && (!newest || D.generated > newest)) newest = D.generated;
+    });
+    if (newest){
+      var t = new Date(newest);
+      if (!isNaN(t)) when = ' \u00b7 updated ' + t.toLocaleDateString(undefined,
+        {month:'short', day:'numeric'});
+    }
+    var sub = $('sub');
+    sub.innerHTML = '';
+    sub.appendChild(el('b', null, seasonLabel()));
+    sub.appendChild(document.createTextNode(
+      ' \u00b7 how much of the 40-second play clock each offense uses' + when));
+  }
+
+  function applySeasons(years){
+    years = years.slice().sort(function(a, b){ return a - b; });
+    if (!years.length) return;
+    STATE.seasons = years;
+    STATE.open = null;
+    STATE.weeks = [];
+
+    var missing = years.filter(function(y){ return !DB[y]; });
+    if (!missing.length){ buildBar(); subtitle(); render(); return; }
+
+    if (anyLoaded()) showStatus('Loading ' + missing.join(', ') + '\u2026');
+    buildBar();
+
+    return Promise.all(missing.map(function(y){
+      return get(BASE + 'pace_' + y + '.json').then(function(blob){
+        DB[y] = decode(blob);
+      }).catch(function(err){
+        STATE.seasons = STATE.seasons.filter(function(x){ return x !== y; });
+        console.error('pace: could not load ' + y, err);
+      });
+    })).then(function(){
+      if (!STATE.seasons.length){
+        showStatus('Could not load that season.');
+        return;
+      }
+      buildBar();
+      subtitle();
+      render();
+    });
+  }
+
+  if (window.ResizeObserver){
+    var lastTier = null;
+    new ResizeObserver(function(){
+      if (!anyLoaded()) return;
+      var tier = nameTier() + ':' + (ROOT.clientWidth >= 700 ? 'w' : 'n');
+      if (tier === lastTier) return;
+      lastTier = tier;
+      render();
+    }).observe(ROOT);
+  }
+
+  get(BASE + 'pace_index.json').then(function(ix){
+    STATE.index = ix;
+    if (!ix.seasons || !ix.seasons.length){
+      showStatus('No seasons have pace data yet.');
+      return;
+    }
+    return applySeasons([ix.default || Math.max.apply(null, ix.seasons)]);
+  }).catch(function(err){
+    var sub = $('sub');
+    sub.textContent = 'Live data unavailable \u2014 showing season totals.';
+    showStatus('Couldn\u2019t load the live data. The table below is still '
+      + 'accurate for all plays with no filters. Reload the page to try the '
+      + 'interactive version again.');
+    if (window.console) console.error('[pace]', err);
+  });
+})();
+</script>

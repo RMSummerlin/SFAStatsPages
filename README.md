@@ -28,27 +28,56 @@ Update cadence: checked every 30 minutes, all week (actual source data changes ~
 ```
 SFAStatsPages/
 ├── README.md
+├── .gitattributes                  ← `* text=auto`, stops Windows CRLF churn
+├── .nojekyll                       ← keep it: Jekyll mangles {{ }} in .md files
 ├── docs/
 │   ├── avada-embed-rules.md        ← constraints for building embeds (see below)
 │   ├── tool-checklist.md           ← end-to-end steps for adding a tool
-│   └── personnel-grouping-data.md  ← data decisions behind the personnel tools
-├── data/                           ← generated JSON, served via GitHub Pages
+│   ├── personnel-grouping-data.md  ← data decisions behind the personnel tool
+│   └── pace-data.md                ← data decisions behind the pace tool
+├── data/                           ← generated JSON + preload tables, served via Pages
 ├── scripts/
-│   ├── config.py                   ← season → Google Sheet ID map
+│   ├── config.py                   ← season → Google Sheet ID map, team aliases, names
 │   ├── requirements.txt
 │   ├── pull_personnel_grouping.py  ← pull + transform (auto-run by the workflow)
+│   ├── pull_pace.py                ← pull + transform (auto-run by the workflow)
+│   ├── test_pace.py                ← regression tests (auto-run by the workflow)
+│   ├── test_dead_ball.py           ← regression tests (auto-run by the workflow)
+│   ├── test_teams.py               ← regression tests (auto-run by the workflow)
+│   ├── test_empty_season.py        ← regression tests (auto-run by the workflow)
 │   ├── lint_embed.py               ← checks a fragment against the embed rules
-│   └── refresh_preload.py          ← injects the crawlable static table into tools
+│   ├── build_embed.py              ← strips the dev notes to produce embed.html
+│   └── preloads.py                 ← folds each tool's preload table into preloads.json
 ├── index.html                      ← endpoint health check, served at the Pages root
 ├── tools/
-│   └── personnel-grouping/         ← the shipped tool
+│   ├── personnel-grouping/         ← tool.html + embed.html + README.md
+│   └── pace/                       ← tool.html + embed.html + README.md
+├── wordpress/
+│   ├── sfa-preloads.php            ← Code Snippets body: shortcodes for the crawlable tables
+│   └── README.md                   ← install, caching and refresh schedule
 └── .github/
     └── workflows/
         └── update-data.yml         ← scheduled Action that runs the Python pipeline
 ```
 
-Anything named `pull_*.py` is picked up and run automatically by the workflow. Helper
-scripts are deliberately named otherwise so they stay manual.
+Anything named `pull_*.py` is picked up and run automatically by the workflow, and
+anything named `test_*.py` is run as a test before the pulls. Helper scripts are
+deliberately named otherwise so they stay manual.
+
+## Two files per tool
+
+Each tool folder holds the same fragment twice:
+
+- **`tool.html`** — the working copy, carrying every note about why the code does what it
+  does. This is the one to edit.
+- **`embed.html`** — the same fragment with all comments removed. **This is the one that
+  goes into Avada.** Anyone can hit Ctrl+U on a published article, so the development
+  notes should not be there.
+
+`python scripts/build_embed.py` regenerates `embed.html` from `tool.html`; it removes
+comments and nothing else, so a diff between the two files is deletions only. It refuses
+to write if the result fails to parse, if any non-comment character moved, or if a URL or
+string literal changed. `--check` reports a stale `embed.html` without writing one.
 
 ## Embedding rules (summary — full detail in docs/avada-embed-rules.md)
 
@@ -78,8 +107,8 @@ python scripts/pull_pace.py --csv ~/Downloads/export.csv --season 2025
 python scripts/test_pace.py
 python scripts/test_dead_ball.py
 
-# refresh the crawlable static tables inside the tool fragments
-python scripts/refresh_preload.py
+# regenerate the paste-ready embed.html for every tool
+python scripts/build_embed.py
 
 # check the fragments against the embed rules
 python scripts/lint_embed.py

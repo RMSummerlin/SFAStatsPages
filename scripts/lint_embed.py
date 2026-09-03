@@ -189,8 +189,12 @@ def lint(path: Path):
 
 def main():
     args = sys.argv[1:]
+    # Both copies of every fragment: the working tool.html and the comment-free
+    # embed.html that build_embed.py generates from it. The generated one is the
+    # file that actually ships, so it is the one that most needs checking.
     paths = [Path(a) for a in args] if args else sorted(
-        (REPO_ROOT / "tools").glob("*/tool.html"))
+        p for p in (REPO_ROOT / "tools").glob("*/*.html")
+        if p.name in ("tool.html", "embed.html"))
     if not paths:
         print("no tool.html files found")
         return 1

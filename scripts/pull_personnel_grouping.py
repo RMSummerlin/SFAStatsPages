@@ -151,7 +151,17 @@ def fetch_csv(season: int) -> str:
 
 
 def read_rows(text: str):
+    """Return the rows, or None if the sheet is empty.
+
+    A sheet with no header row at all is a season that has been created but not
+    filled in yet — the normal state of the current season's sheet between being
+    set up and the first game. That is not a configuration error, so it returns
+    None and main() skips the season quietly. A sheet that has headers but the
+    wrong ones is a real misconfiguration and still fails loudly.
+    """
     reader = csv.DictReader(io.StringIO(text))
+    if not reader.fieldnames:
+        return None
     missing = [c for c in REQUIRED_COLUMNS if c not in (reader.fieldnames or [])]
     if missing:
         raise SystemExit(
@@ -443,7 +453,11 @@ def main():
     else:
         seasons = [config.CURRENT_SEASON]
 
-    newest_summary = None
+    # season -> summary, for whichever season ends up newest among those that
+    # actually produced data. Keyed rather than compared against max(seasons)
+    # so that skipping an empty newest season still refreshes the preload table
+    # from the newest season that has plays.
+    summaries = {}
     for season in seasons:
         if args.csv:
             text = Path(args.csv).read_text(encoding="utf-8-sig", errors="replace")
@@ -451,7 +465,18 @@ def main():
             text = fetch_csv(season)
 
         rows = read_rows(text)
+        if not rows:
+            print(f"{season}: sheet has no rows yet — skipping. The season stays "
+                  f"out of personnel_grouping_index.json, so the tool will not "
+                  f"offer it.")
+            continue
+
         payload, summary = build_season(rows, season)
+
+        if not payload["plays"]:
+            print(f"{season}: {len(rows):,} rows but no usable plays — skipping. "
+                  f"The season stays out of personnel_grouping_index.json.")
+            continue
 
         # generated_utc changes every run, so compare on everything else to avoid
         # committing a no-op diff every 30 minutes.
@@ -464,8 +489,7 @@ def main():
                 if previous == payload:
                     print(f"{season}: no change ({payload['plays']:,} plays)")
                     payload["generated_utc"] = stamp
-                    if season == max(seasons):
-                        newest_summary = (summary, season)
+                    summaries[season] = summary
                     continue
             except (json.JSONDecodeError, OSError):
                 pass
@@ -475,8 +499,7 @@ def main():
               f"excluded {sum(payload['excluded'].values()):,} "
               f"({payload['excluded']})")
 
-        if season == max(seasons):
-            newest_summary = (summary, season)
+        summaries[season] = summary
 
     known = sorted(
         int(p.stem.rsplit("_", 1)[1])
@@ -492,8 +515,9 @@ def main():
         "default": max(known) if known else None,
     })
 
-    if newest_summary:
-        summary, season = newest_summary
+    if summaries:
+        season = max(summaries)
+        summary = summaries[season]
         (DATA_DIR / "personnel_grouping_preload.html").write_text(
             preload_main(summary, season) + "\n", encoding="utf-8")
         print("Refreshed the crawlable preload table in data/.")

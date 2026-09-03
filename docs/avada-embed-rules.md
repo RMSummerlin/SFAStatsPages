@@ -21,6 +21,32 @@ Every tool must be a **fragment**, not a full document, because it's pasted dire
 - One `<script>` block
 - **Never** include `<!DOCTYPE>`, `<html>`, `<head>`, `<body>`, `<meta>`, or `<title>` — the page already has these.
 
+## Two files: tool.html and embed.html
+
+The fragment lives in the repo twice.
+
+| File | Role |
+|---|---|
+| `tools/<name>/tool.html` | The working copy. Carries every note explaining why the code is the way it is. Edit this one. |
+| `tools/<name>/embed.html` | The same fragment with all comments removed. **Paste this one into Avada.** |
+
+The published page's source is readable by anyone, so notes about which Avada rule a
+workaround exists for, or why a median beat a mean, do not belong in what ships.
+
+`embed.html` is generated, never hand-written:
+
+```
+python scripts/build_embed.py           # rebuild every tool's embed.html
+python scripts/build_embed.py --check   # fail if any is stale, write nothing
+```
+
+It deletes comments and changes nothing else — no minifying, no renaming, no reordering —
+so the two files diff cleanly and a bug in one reproduces in the other. It parses the
+fragment rather than pattern-matching, because `//` also appears in the GitHub Pages URL
+and `/*` can appear inside a string or a regex literal, and it refuses to write if the
+script no longer parses, if any non-comment character moved, or if a URL or string
+literal changed.
+
 ## CSS scoping
 
 - Every selector must be scoped under `.pt-root`. Never write bare `*`, `body`, `header`, `input`, `button`, etc. — these leak into and clash with the Avada theme.
@@ -106,4 +132,6 @@ No API keys or secrets should ever appear in embed code — all data is public a
 - [ ] Brand font + colors applied
 - [ ] Mobile layout designed first, verified at narrow width before desktop enhancement
 - [ ] Tap targets ≥44x44px
+- [ ] `python scripts/build_embed.py` run, so `embed.html` matches `tool.html`
+- [ ] The code pasted into Avada came from `embed.html` — no development notes in the published page source
 - [ ] Tested inside an actual Avada custom code block, not just standalone
