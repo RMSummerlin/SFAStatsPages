@@ -34,24 +34,29 @@ SFAStatsPages/
 │   ├── avada-embed-rules.md        ← constraints for building embeds (see below)
 │   ├── tool-checklist.md           ← end-to-end steps for adding a tool
 │   ├── personnel-grouping-data.md  ← data decisions behind the personnel tool
-│   └── pace-data.md                ← data decisions behind the pace tool
+│   ├── pace-data.md                ← data decisions behind the pace tool
+│   └── matchup-data.md             ← data decisions and backtest behind the matchup tool
 ├── data/                           ← generated JSON + preload tables, served via Pages
 ├── scripts/
 │   ├── config.py                   ← season → Google Sheet ID map, team aliases, names
 │   ├── requirements.txt
 │   ├── pull_personnel_grouping.py  ← pull + transform (auto-run by the workflow)
 │   ├── pull_pace.py                ← pull + transform (auto-run by the workflow)
+│   ├── pull_matchup.py             ← pull + transform (auto-run by the workflow)
+│   ├── offseason_changes.py        ← drafts data/offseason_changes_<season>.json once a year (never on the schedule)
 │   ├── test_pace.py                ← regression tests (auto-run by the workflow)
 │   ├── test_dead_ball.py           ← regression tests (auto-run by the workflow)
 │   ├── test_teams.py               ← regression tests (auto-run by the workflow)
 │   ├── test_empty_season.py        ← regression tests (auto-run by the workflow)
+│   ├── test_matchup.py             ← regression tests (auto-run by the workflow)
 │   ├── lint_embed.py               ← checks a fragment against the embed rules
 │   ├── build_embed.py              ← strips the dev notes to produce embed.html
 │   └── preloads.py                 ← folds each tool's preload table into preloads.json
 ├── index.html                      ← endpoint health check, served at the Pages root
 ├── tools/
 │   ├── personnel-grouping/         ← tool.html + embed.html + README.md
-│   └── pace/                       ← tool.html + embed.html + README.md
+│   ├── pace/                       ← tool.html + embed.html + README.md
+│   └── matchup/                    ← tool.html + embed.html + README.md
 ├── wordpress/
 │   ├── sfa-preloads.php            ← Code Snippets body: shortcodes for the crawlable tables
 │   └── README.md                   ← install, caching and refresh schedule

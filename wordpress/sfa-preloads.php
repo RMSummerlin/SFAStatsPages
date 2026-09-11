@@ -8,6 +8,7 @@
  *
  *   [sharp_football_personnel]   personnel grouping frequency
  *   [sharp_football_pace]        offensive pace
+ *   [sharp_football_matchup]     weekly matchups, whole slate; game="KC-BUF" keeps one game
  *
  * Paste this file into Code Snippets as a PHP (Functions) snippet, scope "Run
  * everywhere", omitting the opening PHP tag on line 1. Code Snippets supplies it.
@@ -255,3 +256,29 @@ function sfa_preload_pace_shortcode() {
 	return sfa_preload_render( 'pace' );
 }
 add_shortcode( 'sharp_football_pace', 'sfa_preload_pace_shortcode' );
+
+/*
+ * The matchup table carries every game of the current week, two rows per game
+ * (one per offense). A game preview article can keep just its own game with
+ * [sharp_football_matchup game="KC-BUF"], away team first, matching the row
+ * class the pull script writes (g-kc-buf). Unknown or absent game: whole slate.
+ */
+function sfa_preload_matchup_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'game' => '' ), $atts, 'sharp_football_matchup' );
+	$html = sfa_preload_render( 'matchup' );
+	$game = strtolower( preg_replace( '/[^A-Za-z-]/', '', (string) $atts['game'] ) );
+	if ( '' === $game || false === strpos( $html, 'class="g-' . $game . '"' ) ) {
+		return $html;
+	}
+	// Drop every body row that is not this game. The generated markup never
+	// nests <tr>, so a non-greedy match is safe, and the negative lookahead
+	// keeps this a plain preg_replace rather than a callback (no closures in a
+	// Code Snippets body, per the structure note above).
+	$kept = preg_replace(
+		'#<tr class="g-(?!' . preg_quote( $game, '#' ) . '")[a-z-]+">.*?</tr>#s',
+		'',
+		$html
+	);
+	return null === $kept ? $html : $kept;
+}
+add_shortcode( 'sharp_football_matchup', 'sfa_preload_matchup_shortcode' );
