@@ -37,6 +37,7 @@ Google *and* GitHub; the annual `offseason_changes.py` run additionally needs Wi
 SFAStatsPages/
 ├── README.md
 ├── .gitattributes                  ← `* text=auto`, stops Windows CRLF churn
+├── .gitignore                      ← Python bytecode, .venv, and a guard against a stray key file
 ├── .nojekyll                       ← keep it: Jekyll mangles {{ }} in .md files
 ├── docs/
 │   ├── avada-embed-rules.md        ← constraints for building embeds (see below)
