@@ -1,12 +1,12 @@
 <style>
-/* Weekly Matchups
+/* NFL Matchups
    Every selector is scoped under .pt-root.pt-mu. See docs/avada-embed-rules.md.
    .pt-mu is this tool's own namespace so it cannot collide with the pace (.pt-pc)
-   or personnel (.pt-pg) tool if two ever share a page. */
+   or personnel (.pt-pg) tool if two ever share a page. Masthead, control and
+   chip idiom follow the injury report tool so the two read as one family. */
 /* Scoping stops our styles leaking out; it does not stop the theme's leaking in.
    Declare font and color on every table element explicitly or Avada's th/td
-   rules win by specificity. The card itself is divs; tables only appear in the
-   bottom sheet's tendency panel. */
+   rules win by specificity. Tables only appear in the sheet's tendency panel. */
 .pt-root.pt-mu *{box-sizing:border-box;margin:0;padding:0;font-family:inherit;color:inherit}
 .pt-root.pt-mu table,.pt-root.pt-mu thead,.pt-root.pt-mu tbody,.pt-root.pt-mu tfoot,
 .pt-root.pt-mu tr,.pt-root.pt-mu th,.pt-root.pt-mu td,.pt-root.pt-mu caption{
@@ -15,7 +15,7 @@
   vertical-align:middle;width:auto;height:auto}
 .pt-root.pt-mu{
   --red:#cc0000; --ink:#111; --g1:#7f8c9a; --g2:#b0bec5;
-  --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --w:#fff;
+  --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --w:#fff; --black:#000;
   font-family:'Interstate Condensed','Interstate','Roboto Condensed','Arial Narrow',
     'Helvetica Neue',Arial,sans-serif;
   color:var(--ink); background:var(--w);
@@ -27,6 +27,7 @@
   max-height:clamp(1000px,120svh,1320px);
   overflow:hidden;
   font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
 }
 /* The desktop clamp floor is taller than a phone. Without this override the
    footer and the bottom sheet sit below the fold on a 700px viewport. */
@@ -36,63 +37,69 @@
 .pt-root.pt-mu input,.pt-root.pt-mu select,.pt-root.pt-mu button,.pt-root.pt-mu textarea{
   font:inherit;color:inherit;letter-spacing:inherit;text-transform:none}
 .pt-root.pt-mu button{background:none;border:0;cursor:pointer}
-.pt-root.pt-mu :focus-visible{outline:2px solid var(--red);outline-offset:1px}
+.pt-root.pt-mu :focus-visible{outline:2px solid var(--red);outline-offset:2px}
 .pt-root.pt-mu [hidden]{display:none !important}
 
-/* ---------- masthead ---------- */
-.pt-root.pt-mu .pt-head{flex:0 0 auto;padding:12px 12px 0;border-bottom:2px solid var(--ink)}
-.pt-root.pt-mu .pt-title{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.01em}
-.pt-root.pt-mu .pt-sub{margin-top:3px;font-size:13px;color:var(--g1)}
-.pt-root.pt-mu .pt-sub b{color:var(--ink);font-weight:700}
-.pt-root.pt-mu .pt-nav{display:flex;align-items:stretch;gap:6px;margin:10px 0 10px}
-.pt-root.pt-mu .pt-wk{min-height:44px;min-width:44px;border:1px solid var(--b1);font-size:18px;
-  font-weight:700;background:var(--w)}
-.pt-root.pt-mu .pt-wk:disabled{color:var(--g2);cursor:default}
-.pt-root.pt-mu .pt-wklabel{min-height:44px;min-width:76px;display:flex;align-items:center;
-  justify-content:center;border:1px solid var(--b1);border-left:0;border-right:0;
-  font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
-.pt-root.pt-mu .pt-pick{flex:1;min-height:44px;padding:0 12px;border:1px solid var(--ink);
-  background:var(--ink);color:var(--w);display:flex;align-items:center;justify-content:space-between;
-  font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;text-align:left}
-.pt-root.pt-mu .pt-pick .c{font-size:9px;letter-spacing:.1em;color:var(--g2);margin-left:8px}
+/* ---------- masthead: black bar, red rule, week badge top right ---------- */
+.pt-root.pt-mu .pt-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;
+  padding:8px 12px 7px;background:var(--black);color:var(--w);border-bottom:3px solid var(--red)}
+.pt-root.pt-mu .pt-title{flex:1;min-width:0;font-size:17px;font-weight:700;letter-spacing:.03em;
+  line-height:1.1;text-transform:uppercase;color:var(--w)}
+.pt-root.pt-mu .pt-wknav{flex:0 0 auto;display:flex;align-items:stretch}
+.pt-root.pt-mu .pt-wkbtn{min-width:34px;min-height:34px;color:var(--w);font-size:20px;font-weight:700;line-height:1}
+.pt-root.pt-mu .pt-wkbtn:disabled{color:var(--g1);cursor:default}
+.pt-root.pt-mu .pt-week{padding:3px 10px 4px;display:flex;align-items:center;background:var(--red);color:var(--w);
+  font-size:20px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;line-height:1;white-space:nowrap}
+
+/* ---------- controls: the game picker, styled as a select ---------- */
+.pt-root.pt-mu .pt-controls{flex:0 0 auto;padding:6px 8px;background:var(--bg2);border-bottom:1px solid var(--b2)}
+.pt-root.pt-mu .pt-pick{width:100%;min-height:44px;padding:0 36px 0 12px;display:flex;align-items:center;gap:8px;
+  text-align:left;font-size:14px;font-weight:600;letter-spacing:.02em;color:var(--ink);
+  background-color:var(--w);border:1px solid var(--b1);border-radius:4px;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23111' stroke-width='2'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center}
+.pt-root.pt-mu .pt-pick .k{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g1)}
+.pt-root.pt-mu .pt-pick .v{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-root.pt-mu .pt-pick .t{font-size:11px;font-weight:600;color:var(--g1);white-space:nowrap}
 
 /* ---------- card ---------- */
 .pt-root.pt-mu .pt-wrap{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
-.pt-root.pt-mu .pt-card{padding:10px 12px 12px}
-.pt-root.pt-mu .pt-game{display:flex;align-items:stretch;gap:8px;padding-bottom:10px;
-  border-bottom:1px solid var(--b2)}
-.pt-root.pt-mu .pt-teamblk{flex:1;display:flex;flex-direction:column;gap:2px}
-.pt-root.pt-mu .pt-teamblk.r{text-align:right;align-items:flex-end}
-.pt-root.pt-mu .pt-tname{font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.pt-root.pt-mu .pt-tqb{font-size:11px;color:var(--g1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pt-root.pt-mu .pt-card{padding:12px 12px 10px}
+/* Team header: both teams and their overall ranks, centred on the "at". */
+.pt-root.pt-mu .pt-game{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;column-gap:6px;
+  padding-bottom:10px;border-bottom:1px solid var(--b2)}
+.pt-root.pt-mu .pt-teamblk{min-width:0;text-align:center}
+.pt-root.pt-mu .pt-tname{font-size:19px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1.05;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt-root.pt-mu .pt-tqb{margin-top:2px;font-size:11px;color:var(--g1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pt-root.pt-mu .pt-tqb .new{color:var(--red);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:9px}
-.pt-root.pt-mu .pt-ranks{display:flex;gap:10px;margin-top:4px}
-.pt-root.pt-mu .pt-teamblk.r .pt-ranks{flex-direction:row-reverse}
-.pt-root.pt-mu .pt-rk .k{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g1)}
-.pt-root.pt-mu .pt-rk .n{font-size:22px;font-weight:700;line-height:1;margin-top:1px}
+.pt-root.pt-mu .pt-ranks{display:flex;justify-content:center;gap:14px;margin-top:6px}
+.pt-root.pt-mu .pt-rk .k{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--g1)}
+.pt-root.pt-mu .pt-rk .n{font-size:24px;font-weight:700;line-height:1;margin-top:1px}
 .pt-root.pt-mu .pt-rk .n small{font-size:11px;font-weight:700;color:var(--g1)}
-.pt-root.pt-mu .pt-at{align-self:center;font-size:11px;font-weight:700;color:var(--g2);
-  text-transform:uppercase;letter-spacing:.08em;text-align:center;min-width:34px}
-.pt-root.pt-mu .pt-when{font-size:11px;color:var(--g1);text-align:center;margin-top:6px}
-.pt-root.pt-mu .pt-when b{color:var(--ink);font-weight:700}
+.pt-root.pt-mu .pt-at{align-self:center;padding-top:6px;font-size:11px;font-weight:700;color:var(--g2);
+  text-transform:uppercase;letter-spacing:.1em;text-align:center;min-width:26px}
+.pt-root.pt-mu .pt-when{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);
+  text-align:center;margin-top:8px}
+.pt-root.pt-mu .pt-when span{color:var(--g1);font-weight:400;letter-spacing:.02em;text-transform:none}
 .pt-root.pt-mu .pt-final{font-size:11px;color:var(--g1);text-align:center;margin-top:3px}
 .pt-root.pt-mu .pt-final b{color:var(--ink);font-weight:700}
 
 /* Side toggle: one side of the ball at a time on a phone. */
-.pt-root.pt-mu .pt-sides{display:flex;margin:10px 0 6px;border:1px solid var(--b1)}
-.pt-root.pt-mu .pt-side{flex:1;min-height:44px;padding:0 8px;font-size:12px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.04em;color:var(--g1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pt-root.pt-mu .pt-side+.pt-side{border-left:1px solid var(--b1)}
-.pt-root.pt-mu .pt-side[aria-pressed="true"]{background:var(--ink);color:var(--w)}
+.pt-root.pt-mu .pt-sides{display:flex;gap:4px;margin:10px 0 4px}
+.pt-root.pt-mu .pt-side{flex:1 1 0;min-width:0;min-height:44px;padding:0 6px;border:1px solid var(--b1);border-radius:999px;
+  font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink);background:var(--w);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-root.pt-mu .pt-side[aria-pressed="true"]{background:var(--black);color:var(--w);border-color:var(--black)}
 
 /* Battle rows. Each is a button so the pop-out works on tap, not hover. */
 .pt-root.pt-mu .pt-panel{display:block}
 .pt-root.pt-mu .pt-panel[data-off="1"]{display:none}
-.pt-root.pt-mu .pt-ptitle{display:none;font-size:11px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.06em;color:var(--g1);margin:8px 0 4px}
-.pt-root.pt-mu .pt-cols{display:flex;font-size:9px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.08em;color:var(--g1);padding:4px 0 2px;border-bottom:2px solid var(--ink)}
+.pt-root.pt-mu .pt-ptitle{display:flex;align-items:center;justify-content:center;gap:6px;margin:8px 0 2px;
+  font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;text-align:center}
+.pt-root.pt-mu .pt-ptitle .vs{font-size:10px;color:var(--g2);letter-spacing:.1em}
+.pt-root.pt-mu .pt-cols{display:flex;align-items:flex-end;font-size:9px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--g1);padding:4px 0 3px;border-bottom:2px solid var(--ink)}
 .pt-root.pt-mu .pt-cols .l{width:74px}
 .pt-root.pt-mu .pt-cols .o{width:46px;text-align:right;white-space:nowrap}
 .pt-root.pt-mu .pt-cols .t{flex:1;text-align:center}
@@ -100,105 +107,99 @@
 .pt-root.pt-mu .pt-row{display:flex;align-items:center;width:100%;min-height:46px;
   border-bottom:1px solid var(--b2);text-align:left}
 .pt-root.pt-mu .pt-row:active{background:var(--bg2)}
-.pt-root.pt-mu .pt-row .l{width:74px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;
-  line-height:1.1}
-.pt-root.pt-mu .pt-row .l small{display:block;font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--g1);margin-top:2px}
+.pt-root.pt-mu .pt-row .l{width:74px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;line-height:1.1}
 .pt-root.pt-mu .pt-row .o,.pt-root.pt-mu .pt-row .d{width:46px;font-size:15px;font-weight:700;white-space:nowrap}
 .pt-root.pt-mu .pt-row .o{text-align:right;padding-right:6px}
 .pt-root.pt-mu .pt-row .d{text-align:left;padding-left:6px}
 .pt-root.pt-mu .pt-row .o sup,.pt-root.pt-mu .pt-row .d sup{font-size:9px;color:var(--g1);vertical-align:top;line-height:1;margin-left:1px}
-/* The track. Centre tick is average; the fill grows from the centre toward
-   whichever side holds the edge. Length is |offense percentile - defense
-   percentile|, so a 1st-ranked offense against a 32nd-ranked defense fills the
-   whole offense half. The fill's opacity is the share of this season's data
-   behind the rating; a hatched fill means the rating is still mostly last
-   season's baseline. */
+/* The track. Centre tick is even; the fill grows from the centre toward
+   whichever unit holds the edge, in that team's colour. Length is |offense
+   percentile - defense percentile|, so a 1st-ranked offense against a
+   32nd-ranked defense fills the whole offense half. Fill opacity is the share
+   of this season's data behind the rating: pale means mostly baseline. Team
+   colours are applied inline from the script; the CSS only knows the layout. */
+.pt-root.pt-mu .pt-trackwrap{display:block;flex:1;min-width:0;padding:0 2px}
 .pt-root.pt-mu .pt-track{display:block;position:relative;height:16px;background:var(--bg);border:1px solid var(--b2)}
 .pt-root.pt-mu .pt-track .mid{display:block;position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink)}
 .pt-root.pt-mu .pt-track .fill{display:block;position:absolute;top:2px;bottom:2px}
-.pt-root.pt-mu .pt-track .fill.fo{right:50%;background:var(--red)}
-.pt-root.pt-mu .pt-track .fill.fd{left:50%;background:var(--g1)}
-.pt-root.pt-mu .pt-track .fill.base{background-image:repeating-linear-gradient(135deg,transparent 0 3px,rgba(255,255,255,.6) 3px 5px)}
+.pt-root.pt-mu .pt-track .fill.fo{right:50%}
+.pt-root.pt-mu .pt-track .fill.fd{left:50%}
 .pt-root.pt-mu .pt-track .q{display:block;position:absolute;top:0;bottom:0;width:1px;background:var(--b1)}
 .pt-root.pt-mu .pt-edge{display:block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
   color:var(--g1);text-align:center;margin-top:3px}
-.pt-root.pt-mu .pt-edge.eo{color:var(--red)}
-.pt-root.pt-mu .pt-edge.ed{color:var(--ink)}
-.pt-root.pt-mu .pt-trackwrap{display:block;flex:1;min-width:0;padding:0 2px}
-.pt-root.pt-mu .pt-key{display:flex;justify-content:center;gap:14px;font-size:9px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.07em;color:var(--g1);margin-top:8px}
-.pt-root.pt-mu .pt-key .o{color:var(--red)}
-.pt-root.pt-mu .pt-basis{font-size:11px;color:var(--g1);margin-top:8px;line-height:1.35}
-.pt-root.pt-mu .pt-basis b{color:var(--ink);font-weight:700}
-.pt-root.pt-mu .pt-chip{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.08em;padding:2px 5px;border:1px solid var(--red);color:var(--red);margin-left:6px;vertical-align:middle}
 
 /* ---------- bottom sheet (battle detail, game picker) ---------- */
 .pt-root.pt-mu .pt-scrim{position:absolute;left:0;top:0;right:0;bottom:0;z-index:39;background:rgba(17,17,17,.35)}
-.pt-root.pt-mu .pt-sheet{position:absolute;left:0;right:0;bottom:0;z-index:40;max-height:82%;
-  display:flex;flex-direction:column;background:var(--w);border-top:2px solid var(--ink);
+.pt-root.pt-mu .pt-sheet{position:absolute;left:0;right:0;bottom:0;z-index:40;max-height:84%;
+  display:flex;flex-direction:column;background:var(--w);border-top:3px solid var(--red);
   box-shadow:0 -6px 20px rgba(0,0,0,.18)}
-.pt-root.pt-mu .pt-shead{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
-  gap:8px;padding:8px 12px;border-bottom:1px solid var(--b2)}
-.pt-root.pt-mu .pt-shead .h{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;line-height:1.15}
-.pt-root.pt-mu .pt-shead .h small{display:block;font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--g1);margin-top:2px}
-.pt-root.pt-mu .pt-close{flex:0 0 auto;min-height:44px;min-width:44px;font-size:22px;font-weight:700;color:var(--g1)}
-.pt-root.pt-mu .pt-sbody{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:10px 12px 12px}
+.pt-root.pt-mu .pt-shead{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 12px;
+  background:var(--black);color:var(--w)}
+.pt-root.pt-mu .pt-shead .h{flex:1;min-width:0;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;line-height:1.15}
+.pt-root.pt-mu .pt-shead .h small{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--g2);margin-top:2px}
+.pt-root.pt-mu .pt-close{flex:0 0 auto;min-height:40px;min-width:44px;font-size:24px;font-weight:700;color:var(--w)}
+.pt-root.pt-mu .pt-sbody{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 12px 14px;text-align:center}
 .pt-root.pt-mu .pt-sec{margin-bottom:14px}
 .pt-root.pt-mu .pt-sec:last-child{margin-bottom:0}
-.pt-root.pt-mu .pt-stitle{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
-  color:var(--g1);margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid var(--b2)}
-/* Cap the whole block, not just the SVG, or the chart centres while its note stays full width. */
-.pt-root.pt-mu .pt-chart{max-width:460px;margin:0 auto 8px}
+.pt-root.pt-mu .pt-stitle{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--g1);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--b2);text-align:center}
+.pt-root.pt-mu .pt-lead{font-size:14px;line-height:1.35;text-align:center}
+.pt-root.pt-mu .pt-lead b{font-weight:700}
+/* Cap the whole block, not just the SVG, or the chart centres while its legend stays full width. */
+.pt-root.pt-mu .pt-chart{max-width:460px;margin:0 auto 10px}
 .pt-root.pt-mu .pt-chart svg{display:block;width:100%;height:auto}
-.pt-root.pt-mu .pt-note{font-size:11px;color:var(--g1);margin-top:5px;line-height:1.35}
-.pt-root.pt-mu .pt-note b{color:var(--ink);font-weight:700}
-.pt-root.pt-mu .pt-tend{width:100%;border-collapse:collapse;font-size:12px}
-.pt-root.pt-mu .pt-tend th,.pt-root.pt-mu .pt-tend td{padding:6px 4px;border-bottom:1px solid var(--b2);white-space:nowrap}
-.pt-root.pt-mu .pt-tend th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--g1);text-align:left}
-.pt-root.pt-mu .pt-tend td.n{text-align:right;font-weight:700}
+.pt-root.pt-mu .pt-legend{font-size:11px;font-weight:700;text-align:center;margin-top:4px}
+.pt-root.pt-mu .pt-legend span{margin:0 8px}
+.pt-root.pt-mu .pt-tend{width:100%;max-width:460px;margin:0 auto;border-collapse:collapse;font-size:12px}
+.pt-root.pt-mu .pt-tend th,.pt-root.pt-mu .pt-tend td{padding:7px 4px;border-bottom:1px solid var(--b2);white-space:nowrap;text-align:center}
+.pt-root.pt-mu .pt-tend th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g1)}
+.pt-root.pt-mu .pt-tend td.n{font-weight:700}
 .pt-root.pt-mu .pt-tend td.n small{font-weight:400;color:var(--g1);margin-left:3px}
 .pt-root.pt-mu .pt-tend td.lab{color:var(--g1);font-size:11px;white-space:normal}
 .pt-root.pt-mu .pt-tend td.thin{color:var(--g2)}
 .pt-root.pt-mu .pt-tend tr.hd th{border-bottom:2px solid var(--ink)}
 
 /* Game list inside the picker sheet. */
-.pt-root.pt-mu .pt-sorts{display:flex;gap:6px;margin-bottom:8px}
-.pt-root.pt-mu .pt-sort{min-height:40px;padding:0 12px;border:1px solid var(--b1);font-size:11px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.05em;color:var(--g1);background:var(--w)}
-.pt-root.pt-mu .pt-sort[aria-pressed="true"]{background:var(--ink);color:var(--w);border-color:var(--ink)}
-.pt-root.pt-mu .pt-gl{width:100%;display:flex;align-items:center;gap:8px;min-height:52px;padding:6px 0;
+.pt-root.pt-mu .pt-sorts{display:flex;gap:4px;margin-bottom:10px;justify-content:center}
+.pt-root.pt-mu .pt-sort{min-height:36px;padding:0 12px;border:1px solid var(--b1);border-radius:999px;font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--ink);background:var(--w)}
+.pt-root.pt-mu .pt-sort[aria-pressed="true"]{background:var(--black);color:var(--w);border-color:var(--black)}
+.pt-root.pt-mu .pt-gl{width:100%;display:flex;align-items:center;gap:8px;min-height:54px;padding:6px 0;
   border-bottom:1px solid var(--b2);text-align:left}
-.pt-root.pt-mu .pt-gl[aria-current="true"] .nm{color:var(--red)}
-.pt-root.pt-mu .pt-gl .nm{width:92px;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1.1}
+.pt-root.pt-mu .pt-gl .nm{width:96px;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1.1}
 .pt-root.pt-mu .pt-gl .nm small{display:block;font-size:10px;font-weight:400;letter-spacing:0;color:var(--g1);text-transform:none;margin-top:2px}
+.pt-root.pt-mu .pt-gl[aria-current="true"] .nm small{color:var(--red);font-weight:700}
 .pt-root.pt-mu .pt-strip{flex:1;display:flex;flex-direction:column;gap:3px}
 .pt-root.pt-mu .pt-strip .r{display:flex;align-items:center;gap:3px}
-.pt-root.pt-mu .pt-strip .r .t{width:36px;font-size:9px;font-weight:700;color:var(--g1);letter-spacing:.04em}
+.pt-root.pt-mu .pt-strip .r .t{width:36px;font-size:9px;font-weight:700;color:var(--g1);letter-spacing:.04em;text-align:left}
 .pt-root.pt-mu .pt-strip .c{flex:1;height:12px;border:1px solid var(--b2);background:var(--bg)}
 .pt-root.pt-mu .pt-strip .mis{width:34px;text-align:right;font-size:11px;font-weight:700;color:var(--g1)}
 .pt-root.pt-mu .pt-glkey{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--g1);
-  display:flex;gap:6px;margin:0 40px 6px 139px}
+  display:flex;gap:6px;margin:0 40px 6px 143px;text-align:center}
 .pt-root.pt-mu .pt-glkey span{flex:1;text-align:center}
+.pt-root.pt-mu .pt-note{font-size:11px;color:var(--g1);margin-top:8px;line-height:1.35;text-align:center}
 
 /* ---------- status + footer ---------- */
 .pt-root.pt-mu .pt-status{padding:26px 14px;text-align:center;font-size:13px;color:var(--g1)}
-.pt-root.pt-mu .pt-foot{flex:0 0 auto;padding:8px 12px;border-top:1px solid var(--b2);
-  background:var(--bg2);font-size:11px;color:var(--g1);line-height:1.35}
+.pt-root.pt-mu .pt-foot{flex:0 0 auto;padding:7px 12px;border-top:1px solid var(--b2);
+  background:var(--bg2);font-size:11px;color:var(--g1);line-height:1.45}
 .pt-root.pt-mu .pt-foot b{color:var(--ink);font-weight:700}
-.pt-root.pt-mu .pt-foot summary{cursor:pointer;font-weight:700;color:var(--ink);min-height:24px}
-.pt-root.pt-mu .pt-foot details p{margin-top:4px}
 
 /* ---------- desktop enhancement ---------- */
 @media (min-width:641px){
-  .pt-root.pt-mu .pt-title{font-size:25px}
-  .pt-root.pt-mu .pt-tname{font-size:20px}
-  .pt-root.pt-mu .pt-rk .n{font-size:26px}
+  .pt-root.pt-mu .pt-head{padding:9px 14px 8px}
+  .pt-root.pt-mu .pt-title{font-size:20px}
+  .pt-root.pt-mu .pt-week{font-size:24px}
+  .pt-root.pt-mu .pt-controls{padding:6px 12px}
+  .pt-root.pt-mu .pt-pick{width:auto;min-width:300px;min-height:38px;font-size:13px}
+  .pt-root.pt-mu .pt-card{padding:14px 14px 10px}
+  .pt-root.pt-mu .pt-tname{font-size:24px}
+  .pt-root.pt-mu .pt-rk .n{font-size:28px}
   .pt-root.pt-mu .pt-sides{display:none}
-  .pt-root.pt-mu .pt-panels{display:flex;gap:18px}
+  .pt-root.pt-mu .pt-panels{display:flex;gap:22px;margin-top:6px}
   .pt-root.pt-mu .pt-panel{flex:1;min-width:0}
   .pt-root.pt-mu .pt-panel[data-off="1"]{display:block}
-  .pt-root.pt-mu .pt-ptitle{display:block}
+  .pt-root.pt-mu .pt-ptitle{font-size:15px}
   .pt-root.pt-mu .pt-row .l{width:84px;font-size:14px}
   .pt-root.pt-mu .pt-cols .l{width:84px}
   .pt-root.pt-mu .pt-sheet{left:8%;right:8%;max-height:86%}
@@ -210,14 +211,15 @@
 
 <div class="pt-root pt-mu">
   <div class="pt-head">
-    <div class="pt-title">NFL Weekly Matchups</div>
-    <div class="pt-sub" data-role="sub">Loading matchup data…</div>
-    <div class="pt-nav">
-      <button type="button" class="pt-wk" data-role="prev" aria-label="Previous week">&#8249;</button>
-      <div class="pt-wklabel" data-role="wk">Week</div>
-      <button type="button" class="pt-wk" data-role="next" aria-label="Next week">&#8250;</button>
-      <button type="button" class="pt-pick" data-role="pick" aria-haspopup="dialog"><span data-role="pickname">Pick a game</span><span class="c">Games &#9662;</span></button>
+    <div class="pt-title">NFL Matchups</div>
+    <div class="pt-wknav">
+      <button type="button" class="pt-wkbtn" data-role="prev" aria-label="Previous week" hidden>&#8249;</button>
+      <div class="pt-week" data-role="wk">Week</div>
+      <button type="button" class="pt-wkbtn" data-role="next" aria-label="Next week" hidden>&#8250;</button>
     </div>
+  </div>
+  <div class="pt-controls">
+    <button type="button" class="pt-pick" data-role="pick" aria-haspopup="dialog"><span class="k">Game</span><span class="v" data-role="pickname">Loading&#8230;</span><span class="t" data-role="picktime"></span></button>
   </div>
 
   <div class="pt-wrap" data-role="wrap"></div>
@@ -247,9 +249,6 @@
 
   // Edge thresholds, in percentile difference. Half the track is 1.0.
   var EDGE_BIG = 0.5, EDGE_SOME = 0.25;
-  // Below this share of current-season data the fill is hatched: the rating is
-  // still mostly last season's regressed baseline.
-  var BASELINE_SHARE = 0.25;
   // Splits with fewer plays than this show a dash. The blend still produces a
   // number, but it is nearly all prior and the reader should know that.
   var MIN_SPLIT = 40;
@@ -273,30 +272,67 @@
     TEN:['Tennessee Titans','Titans'], WAS:['Washington Commanders','Commanders']
   };
 
+  // Primary colours are the injury report tool's map, so the two tools agree
+  // (it already nudges near-duplicates: the Ravens purple is lightened, the
+  // Cowboys are slate rather than navy, the Jets and Eagles are pushed apart).
+  // The secondary is the team's alternate, used only when the two teams in a
+  // game are too close to tell apart on a 16px bar.
+  var COLORS = {
+    ARI:['#97233F','#FFB612'], ATL:['#A71930','#6B6B6B'], BAL:['#5B4CA6','#9E7C0C'], BUF:['#00338D','#C60C30'],
+    CAR:['#0085CA','#2C2C2C'], CHI:['#C83803','#0B162A'], CIN:['#FB4F14','#3B3B3B'], CLE:['#FF3C00','#311D00'],
+    DAL:['#7192B6','#041E42'], DEN:['#FB4F14','#002244'], DET:['#0076B6','#B0B7BC'], GB:['#FFB612','#203731'],
+    HOU:['#A6192E','#03202F'], IND:['#3E7CB1','#002C5F'], JAX:['#00A3A1','#D7A22A'], KC:['#E31837','#FFB81C'],
+    LV:['#A5ACAF','#333333'], LAC:['#0080C6','#FFC20E'], LAR:['#1B4FA8','#FFD100'], MIA:['#00A5AC','#FC4C02'],
+    MIN:['#7B52AB','#FFC62F'], NE:['#C60C30','#002244'], NO:['#D3BC8D','#3A3A3A'], NYG:['#2A5AC7','#A71930'],
+    NYJ:['#3A8F63','#125740'], PHI:['#0F8A78','#A5ACAF'], PIT:['#FFB612','#333333'], SF:['#C8102E','#B3995D'],
+    SEA:['#69BE28','#002244'], TB:['#D50A0A','#FF7900'], TEN:['#4B92DB','#0C2340'], WAS:['#A9453D','#FFB612']
+  };
+  var COLOR_MIN_DIST = 95;   // RGB distance below which two teams read as one colour
+  function hexRgb(h){ return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+  function dist(a, b){
+    var p = hexRgb(a), q = hexRgb(b);
+    return Math.sqrt((p[0] - q[0]) * (p[0] - q[0]) + (p[1] - q[1]) * (p[1] - q[1]) + (p[2] - q[2]) * (p[2] - q[2]));
+  }
+  // Colours for the two teams in one game. Primary for both unless they clash,
+  // then the home team takes its alternate, then the away team does.
+  function gameColors(g){
+    var a = (COLORS[g.away] || ['#cc0000', '#111111']), h = (COLORS[g.home] || ['#111111', '#cc0000']);
+    var ca = a[0], ch = h[0];
+    if (dist(ca, ch) < COLOR_MIN_DIST) ch = h[1];
+    if (dist(ca, ch) < COLOR_MIN_DIST) ca = a[1];
+    var out = {}; out[g.away] = ca; out[g.home] = ch;
+    return out;
+  }
+  function tint(hex, t){
+    // t from 0 (light gray) to 1 (full colour)
+    var a = [244, 245, 247], b = hexRgb(hex);
+    return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * t) + ',' + Math.round(a[1] + (b[1] - a[1]) * t) + ',' +
+      Math.round(a[2] + (b[2] - a[2]) * t) + ')';
+  }
+
   // What the sheet shows for each battle row: the metrics behind the score,
-  // then the tendency-versus-counter pairs. [metric, label, format, kind]
-  // kind: 'q' quality (ranked best-first, both sides), 't' tendency (rate).
-  // Pairs are [defense tendency metric, offense counter metric] so the reader
-  // sees "this defense does X a lot" next to "this offense handles X well".
+  // then the tendency-versus-counter pairs. [metric, label, format]
+  // Pairs are [defense tendency metric, offense counter metric, labels]; a null
+  // tendency means the counter row stands alone.
   var DETAIL = {
-    overall:   {parts:[['sr','Success rate','pct','q'],['epa','EPA per play','epa','q'],
-                       ['early_sr','Early-down success','pct','q'],['third','Third-down conversion','pct','q']],
+    overall:   {parts:[['sr','Success rate','pct'],['epa','EPA per play','epa'],
+                       ['early_sr','Early-down success','pct'],['third','Third-down conversion','pct']],
                 pairs:[]},
-    pass:      {parts:[['db_sr','Dropback success','pct','q'],['db_epa','EPA per dropback','epa','q']],
+    pass:      {parts:[['db_sr','Dropback success','pct'],['db_epa','EPA per dropback','epa']],
                 pairs:[['blitz','blitz_epa','Blitz rate','EPA vs blitz'],
                        ['man','man_epa','Man coverage rate','EPA vs man'],
                        [null,'zone_epa','','EPA vs zone'],
                        ['pa','pa_epa','Play-action rate','Play-action EPA'],
                        ['deep','deep_epa','Deep target rate','Deep EPA']]},
-    rush:      {parts:[['run_sr','Rush success','pct','q'],['run_epa','EPA per rush','epa','q'],
-                       ['ybc','Yards before contact','yds','q'],['yac_run','Yards after contact','yds','q'],
-                       ['xrun','Explosive run rate','pct','q']],
+    rush:      {parts:[['run_sr','Rush success','pct'],['run_epa','EPA per rush','epa'],
+                       ['ybc','Yards before contact','yds'],['yac_run','Yards after contact','yds'],
+                       ['xrun','Explosive run rate','pct']],
                 pairs:[]},
-    pressure:  {parts:[['prsr','Pressure rate','pct','q'],['sack','Sack rate','pct','q']],
+    pressure:  {parts:[['prsr','Pressure rate','pct'],['sack','Sack rate','pct']],
                 pairs:[['blitz','blitz_epa','Blitz rate','EPA vs blitz'],
                        ['ttt','prsr','Time to throw','Pressure rate']]},
-    explosive: {parts:[['explo','Explosive play rate','pct','q'],['xpass','Explosive pass rate','pct','q'],
-                       ['xrun','Explosive run rate','pct','q']],
+    explosive: {parts:[['explo','Explosive play rate','pct'],['xpass','Explosive pass rate','pct'],
+                       ['xrun','Explosive run rate','pct']],
                 pairs:[['deep','deep_epa','Deep target rate','Deep EPA']]}
   };
 
@@ -321,10 +357,11 @@
     var s = ['th','st','nd','rd'], v = n % 100;
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
   }
+  function suffix(n){ return ord(n).replace(String(n), ''); }
   function fmtRate(v, kind){
     if (v == null) return '\u2013';
     if (kind === 'pct') return Math.round(v * 100) + '%';
-    if (kind === 'epa') return (v >= 0 ? '+' : '') + v.toFixed(2);
+    if (kind === 'epa'){ var t2 = v.toFixed(2); return t2 === '-0.00' ? '0.00' : (v > 0 ? '+' : '') + t2; }
     if (kind === 'yds') return v.toFixed(2);
     if (kind === 'sec') return v.toFixed(2) + 's';
     return String(v);
@@ -341,6 +378,7 @@
     var mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(p[1], 10) - 1];
     return mo + ' ' + parseInt(p[2], 10);
   }
+  function gameLabel(g){ return g.away + (g.neutral ? ' vs ' : ' at ') + g.home; }
 
   /* The server-rendered preload table sits outside this fragment: it comes from
      the shortcode, so in Avada it is a sibling of the code block, not a child of
@@ -411,10 +449,10 @@
     var o = battlesFor(W, off, 'off')[key], d = battlesFor(W, dfn, 'def')[key];
     return { e: o[2] - d[2], o: o, d: d };
   }
-  function edgeWord(e){
+  function edgeWord(e, off, dfn){
     var a = Math.abs(e);
-    if (a >= EDGE_BIG) return (e > 0 ? 'Big offense edge' : 'Big defense edge');
-    if (a >= EDGE_SOME) return (e > 0 ? 'Offense edge' : 'Defense edge');
+    if (a >= EDGE_BIG) return e > 0 ? 'Big ' + off + ' edge' : 'Big ' + dfn + ' edge';
+    if (a >= EDGE_SOME) return e > 0 ? off + ' edge' : dfn + ' edge';
     return 'Even';
   }
   function mismatch(W, g){
@@ -428,10 +466,9 @@
     var u = unitFor(W, team, 'off');
     return u ? u.f : D.latest.units[team].off.f;
   }
-  function shareFor(W, team, side){
-    var b = battlesFor(W, team, side);
-    return b.overall[3];
-  }
+  // The newest week the tool will show. Future weeks would only repeat the
+  // current ratings, so the stepper stops here.
+  function maxWeek(){ return D.current_week || 1; }
 
   // ---- card ------------------------------------------------------------------
 
@@ -440,19 +477,18 @@
     wrap.innerHTML = '';
     var W = STATE.week, g = gameById(STATE.game);
     if (!g){ showStatus('No game selected.'); return; }
+    var C = gameColors(g);
     var card = el('div', 'pt-card');
 
-    // Game header: both teams, overall ranks, kickoff, final if played.
+    // Team header: both teams, overall ranks, kickoff, final if played.
     var head = el('div', 'pt-game');
-    head.appendChild(teamBlock(W, g.away, false));
+    head.appendChild(teamBlock(W, g.away, C[g.away]));
     head.appendChild(el('div', 'pt-at', g.neutral ? 'vs' : 'at'));
-    head.appendChild(teamBlock(W, g.home, true));
+    head.appendChild(teamBlock(W, g.home, C[g.home]));
     card.appendChild(head);
 
-    var when = el('div', 'pt-when');
-    var b = el('b', null, fmtDate(g.date) + ' \u00b7 ' + fmtTime(g));
-    when.appendChild(b);
-    if (g.stadium) when.appendChild(document.createTextNode(' \u00b7 ' + g.stadium));
+    var when = el('div', 'pt-when', fmtDate(g.date) + ' \u00b7 ' + fmtTime(g));
+    if (g.stadium) when.appendChild(el('span', null, ' \u00b7 ' + g.stadium));
     card.appendChild(when);
 
     var res = D.results[g.id];
@@ -477,31 +513,25 @@
     card.appendChild(sides);
 
     var panels = el('div', 'pt-panels');
-    panels.appendChild(panel(W, g.away, g.home, STATE.side !== 0));
-    panels.appendChild(panel(W, g.home, g.away, STATE.side !== 1));
+    panels.appendChild(panel(W, g.away, g.home, C, STATE.side !== 0));
+    panels.appendChild(panel(W, g.home, g.away, C, STATE.side !== 1));
     card.appendChild(panels);
 
-    var key = el('div', 'pt-key');
-    key.innerHTML = '<span class="o">\u2190 Offense edge</span><span>Defense edge \u2192</span>';
-    card.appendChild(key);
-
-    card.appendChild(basisLine(W, g));
     wrap.appendChild(card);
     hideServerPreload();
     paintPick(g);
-    paintFoot();
+    paintFoot(W, g);
   }
 
-  function teamBlock(W, team, right){
-    var blk = el('div', 'pt-teamblk' + (right ? ' r' : ''));
-    blk.appendChild(el('div', 'pt-tname', teamName(team, Math.min(nameTier(), 1))));
+  function teamBlock(W, team, color){
+    var blk = el('div', 'pt-teamblk');
+    var nm = el('div', 'pt-tname', teamName(team, Math.min(nameTier(), 1)));
+    nm.style.color = color;
+    blk.appendChild(nm);
     var f = flagsFor(W, team);
     var qb = el('div', 'pt-tqb');
     qb.textContent = f.qb ? 'QB ' + f.qb : '';
-    if (f.qb_new){
-      var chip = el('span', 'new', f.qb_since ? ' New since wk ' + f.qb_since : ' New QB');
-      qb.appendChild(chip);
-    }
+    if (f.qb_new) qb.appendChild(el('span', 'new', f.qb_since ? ' New since wk ' + f.qb_since : ' New QB'));
     blk.appendChild(qb);
     var ranks = el('div', 'pt-ranks');
     ['off', 'def'].forEach(function(side){
@@ -509,7 +539,7 @@
       r.appendChild(el('div', 'k', side === 'off' ? 'Offense' : 'Defense'));
       var rk = battlesFor(W, team, side).overall[1];
       var n = el('div', 'n', String(rk));
-      n.appendChild(el('small', null, ord(rk).replace(String(rk), '')));
+      n.appendChild(el('small', null, suffix(rk)));
       r.appendChild(n);
       ranks.appendChild(r);
     });
@@ -517,65 +547,53 @@
     return blk;
   }
 
-  function panel(W, off, dfn, hidden){
+  function panel(W, off, dfn, C, hidden){
     var p = el('div', 'pt-panel');
     if (hidden) p.setAttribute('data-off', '1');
-    p.appendChild(el('div', 'pt-ptitle', off + ' offense vs ' + dfn + ' defense'));
+    var title = el('div', 'pt-ptitle');
+    var a = el('span', null, off + ' offense'); a.style.color = C[off];
+    var b = el('span', null, dfn + ' defense'); b.style.color = C[dfn];
+    title.appendChild(a); title.appendChild(el('span', 'vs', 'vs')); title.appendChild(b);
+    p.appendChild(title);
     var cols = el('div', 'pt-cols');
-    cols.innerHTML = '<span class="l"></span><span class="o">' + off + ' off</span><span class="t">Edge</span><span class="d">' + dfn + ' def</span>';
+    var co = el('span', 'o', off + ' off'); co.style.color = C[off];
+    var cd = el('span', 'd', dfn + ' def'); cd.style.color = C[dfn];
+    cols.appendChild(el('span', 'l')); cols.appendChild(co); cols.appendChild(el('span', 't', 'Edge')); cols.appendChild(cd);
     p.appendChild(cols);
-    D.battles.forEach(function(b){
-      var e = edgeOf(W, off, dfn, b.key);
+    D.battles.forEach(function(bt){
+      var e = edgeOf(W, off, dfn, bt.key);
       var row = el('button', 'pt-row');
       row.type = 'button';
-      row.setAttribute('aria-label', b.label + ': ' + off + ' offense ' + ord(e.o[1]) + ', ' + dfn + ' defense ' + ord(e.d[1]) + ', ' + edgeWord(e.e));
-      var lab = el('span', 'l', b.label);
-      row.appendChild(lab);
-      var o = el('span', 'o'); o.innerHTML = e.o[1] + '<sup>' + ord(e.o[1]).replace(String(e.o[1]), '') + '</sup>';
+      row.setAttribute('aria-label', bt.label + ': ' + off + ' offense ' + ord(e.o[1]) + ', ' + dfn + ' defense ' + ord(e.d[1]) + ', ' + edgeWord(e.e, off, dfn));
+      row.appendChild(el('span', 'l', bt.label));
+      var o = el('span', 'o'); o.innerHTML = e.o[1] + '<sup>' + suffix(e.o[1]) + '</sup>';
       row.appendChild(o);
       var tw = el('span', 'pt-trackwrap');
-      tw.appendChild(track(e.e, Math.min(e.o[3], e.d[3])));
-      var ew = el('span', 'pt-edge' + (Math.abs(e.e) >= EDGE_SOME ? (e.e > 0 ? ' eo' : ' ed') : ''), edgeWord(e.e));
+      tw.appendChild(track(e.e, Math.min(e.o[3], e.d[3]), e.e >= 0 ? C[off] : C[dfn]));
+      var ew = el('span', 'pt-edge', edgeWord(e.e, off, dfn));
+      if (Math.abs(e.e) >= EDGE_SOME) ew.style.color = e.e > 0 ? C[off] : C[dfn];
       tw.appendChild(ew);
       row.appendChild(tw);
-      var d = el('span', 'd'); d.innerHTML = e.d[1] + '<sup>' + ord(e.d[1]).replace(String(e.d[1]), '') + '</sup>';
+      var d = el('span', 'd'); d.innerHTML = e.d[1] + '<sup>' + suffix(e.d[1]) + '</sup>';
       row.appendChild(d);
-      row.addEventListener('click', function(){ openDetail(W, off, dfn, b); });
+      row.addEventListener('click', function(){ openDetail(W, off, dfn, bt, C); });
       p.appendChild(row);
     });
     return p;
   }
 
-  function track(edge, share){
+  function track(edge, share, color){
     var t = el('span', 'pt-track');
     [0.25, 0.75].forEach(function(q){
       var m = el('span', 'q'); m.style.left = (q * 100) + '%'; t.appendChild(m);
     });
-    var fill = el('span', 'fill ' + (edge >= 0 ? 'fo' : 'fd') + (share < BASELINE_SHARE ? ' base' : ''));
+    var fill = el('span', 'fill ' + (edge >= 0 ? 'fo' : 'fd'));
     fill.style.width = (Math.min(1, Math.abs(edge)) * 50) + '%';
-    fill.style.opacity = String(0.55 + 0.45 * Math.max(0, Math.min(1, share)));
+    fill.style.background = color;
+    fill.style.opacity = String(0.5 + 0.5 * Math.max(0, Math.min(1, share)));
     t.appendChild(fill);
     t.appendChild(el('span', 'mid'));
     return t;
-  }
-
-  function basisLine(W, g){
-    var sw = snapshotWeek(W);
-    var d = el('div', 'pt-basis');
-    var so = shareFor(W, g.away, 'off'), sd = shareFor(W, g.home, 'def');
-    var share = Math.round(((so + sd) / 2) * 100);
-    var txt;
-    if (sw === 1){
-      txt = '<b>' + D.prior + ' baseline.</b> No ' + D.season + ' games have been played, so every rating is ' +
-        'last season\u2019s number regressed toward average, with extra regression for a new starting ' +
-        'quarterback or coordinator. Hatched bars mean exactly that.';
-    } else {
-      txt = '<b>Ratings as of week ' + (sw - 1) + ' games.</b> Roughly ' + share + '% of these ratings comes from ' +
-        D.season + ' play, the rest from a regressed ' + D.prior + ' baseline. Opponent-adjusted. ' +
-        (W > sw ? 'No games have been played since, so this is the latest read.' : '');
-    }
-    d.innerHTML = txt + ' Tap any row for the numbers behind it.';
-    return d;
   }
 
   // ---- bottom sheet ----------------------------------------------------------
@@ -607,7 +625,7 @@
   $('scrim').addEventListener('click', closeSheet);
   ROOT.addEventListener('keydown', function(ev){ if (ev.key === 'Escape' && !$('sheet').hidden) closeSheet(); });
 
-  function openDetail(W, off, dfn, b){
+  function openDetail(W, off, dfn, b, C){
     var body = openSheet(b.label + ': ' + off + ' offense vs ' + dfn + ' defense', 'Week ' + W);
     body.appendChild(el('div', 'pt-status', 'Loading\u2026'));
     ensureWeek(W).then(function(){
@@ -616,58 +634,33 @@
       var e = edgeOf(W, off, dfn, b.key);
       var det = DETAIL[b.key];
 
-      // Edge summary
       var sec = el('div', 'pt-sec');
-      var n = el('div', 'pt-note');
-      n.innerHTML = '<b>' + edgeWord(e.e) + '.</b> ' + off + ' offense ranks <b>' + ord(e.o[1]) + '</b> and ' +
-        dfn + ' defense ranks <b>' + ord(e.d[1]) + '</b> in ' + b.label.toLowerCase() + '. ' +
-        Math.round(e.o[3] * 100) + '% of the offense rating and ' + Math.round(e.d[3] * 100) +
-        '% of the defense rating come from ' + D.season + ' games; the rest is the regressed ' + D.prior + ' baseline.';
-      sec.appendChild(n);
+      var lead = el('div', 'pt-lead');
+      lead.innerHTML = '<b>' + edgeWord(e.e, off, dfn) + '.</b> ' + off + ' offense ranks <b>' + ord(e.o[1]) + '</b> and ' +
+        dfn + ' defense ranks <b>' + ord(e.d[1]) + '</b>.';
+      sec.appendChild(lead);
       body.appendChild(sec);
 
-      // Dumbbells: each component metric, offense value and defense-allowed value
-      // on one axis with the league average marked.
       sec = el('div', 'pt-sec');
       sec.appendChild(el('div', 'pt-stitle', 'The numbers behind the rank'));
       det.parts.forEach(function(part){
-        sec.appendChild(dumbbell(part, uo, ud, L, off, dfn));
+        sec.appendChild(dumbbell(part, uo, ud, L, off, dfn, C));
       });
       body.appendChild(sec);
 
-      // Trend: battle score by as-of week for both units.
       if (D.snapshot_weeks.length > 1){
         sec = el('div', 'pt-sec');
         sec.appendChild(el('div', 'pt-stitle', 'Rating by week'));
-        sec.appendChild(trendChart(b.key, off, dfn, W));
-        var tn = el('div', 'pt-note');
-        tn.innerHTML = 'Score is standard deviations from league average, positive is better for the unit. ' +
-          'Week 1 is the ' + D.prior + ' baseline; each later point adds that week\u2019s games.';
-        sec.appendChild(tn);
+        sec.appendChild(trendChart(b.key, off, dfn, W, C));
         body.appendChild(sec);
       }
 
-      // Tendency versus counter.
       if (det.pairs.length){
         sec = el('div', 'pt-sec');
         sec.appendChild(el('div', 'pt-stitle', 'Tendency vs counter'));
-        sec.appendChild(pairsTable(det.pairs, uo, ud, off, dfn));
-        var pn = el('div', 'pt-note');
-        pn.textContent = 'Rate rows: for the offense, how often it has faced the thing; for the defense, how often it does it. ' +
-          'EPA rows: the offense\u2019s EPA per play against it; the defense\u2019s EPA allowed while doing it. ' +
-          'A dash means fewer than ' + MIN_SPLIT + ' plays this season, so the split is still mostly baseline.';
-        sec.appendChild(pn);
+        sec.appendChild(pairsTable(det.pairs, uo, ud, off, dfn, C));
         body.appendChild(sec);
       }
-
-      // Data basis
-      sec = el('div', 'pt-sec');
-      var bn = el('div', 'pt-note');
-      bn.innerHTML = '<b>Data:</b> ' + off + ' offense ' + uo.g + ' game' + (uo.g === 1 ? '' : 's') + ', ' +
-        dfn + ' defense ' + ud.g + ' game' + (ud.g === 1 ? '' : 's') + ' in ' + D.season + '. ' +
-        'Headline metrics are opponent-adjusted; splits are not. Last-season numbers are shown for reference only.';
-      sec.appendChild(bn);
-      body.appendChild(sec);
     }).catch(function(err){
       body.innerHTML = '';
       body.appendChild(el('div', 'pt-status', 'Could not load that week\u2019s detail.'));
@@ -688,52 +681,48 @@
     if (text != null) n.textContent = text;
     return n;
   }
-  var INK = '#111', RED = '#cc0000', G1 = '#7f8c9a', G2 = '#b0bec5', B2 = '#dde2e8';
+  var INK = '#111', G1 = '#7f8c9a', G2 = '#b0bec5', B2 = '#dde2e8';
 
   // One metric on one axis: league average at the centre tick, the offense's
   // value and the defense's allowed value as two dots joined by a bar. For a
   // higher-is-better metric a dot to the right is good for the offense and bad
   // for the defense, which is exactly the tension the row is there to show.
-  function dumbbell(part, uo, ud, L, off, dfn){
+  function dumbbell(part, uo, ud, L, off, dfn, C){
     var m = part[0], label = part[1], kind = part[2];
     var mo = uo.m[m], md = ud.m[m];
     var lo = L.off[m], ld = L.def[m];
     var mean = lo[0], sd = Math.max(lo[1], ld[1], 1e-6);
-    var W = 320, H = 54, x0 = 12, x1 = W - 12, cx = (x0 + x1) / 2;
+    var W = 320, H = 56, x0 = 12, x1 = W - 12, cx = (x0 + x1) / 2;
     var spread = 2.6 * sd;           // axis spans about +/- 2.6 sd
     function X(v){ return Math.max(x0, Math.min(x1, cx + (v - mean) / spread * (x1 - x0) / 2)); }
     var box = el('div', 'pt-chart');
     var s = svg(W, H);
-    s.appendChild(node('text', {x:x0, y:12, 'font-size':'10', 'font-weight':'700', fill:INK}, label.toUpperCase()));
-    s.appendChild(node('text', {x:x1, y:12, 'font-size':'9', fill:G1, 'text-anchor':'end'}, 'Avg ' + fmtRate(mean, kind)));
-    s.appendChild(node('line', {x1:x0, y1:34, x2:x1, y2:34, stroke:B2, 'stroke-width':'2'}));
-    s.appendChild(node('line', {x1:cx, y1:26, x2:cx, y2:42, stroke:INK, 'stroke-width':'2'}));
+    s.appendChild(node('text', {x:cx, y:12, 'font-size':'10', 'font-weight':'700', fill:INK, 'text-anchor':'middle'}, label.toUpperCase()));
+    s.appendChild(node('line', {x1:x0, y1:36, x2:x1, y2:36, stroke:B2, 'stroke-width':'2'}));
+    s.appendChild(node('line', {x1:cx, y1:28, x2:cx, y2:44, stroke:INK, 'stroke-width':'2'}));
+    s.appendChild(node('text', {x:x1, y:12, 'font-size':'8', fill:G1, 'text-anchor':'end'}, 'avg ' + fmtRate(mean, kind)));
     var vo = mo[0], vd = md[0];
     if (vo != null && vd != null){
-      s.appendChild(node('line', {x1:X(vo), y1:34, x2:X(vd), y2:34, stroke:G2, 'stroke-width':'4'}));
+      s.appendChild(node('line', {x1:X(vo), y1:36, x2:X(vd), y2:36, stroke:G2, 'stroke-width':'4'}));
     }
+    // Labels sit above the dots; when the dots are close the defense label
+    // drops below the axis so the two never overprint.
+    var close = vo != null && vd != null && Math.abs(X(vo) - X(vd)) < 72;
     if (vo != null){
-      s.appendChild(node('circle', {cx:X(vo), cy:34, r:6, fill:RED}));
-      s.appendChild(node('text', {x:X(vo), y:52, 'font-size':'10', 'font-weight':'700', fill:RED, 'text-anchor':'middle'},
+      s.appendChild(node('circle', {cx:X(vo), cy:36, r:6, fill:C[off]}));
+      s.appendChild(node('text', {x:X(vo), y:26, 'font-size':'10', 'font-weight':'700', fill:C[off], 'text-anchor':'middle'},
         off + ' ' + fmtRate(vo, kind) + (mo[3] ? ' (' + ord(mo[3]) + ')' : '')));
     }
     if (vd != null){
-      s.appendChild(node('circle', {cx:X(vd), cy:34, r:6, fill:INK}));
-      s.appendChild(node('text', {x:X(vd), y:24, 'font-size':'10', 'font-weight':'700', fill:INK, 'text-anchor':'middle'},
+      s.appendChild(node('circle', {cx:X(vd), cy:36, r:6, fill:C[dfn]}));
+      s.appendChild(node('text', {x:X(vd), y:close ? 54 : 26, 'font-size':'10', 'font-weight':'700', fill:C[dfn], 'text-anchor':'middle'},
         dfn + ' ' + fmtRate(vd, kind) + (md[3] ? ' (' + ord(md[3]) + ')' : '')));
     }
     box.appendChild(s);
-    var note = el('div', 'pt-note');
-    var raw = (mo[2] || md[2])
-      ? 'Raw ' + D.season + ': ' + off + ' ' + fmtRate(mo[1], kind) + ' on ' + mo[2] + ' plays, ' +
-        dfn + ' ' + fmtRate(md[1], kind) + ' allowed on ' + md[2] + '. '
-      : 'No ' + D.season + ' plays yet. ';
-    note.innerHTML = raw + D.prior + ': ' + off + ' ' + fmtRate(mo[4], kind) + ', ' + dfn + ' ' + fmtRate(md[4], kind) + '.';
-    box.appendChild(note);
     return box;
   }
 
-  function trendChart(key, off, dfn, W){
+  function trendChart(key, off, dfn, W, C){
     var to = D.trend[off].off[key], td = D.trend[dfn].def[key];
     var weeks = D.snapshot_weeks;
     var n = weeks.length;
@@ -746,9 +735,8 @@
     var s = svg(Wd, H);
     s.appendChild(node('line', {x1:x0, y1:Y(0), x2:x1, y2:Y(0), stroke:INK, 'stroke-width':'1'}));
     s.appendChild(node('text', {x:x0 - 4, y:Y(0) + 3, 'font-size':'9', fill:G1, 'text-anchor':'end'}, 'avg'));
-    s.appendChild(node('text', {x:x0 - 4, y:y0 + 3, 'font-size':'9', fill:G1, 'text-anchor':'end'}, '+' + hi.toFixed(1)));
-    s.appendChild(node('text', {x:x0 - 4, y:y1, 'font-size':'9', fill:G1, 'text-anchor':'end'}, lo.toFixed(1)));
-    // Highlight the as-of week the card is showing.
+    s.appendChild(node('text', {x:x0 - 4, y:y0 + 3, 'font-size':'9', fill:G1, 'text-anchor':'end'}, 'best'));
+    s.appendChild(node('text', {x:x0 - 4, y:y1, 'font-size':'9', fill:G1, 'text-anchor':'end'}, 'worst'));
     var sw = snapshotWeek(W), si = weeks.indexOf(sw);
     if (si >= 0) s.appendChild(node('line', {x1:X(si), y1:y0, x2:X(si), y2:y1, stroke:B2, 'stroke-width':'6'}));
     weeks.forEach(function(w, i){
@@ -764,25 +752,28 @@
       s.appendChild(node('path', a));
       arr.forEach(function(v, i){ s.appendChild(node('circle', {cx:X(i), cy:Y(v), r:3, fill:color})); });
     }
-    path(to, RED, false);
-    path(td, INK, true);
+    path(to, C[off], false);
+    path(td, C[dfn], true);
     box.appendChild(s);
-    var leg = el('div', 'pt-note');
-    leg.innerHTML = '<b style="color:#cc0000">\u2014 ' + off + ' offense</b> &nbsp; <b>- - ' + dfn + ' defense</b>';
+    var leg = el('div', 'pt-legend');
+    var a = el('span', null, '\u2014 ' + off + ' offense'); a.style.color = C[off];
+    var b = el('span', null, '- - ' + dfn + ' defense'); b.style.color = C[dfn];
+    leg.appendChild(a); leg.appendChild(b);
     box.appendChild(leg);
     return box;
   }
 
-  function pairsTable(pairs, uo, ud, off, dfn){
+  function pairsTable(pairs, uo, ud, off, dfn, C){
     var t = el('table', 'pt-tend');
     var thead = el('thead');
     var hr = el('tr', 'hd');
-    hr.innerHTML = '<th></th><th style="text-align:right">' + off + ' off</th><th style="text-align:right">' + dfn + ' def</th>';
+    var h0 = el('th'), h1 = el('th', null, off + ' off'), h2 = el('th', null, dfn + ' def');
+    h1.style.color = C[off]; h2.style.color = C[dfn];
+    hr.appendChild(h0); hr.appendChild(h1); hr.appendChild(h2);
     thead.appendChild(hr);
     t.appendChild(thead);
     var tb = el('tbody');
     pairs.forEach(function(p){
-      // Row 1: the tendency (a rate) for both units. Row 2: the counter (EPA).
       if (p[0]) tb.appendChild(tendRow(p[2], p[0], 'pct', uo, ud));
       tb.appendChild(tendRow(p[3], p[1], p[1] === 'prsr' ? 'pct' : 'epa', uo, ud));
     });
@@ -814,7 +805,7 @@
 
   function openPicker(){
     var W = STATE.week;
-    var body = openSheet('Week ' + W + ' games', 'Red cells favor the offense, gray the defense');
+    var body = openSheet('Week ' + W + ' games', 'Each bar takes the color of the team holding the edge');
     var sorts = el('div', 'pt-sorts');
     [['time', 'By kickoff'], ['mis', 'Biggest mismatch']].forEach(function(o){
       var b = el('button', 'pt-sort', o[1]);
@@ -830,22 +821,24 @@
     var games = gamesIn(W).slice();
     if (STATE.sort === 'mis') games.sort(function(a, b){ return mismatch(W, b) - mismatch(W, a); });
     games.forEach(function(g){
+      var C = gameColors(g);
       var row = el('button', 'pt-gl');
       row.type = 'button';
       if (g.id === STATE.game) row.setAttribute('aria-current', 'true');
-      var nm = el('span', 'nm', g.away + (g.neutral ? ' vs ' : ' at ') + g.home);
+      var nm = el('span', 'nm', gameLabel(g));
       var sub = (g.as != null && g.hs != null) ? 'Final ' + g.as + '-' + g.hs : fmtTime(g);
-      nm.appendChild(el('small', null, sub));
+      nm.appendChild(el('small', null, g.id === STATE.game ? 'Showing \u00b7 ' + sub : sub));
       row.appendChild(nm);
       var strip = el('span', 'pt-strip');
       [[g.away, g.home], [g.home, g.away]].forEach(function(pair){
         var r = el('span', 'r');
-        r.appendChild(el('span', 't', pair[0] + ' O'));
+        var lab = el('span', 't', pair[0] + ' O'); lab.style.color = C[pair[0]];
+        r.appendChild(lab);
         D.battles.forEach(function(b){
           var e = edgeOf(W, pair[0], pair[1], b.key);
           var c = el('span', 'c');
-          c.style.background = edgeColor(e.e);
-          c.title = b.label + ': ' + edgeWord(e.e);
+          c.style.background = tint(e.e >= 0 ? C[pair[0]] : C[pair[1]], Math.min(1, Math.abs(e.e) / 0.8));
+          c.title = b.label + ': ' + edgeWord(e.e, pair[0], pair[1]);
           r.appendChild(c);
         });
         strip.appendChild(r);
@@ -859,49 +852,33 @@
       body.appendChild(row);
     });
     var note = el('div', 'pt-note');
-    note.textContent = 'The number on the right totals the ten edges, so the top of the mismatch sort is the game with the most lopsided units, not the most one-sided game.';
+    note.textContent = 'The number on the right totals all ten edges, so the mismatch sort surfaces the game with the most lopsided units.';
     body.appendChild(note);
-  }
-
-  // Diverging fill for the picker strips: white at even, Sharp red toward an
-  // offense edge, slate toward a defense edge. Scaled on the edge itself rather
-  // than on rank, since here the point is distance from even, and every game on
-  // the slate uses the same scale.
-  function edgeColor(e){
-    var t = Math.min(1, Math.abs(e) / 0.8);
-    var a = [244, 245, 247], b = e >= 0 ? [204, 0, 0] : [92, 103, 115];
-    return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * t) + ',' + Math.round(a[1] + (b[1] - a[1]) * t) + ',' +
-      Math.round(a[2] + (b[2] - a[2]) * t) + ')';
   }
 
   // ---- chrome ------------------------------------------------------------------
 
   function paintPick(g){
-    $('pickname').textContent = g ? (g.away + (g.neutral ? ' vs ' : ' at ') + g.home) : 'Pick a game';
+    $('pickname').textContent = g ? gameLabel(g) : 'Pick a game';
+    $('picktime').textContent = g ? fmtTime(g) : '';
     $('wk').textContent = 'Week ' + STATE.week;
-    $('prev').disabled = STATE.week <= 1;
-    $('next').disabled = STATE.week >= 18;
+    var prev = $('prev'), next = $('next');
+    prev.hidden = STATE.week <= 1;
+    next.hidden = STATE.week >= maxWeek();
   }
-  function paintSub(){
-    var sw = latestWeek();
-    var txt = sw === 1
-      ? 'Season ' + D.season + '. <b>' + D.prior + ' baseline</b> until week 1 is in the books.'
-      : 'Season ' + D.season + '. Ratings through <b>week ' + (sw - 1) + '</b> games. Updated ' + D.generated_utc.slice(0, 10) + '.';
-    $('sub').innerHTML = txt;
-  }
-  function paintFoot(){
+  function paintFoot(W, g){
+    var sw = snapshotWeek(W);
     var f = $('foot');
-    f.innerHTML = '<details><summary>How to read this</summary>' +
-      '<p><b>Ranks</b> are 1 to 32 for the unit named. A defense ranked 3rd is a top defense. ' +
-      '<b>Edge</b> is the gap between the offense\u2019s percentile and the defense\u2019s: the bar grows from the middle toward ' +
-      'whichever unit holds the advantage, red for the offense, gray for the defense. A full half-track is a 1st-ranked unit against a 32nd.</p>' +
-      '<p><b>Overall, Passing, Rushing</b> blend success rate (60%) and EPA per play (40%). <b>Pressure</b> is the rate of dropbacks with ' +
-      'pressure allowed or generated. <b>Explosives</b> is the rate of passes of 15+ yards and runs of 10+.</p>' +
-      '<p><b>The blend.</b> Every rating mixes this season\u2019s games with last season\u2019s, regressed toward average and fading as the season goes on. ' +
-      'Defense is shrunk harder than offense because it is far less predictable year to year, which is why defensive ranks bunch toward the ' +
-      'middle early. A new starting quarterback or coordinator cuts the prior further. Headline metrics are adjusted for opponents faced. ' +
-      'Faded or hatched bars mean the rating is still mostly baseline. This is a description of performance to date, not a projection.</p>' +
-      '</details>';
+    var txt;
+    if (sw === 1){
+      txt = '<b>' + D.prior + ' baseline.</b> No ' + D.season + ' games yet, so every rating is last season\u2019s number ' +
+        'pulled part of the way toward league average, since a team\u2019s strengths rarely carry over in full from one year ' +
+        'to the next. A new starting quarterback or coordinator pulls it further.';
+    } else {
+      txt = '<b>Ratings through week ' + (sw - 1) + ' games.</b> Each rating blends ' + D.season + ' play with last season\u2019s ' +
+        'baseline, with this season counting for more every week, adjusted for the opponents faced. Pale bars still lean on the baseline.';
+    }
+    f.innerHTML = txt + ' Ranks are 1 to 32. Tap any row for the numbers behind it.';
   }
   function pushHash(){
     var g = gameById(STATE.game);
@@ -914,6 +891,7 @@
     var m = /^#w(\d{1,2})-([a-z]{2,3})-([a-z]{2,3})$/.exec(location.hash || '');
     if (!m) return null;
     var w = parseInt(m[1], 10), a = m[2].toUpperCase(), h = m[3].toUpperCase();
+    if (w > maxWeek()) return null;
     var g = gamesIn(w).filter(function(x){ return x.away === a && x.home === h; })[0];
     return g ? {week: w, game: g.id} : null;
   }
@@ -922,7 +900,7 @@
     return gs.length ? gs[0].id : null;
   }
   function setWeek(W){
-    STATE.week = Math.max(1, Math.min(18, W));
+    STATE.week = Math.max(1, Math.min(maxWeek(), W));
     STATE.game = firstGame(STATE.week);
     STATE.side = 0;
     render(); pushHash();
@@ -957,12 +935,11 @@
     var season = ix.default || Math.max.apply(null, ix.seasons);
     return get(BASE + 'matchup_' + season + '.json').then(function(blob){
       D = blob;
-      paintSub();
       var h = readHash();
       if (h){
         STATE.week = h.week; STATE.game = h.game;
       } else {
-        STATE.week = D.current_week || 1;
+        STATE.week = maxWeek();
         STATE.game = firstGame(STATE.week);
       }
       if (!STATE.game){
@@ -974,7 +951,7 @@
   }).catch(function(err){
     // render() never runs, so hideServerPreload() is never called and the
     // shortcode table stays on the page as the fallback.
-    $('sub').textContent = 'Live data unavailable, showing this week\u2019s table.';
+    $('pickname').textContent = 'Live data unavailable';
     showStatus('Couldn\u2019t load the live data. The table below still carries this week\u2019s ranks and edges. ' +
       'Reload the page to try the interactive version again.');
     if (window.console) console.error('[matchup]', err);

@@ -35,7 +35,8 @@ SFAStatsPages/
 │   ├── tool-checklist.md           ← end-to-end steps for adding a tool
 │   ├── personnel-grouping-data.md  ← data decisions behind the personnel tool
 │   ├── pace-data.md                ← data decisions behind the pace tool
-│   └── matchup-data.md             ← data decisions and backtest behind the matchup tool
+│   ├── matchup-data.md             ← data decisions and backtest behind the matchup tool
+│   └── matchup-talking-points.md   ← page copy and method explanations for the matchup article
 ├── data/                           ← generated JSON + preload tables, served via Pages
 ├── scripts/
 │   ├── config.py                   ← season → Google Sheet ID map, team aliases, names

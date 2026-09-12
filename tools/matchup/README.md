@@ -37,6 +37,8 @@ and `data/offseason_changes_<season>.json` (see the docs).
   team first) keeps just that game's two rows for a preview article.
 * Deep links: `#w3-kc-buf` opens week 3, KC at BUF. The tool rewrites the hash
   as the reader navigates, with `replaceState`, so it never adds history entries.
+  A hash pointing past the current week is ignored.
+* Copy for the article around the tool lives in `docs/matchup-talking-points.md`.
 * The bottom sheet is `position:absolute` inside the root and scrolls
   internally. No `position:fixed`.
 * On a phone one side of the ball shows at a time behind a toggle; at 641px and
@@ -44,15 +46,15 @@ and `data/offseason_changes_<season>.json` (see the docs).
 
 ## Things that look like bugs but are not
 
-* **Every fill is hatched and faded before week 1.** That is the design: the
-  rating is entirely last season's regressed baseline, and the hatch says so.
-  Fills solidify as this season's share grows.
+* **Every fill is pale before week 1.** That is the design: fill opacity is the
+  share of this season's data behind the rating, so a baseline-only rating sits
+  at half strength and solidifies as games land.
 * **Defensive ranks bunch and most defensive rows read "Even" early.** Defense
   is far less predictable than offense (see the backtest), so its prior is
   regressed to 0.2 of last season's deviation. Ranks spread out as games land.
-* **The card for a future week looks identical to this week's.** No games have
-  been played between them, so it reads the latest snapshot. The basis line
-  says so.
+* **There is no way to step forward past the current week.** Future weeks would
+  only repeat the current ratings, so the stepper stops at the current week and
+  its arrow only appears once there is a past week to go back to.
 * **Stepping back to an old week changes nothing on later weeks.** Snapshots
   are as-of and frozen; that is the point of the stepper.
 * **A team is flagged "New QB" when its week 1 starter was always the plan.**
@@ -68,6 +70,10 @@ and `data/offseason_changes_<season>.json` (see the docs).
   sums ten absolute edges, so five moderate edges outrank one big one.
 * **The final score appears on a card but the offense EPA line does not.**
   nflverse has the score; the sheet does not have the game yet.
+* **Two teams share a color family but show as different shades.** When both
+  primaries are within about 95 RGB units of each other the home team takes its
+  alternate, then the away team. Colors come from the injury report tool's map so
+  the two tools agree.
 * **Percentiles, not raw values, drive the bar length.** A 1st vs 32nd pairing
   fills the half-track regardless of how far apart the underlying numbers are.
   The pop-out dumbbells show the actual distance.
