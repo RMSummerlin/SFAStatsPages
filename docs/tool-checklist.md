@@ -98,6 +98,25 @@ clean, frozen archive once it ends.
 - [ ] The new sheet can be added to `config.py` before it has any data in it. Each `pull_*.py` skips a season with no rows: no JSON written, no index entry, so the season simply does not appear in any picker until real data lands, and no further edit is needed on the day it does. `scripts/test_empty_season.py` guards this
 - [ ] Confirm the new sheet's headers match the old one exactly. Empty is fine; *wrong* still fails the run loudly, which is the intended difference
 
+Three more that apply to the **matchup tool only**, because it is the one tool that reads
+the prior season and inputs outside the sheets:
+
+- [ ] Leave season − 1 in `SEASON_SHEETS`. `pull_matchup.py` builds every team's baseline
+      from the prior season and skips the new season outright if that sheet is no longer
+      configured — a silent way to lose the tool on rollover
+- [ ] In August, draft the offseason changes and then **correct them by hand**:
+      `python scripts/offseason_changes.py --season <year>`. It is a draft — QB1 comes from
+      nflverse's week 1 starters and the coaching changes from Wikipedia navbox revisions,
+      so interim coaches, a listed week 1 starter who is not the real QB1, and any team
+      missing from a navbox all need an editor. With no
+      `data/offseason_changes_<season>.json` the pull prints a warning and applies no QB or
+      coaching haircuts: the ratings still publish, they are just wrong in a way nothing
+      fails on
+- [ ] Once the prior season's sheet is final, run one `python scripts/pull_matchup.py
+      --refresh-prior` so `data/matchup_prior_<season>.json` is rebuilt from the finished
+      sheet instead of whatever mid-season read got cached. Scheduled runs use the cache
+      and never re-read it on their own
+
 Backfilling an old season works the same way: add it to `SEASON_SHEETS` (and
 `SEASON_GIDS` if the sheet's play-by-play is not on the first tab — check the `gid=`
 in its URL), then rebuild once.

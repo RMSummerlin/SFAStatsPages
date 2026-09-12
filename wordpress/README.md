@@ -18,9 +18,16 @@ It registers one shortcode per tool:
 |-----------|-------|
 | `[sharp_football_personnel]` | Personnel grouping frequency |
 | `[sharp_football_pace]` | Offensive pace |
+| `[sharp_football_matchup]` | Weekly matchups — every game of the current week, two rows per game |
 
 Put the shortcode in an Avada **Text Block**, not a Code Block. Code Blocks output
 their contents raw and never run `do_shortcode`.
+
+`[sharp_football_matchup]` is the only one that takes an attribute. A single-game
+preview article can keep just its own two rows with
+`[sharp_football_matchup game="KC-BUF"]` — away team first, matching the row class the
+pull script writes. An unknown or absent code renders the whole slate rather than an
+empty table, so a typo degrades quietly rather than breaking the page.
 
 ## The two halves
 
