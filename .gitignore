@@ -1,0 +1,17 @@
+# Python bytecode, written whenever a script or test runs
+__pycache__/
+*.py[cod]
+
+# Local virtualenv, per the README's "Getting set up"
+.venv/
+venv/
+
+# Never commit a service account key. The pipeline reads it from the repo
+# secret GOOGLE_SERVICE_ACCOUNT_JSON; local work uses --csv and needs no key
+# at all, so a key file here is a mistake worth catching.
+*service-account*.json
+*service_account*.json
+
+# OS noise
+.DS_Store
+Thumbs.db
