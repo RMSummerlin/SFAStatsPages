@@ -65,6 +65,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config  # noqa: E402
+import offense  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
@@ -709,6 +710,11 @@ def main():
             print(f"{season}: sheet has no rows yet — skipping. The season stays "
                   f"out of pace_index.json, so the tool will not offer it.")
             continue
+        # The 2026 sheet logs every play once per team. Keep the offense's row
+        # only, or every team is credited with its opponent's snaps as well.
+        rows, note = offense.offense_rows(rows)
+        if note:
+            print(f"{season}: {note}")
         mark_prior_penalties(rows, present)
         missing = [c for c in OPTIONAL_COLUMNS if c not in present]
         if missing:

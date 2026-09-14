@@ -50,12 +50,14 @@ SFAStatsPages/
 │                                     plus two caches and one hand-corrected input (see below)
 ├── scripts/
 │   ├── config.py                   ← season → Google Sheet ID map, team aliases, names
+│   ├── offense.py                  ← folds a play-logged-twice sheet to the offense's rows (see below)
 │   ├── requirements.txt
 │   ├── pull_personnel_grouping.py  ← pull + transform (auto-run by the workflow)
 │   ├── pull_pace.py                ← pull + transform (auto-run by the workflow)
 │   ├── pull_matchup.py             ← pull + transform (auto-run by the workflow)
 │   ├── offseason_changes.py        ← drafts data/offseason_changes_<season>.json once a year (never on the schedule)
 │   ├── test_pace.py                ← regression tests (auto-run by the workflow)
+│   ├── test_offense.py             ← regression tests (auto-run by the workflow)
 │   ├── test_dead_ball.py           ← regression tests (auto-run by the workflow)
 │   ├── test_teams.py               ← regression tests (auto-run by the workflow)
 │   ├── test_empty_season.py        ← regression tests (auto-run by the workflow)
@@ -80,6 +82,20 @@ SFAStatsPages/
 Anything named `pull_*.py` is picked up and run automatically by the workflow, and
 anything named `test_*.py` is run as a test before the pulls. Helper scripts are
 deliberately named otherwise so they stay manual.
+
+### Sheets that log every play twice
+
+From 2026 the provider's export carries each play on two rows, one per team, with
+`team`/`opponent` swapped and the perspective columns (HomeRoad, ScoreDiff, scores,
+timeouts) flipped — and nothing on either row saying which is the offense. The
+2021–2025 sheets had one row per play with `team` meaning the offense, which is what
+every pull script assumes. Each script therefore passes its rows through
+`offense.offense_rows()` right after reading them; it infers the offense from shared
+player IDs across drives, the yard line in the play description, and drive
+alternation, keeps that copy, merges the one-sided flag columns onto it, and prints
+one line saying how many drives each signal decided. A sheet that is not mirrored
+passes through untouched. Full reasoning in the module's docstring; regression
+fixture in `scripts/test_offense.py`.
 
 ### What's in `data/`
 

@@ -39,6 +39,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config  # noqa: E402
+import offense  # noqa: E402
 import preloads  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -470,6 +471,11 @@ def main():
                   f"out of personnel_grouping_index.json, so the tool will not "
                   f"offer it.")
             continue
+        # The 2026 sheet logs every play once per team. Keep the offense's row
+        # only, or every team is credited with its opponent's snaps as well.
+        rows, note = offense.offense_rows(rows)
+        if note:
+            print(f"{season}: {note}")
 
         payload, summary = build_season(rows, season)
 
