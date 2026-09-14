@@ -30,6 +30,10 @@ check("LAR is already canonical", config.canonical_team("LAR"), "LAR")
 check("lowercase is handled", config.canonical_team("la"), "LAR")
 check("surrounding space is handled", config.canonical_team("  LA "), "LAR")
 
+# The 2026 sheet renamed the Cardinals AZ; every other input still says ARI.
+check("AZ folds to ARI", config.canonical_team("AZ"), "ARI")
+check("ARI is already canonical", config.canonical_team("ARI"), "ARI")
+
 # Unknown and empty input must pass through rather than raise or blank out.
 check("unknown code passes through", config.canonical_team("XYZ"), "XYZ")
 check("empty stays empty", config.canonical_team(""), "")

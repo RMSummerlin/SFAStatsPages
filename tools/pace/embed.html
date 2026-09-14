@@ -177,6 +177,10 @@
   var TOOL = 'pace';
 
   var MIN_SPLIT = 75;
+  var MIN_SPLIT_PER_GAME = 20;
+  function splitFloor(games){
+    return Math.min(MIN_SPLIT, MIN_SPLIT_PER_GAME * Math.max(1, games));
+  }
   var TRAIL_BY = -5;
   var NEUTRAL_MARGIN = 14;
   var FULL_CLOCK = 40;
@@ -432,11 +436,13 @@
     }
 
     rows.forEach(function(r){
+      var floor = splitFloor(r.games);
+      r.floor = floor;
       r.gear = (r.neutral != null && r.trailing != null &&
-                r.neuN >= MIN_SPLIT && r.traN >= MIN_SPLIT)
+                r.neuN >= floor && r.traN >= floor)
         ? r.neutral - r.trailing : null;
-      if (r.neuN < MIN_SPLIT) r.neutral = null;
-      if (r.passD < MIN_SPLIT) r.passrate = null;
+      if (r.neuN < floor) r.neutral = null;
+      if (r.passD < floor) r.passrate = null;
     });
 
     var leagueMean = leagueFacedGames ? leagueFaced / leagueFacedGames : null;
@@ -673,8 +679,10 @@
 
     var n = el('div', 'pt-note');
     n.textContent = 'Gear change compares neutral play clock used with play clock ' +
-      'used when trailing by 5 or more. Both sides need at least ' + MIN_SPLIT +
-      ' plays before a number is shown.';
+      'used when trailing by 5 or more. Both sides need at least ' + r.floor +
+      ' plays before a number is shown' +
+      (r.floor < MIN_SPLIT ? ' (' + MIN_SPLIT_PER_GAME + ' per game played, rising to ' +
+        MIN_SPLIT + ' from four games on).' : '.');
     box.appendChild(n);
     return box;
   }

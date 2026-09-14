@@ -217,6 +217,18 @@
   // season level — the thinnest 2025 team has 113 trailing plays — so it only
   // takes effect once a filter narrows things down.
   var MIN_SPLIT = 75;
+  // ...except in the first weeks of a season, when nobody has 75 of anything:
+  // a team-game averages about 28 neutral tempo plays, so a flat 75 blanked
+  // the Neutral, Pass Rate and Gear Change columns until week 3 or 4. The
+  // floor therefore ramps with the games in the sample — 20 plays per game,
+  // capped at MIN_SPLIT — so weeks 1 to 3 show a (noisier) number instead of a
+  // dash, and from four games on nothing changes. The ramp is per team row and
+  // reads the games that survived the active filter, so a quarter-1 view of a
+  // full season still holds at 75.
+  var MIN_SPLIT_PER_GAME = 20;
+  function splitFloor(games){
+    return Math.min(MIN_SPLIT, MIN_SPLIT_PER_GAME * Math.max(1, games));
+  }
   // Trailing by five or more. Tested against two scores (9+): the wider bucket
   // has a bigger spread but an odd/even week split-half of 0.17 against 0.43,
   // so most of that extra spread is noise. See docs/pace-data.md.
@@ -519,11 +531,13 @@
     }
 
     rows.forEach(function(r){
+      var floor = splitFloor(r.games);
+      r.floor = floor;
       r.gear = (r.neutral != null && r.trailing != null &&
-                r.neuN >= MIN_SPLIT && r.traN >= MIN_SPLIT)
+                r.neuN >= floor && r.traN >= floor)
         ? r.neutral - r.trailing : null;
-      if (r.neuN < MIN_SPLIT) r.neutral = null;
-      if (r.passD < MIN_SPLIT) r.passrate = null;
+      if (r.neuN < floor) r.neutral = null;
+      if (r.passD < floor) r.passrate = null;
     });
 
     // Opponent adjustment for volume. Each defense's plays allowed per game is
@@ -787,8 +801,10 @@
 
     var n = el('div', 'pt-note');
     n.textContent = 'Gear change compares neutral play clock used with play clock ' +
-      'used when trailing by 5 or more. Both sides need at least ' + MIN_SPLIT +
-      ' plays before a number is shown.';
+      'used when trailing by 5 or more. Both sides need at least ' + r.floor +
+      ' plays before a number is shown' +
+      (r.floor < MIN_SPLIT ? ' (' + MIN_SPLIT_PER_GAME + ' per game played, rising to ' +
+        MIN_SPLIT + ' from four games on).' : '.');
     box.appendChild(n);
     return box;
   }
