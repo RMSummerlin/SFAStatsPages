@@ -42,6 +42,12 @@ Rows that are not mirrored pass through untouched, so the 2021-2025 sheets and
 every test fixture are unaffected. The flag columns the provider fills on only
 one of the two copies (pressure, blitz, hit, penalty first downs) are merged
 onto the kept row so the matchup splits that read them keep working.
+
+A one-row-per-play sheet still gets the yard-line check, as a guard: the
+provider's export has no offense marker, so a sheet pasted from the wrong
+side would credit every play to the defense and nothing downstream would
+notice. If more than a fifth of the plays that can be checked say the row's
+team is the defense, the pull stops rather than publishing.
 """
 
 from __future__ import annotations
@@ -71,6 +77,11 @@ NO_VOTE_RE = re.compile(r"intercept|fumble|penalty|no play|reversed|touchdown",
 
 # What counts as "not filled in" when merging a flag from the discarded copy.
 EMPTY = {"", "0", "0.0"}
+
+# The one-row-per-play guard needs this many checkable plays before it judges,
+# and stops the pull if more than this share of them say team is the defense.
+MIN_CHECK_VOTES = 20
+MAX_DISAGREE = 0.2
 
 
 def _s(row, col):
@@ -199,16 +210,49 @@ def _decide_game(plays, home, away):
     return out, how
 
 
+def offense_check(rows):
+    """Guard a one-row-per-play sheet: does `team` look like the offense?
+
+    Returns a note for the log, or None when too few plays can be checked (a
+    sheet without play descriptions, or a test fixture). Raises SystemExit when
+    the descriptions say the rows are the defense's copy.
+    """
+    agree = disagree = 0
+    for row in rows:
+        team = config.canonical_team(row.get("team"))
+        opp = config.canonical_team(row.get("opponent"))
+        if not team or not opp or team == opp:
+            continue
+        vote = spot_vote(row, team, opp)
+        if vote == team:
+            agree += 1
+        elif vote == opp:
+            disagree += 1
+    total = agree + disagree
+    if total < MIN_CHECK_VOTES:
+        return None
+    if disagree > MAX_DISAGREE * total:
+        raise SystemExit(
+            f"The sheet has one row per play, but on {disagree:,} of {total:,} plays "
+            f"that could be checked the yard line in PlayDesc says `team` is the "
+            f"DEFENSE, not the offense. It looks like the defensive copy of the "
+            f"export was pasted in. Re-paste the offensive rows (or both copies, "
+            f"which are folded automatically) and re-run.")
+    return (f"one row per play; yard-line check agrees team is the offense on "
+            f"{agree:,} of {total:,} checkable plays.")
+
+
 def offense_rows(rows):
     """Keep one row per play — the offense's — when the sheet logs each play twice.
 
-    Returns (rows, note). rows is the input object unchanged, and note None,
-    when the sheet is not mirrored. Otherwise a new list in the original order
-    and a one-line description for the log.
+    Returns (rows, note). When the sheet is not mirrored, rows is the input
+    object unchanged and note is the guard's verdict (None if it could not
+    judge). Otherwise a new list in the original order and a one-line
+    description for the log.
     """
     pairs = mirrored_pairs(rows)
     if not pairs:
-        return rows, None
+        return rows, offense_check(rows)
 
     by_game = defaultdict(list)
     for key, (i, j) in pairs.items():

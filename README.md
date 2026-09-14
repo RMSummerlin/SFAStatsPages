@@ -94,8 +94,10 @@ every pull script assumes. Each script therefore passes its rows through
 player IDs across drives, the yard line in the play description, and drive
 alternation, keeps that copy, merges the one-sided flag columns onto it, and prints
 one line saying how many drives each signal decided. A sheet that is not mirrored
-passes through untouched. Full reasoning in the module's docstring; regression
-fixture in `scripts/test_offense.py`.
+passes through untouched, apart from a guard: because the export has no offense
+marker, a one-row-per-play sheet is spot-checked the same way, and the pull stops if
+the descriptions say the rows are the defense's copy. Full reasoning in the module's
+docstring; regression fixture in `scripts/test_offense.py`.
 
 ### What's in `data/`
 
