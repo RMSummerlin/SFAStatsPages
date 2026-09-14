@@ -75,10 +75,14 @@ Run `python scripts/lint_embed.py tools/pace/tool.html` before pasting.
 
 ## Things that will look like bugs but are not
 
-**A dash instead of a number.** Gear change needs at least 75 plays on both
-sides of the comparison. At season level every team clears that comfortably, so
-dashes only appear once a filter narrows things down — for example filtering to
-quarter 1 leaves most teams short of 75 trailing plays.
+**A dash instead of a number.** Neutral, pass rate and gear change need at least
+75 plays (both sides, for gear change). At season level every team clears that
+comfortably, so dashes only appear once a filter narrows things down — for
+example filtering to quarter 1 leaves most teams short of 75 trailing plays.
+Early in a season the floor ramps instead: 20 plays per game in the sample, so
+week 1 needs 20, week 2 40, week 3 60, and from four games on the full 75. A
+team that has not trailed by five in its first game or two will still show a
+dash for gear change, which is the honest answer.
 
 **Neutral is empty under a quarter 4 or OT filter.** Neutral is defined as
 quarters 1 to 3, so the intersection is genuinely empty. A dash is the honest

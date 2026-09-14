@@ -76,6 +76,12 @@ TEAM_ALIASES = {
     "JAC": "JAX", "ARZ": "ARI", "BLT": "BAL", "CLV": "CLE", "HST": "HOU",
     "TAM": "TB", "KAN": "KC", "NOR": "NO", "SFO": "SF", "GNB": "GB",
     "NWE": "NE", "NORL": "NO", "TBB": "TB",
+    # The provider switched the Cardinals from ARI to AZ with the 2026 sheet.
+    # Kept as ARI: that is what the 2021-2025 sheets, the nflverse schedule the
+    # matchup tool joins against, TEAM_NAMES, and the tools' own name and
+    # colour tables all use. Without this fold the matchup tool published a
+    # 33-team league — ARI from last season's prior next to AZ from this one.
+    "AZ": "ARI",
 }
 
 

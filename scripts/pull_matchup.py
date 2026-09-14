@@ -63,6 +63,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config  # noqa: E402
+import offense  # noqa: E402
 import preloads  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -923,6 +924,9 @@ def main():
             if not prev_rows:
                 print(f"{season}: prior season {prior_season} has no rows; cannot build a prior. Skipping.")
                 continue
+            prev_rows, note = offense.offense_rows(prev_rows)
+            if note:
+                print(f"{prior_season}: {note}")
             agg_prev, _, passers_prev, n_prev, _ = aggregate(prev_rows, prev_present)
             prior_data = (agg_prev, passers_prev, n_prev)
             save_prior_cache(prior_season, agg_prev, passers_prev, n_prev)
@@ -936,6 +940,13 @@ def main():
         if not cur_rows:
             print(f"{season}: sheet has no rows yet; publishing a prior-only baseline.")
             cur_present = prev_present or set(OPTIONAL_COLUMNS)
+        else:
+            # The 2026 sheet logs every play once per team. Keep the offense's
+            # row only: aggregate() credits the defense from that row itself, so
+            # the mirrored copy would count every play twice for both sides.
+            cur_rows, note = offense.offense_rows(cur_rows)
+            if note:
+                print(f"{season}: {note}")
 
         cache = DATA_DIR / f"schedule_{season}.json"
         if args.schedule:

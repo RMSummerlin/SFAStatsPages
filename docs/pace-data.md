@@ -130,6 +130,18 @@ and 366 neutral — so it only takes effect once a filter narrows the sample. A
 single team-game averages only about 28 neutral plays, which is nowhere near
 enough to rank.
 
+That last fact is a problem in September. A flat 75 left the Neutral, Pass Rate
+and Gear Change columns blank for every team until week 3 or 4 of 2026, which is
+exactly when readers want them most. So the floor ramps with the sample: 20
+plays per game in the sample, capped at 75, which is reached from four games on.
+Week 1 shows a number at 20 plays, week 2 at 40, week 3 at 60, and from week 4
+the season-level threshold applies unchanged. The early numbers are noisier —
+that is the trade — and the detail sheet says which floor was applied. The ramp
+counts games per team row *after* the active filter, so a quarter-1 view of a
+full season still holds at 75. Both constants live in `tools/pace/tool.html`
+(`MIN_SPLIT`, `MIN_SPLIT_PER_GAME`) with a mirror in `pull_pace.py` for the
+crawlable preload table; keep them in step.
+
 ## No win probability model
 
 Considered and rejected. Tempo intent responds to essentially two inputs: whether
@@ -316,7 +328,8 @@ and pooling maps every season's local index into one shared registry keyed on th
 abbreviation. That makes the abbreviation the franchise's identity, so anything
 that changes it splits a franchise in two.
 
-`TEAM_ALIASES` in `pull_pace.py` folds those together before publishing, always
+`TEAM_ALIASES` in `scripts/config.py` (shared by every pull script) folds those
+together before publishing, always
 toward the franchise's **current** code so history collapses into the present
 rather than the present being renamed into history:
 
@@ -327,6 +340,7 @@ rather than the present being renamed into history:
 | `SD`, `SDG` → `LAC` | San Diego → Los Angeles, 2017 |
 | `STL`, `SL`, `LA`, `RAM` → `LAR` | St. Louis → Los Angeles, 2016 |
 | `JAC`, `ARZ`, `BLT`, `CLV`, `HST`, `KAN`, `NOR`, `SFO`, `GNB`, `NWE`, `TAM` | Provider house style |
+| `AZ` → `ARI` | The provider switched the Cardinals to `AZ` in the 2026 sheet; 2021–2025, nflverse and the tools all say `ARI` |
 
 Verified end to end by relabelling every Washington row in the real 2025 export
 as `WFT`, building it as a second season and pooling the two: 32 teams, one

@@ -210,6 +210,40 @@ check("season without drives is flagged", bare_payload["has_drives"], False)
 check("season without tempo has no drive rows", bare_payload["drives"], 0)
 
 
+# ------------------------------------------------------------ split floor
+#
+# The minimum-plays floor ramps with games played so week 1 is not all dashes,
+# and must reach the full 75 by game four and never exceed it. tool.html carries
+# the same two constants; a mismatch shows as the preload table disagreeing
+# with the tool.
+
+check("floor at one game", P.split_floor(1), 20)
+check("floor at two games", P.split_floor(2), 40)
+check("floor at three games", P.split_floor(3), 60)
+check("floor caps at four games", P.split_floor(4), 75)
+check("floor stays capped", P.split_floor(17), 75)
+check("zero games still needs something", P.split_floor(0), 20)
+tool_js = (Path(__file__).resolve().parent.parent / "tools" / "pace" / "tool.html"
+           ).read_text(encoding="utf-8")
+check("tool MIN_SPLIT matches", f"var MIN_SPLIT = {P.MIN_SPLIT};" in tool_js, True)
+check("tool MIN_SPLIT_PER_GAME matches",
+      f"var MIN_SPLIT_PER_GAME = {P.MIN_SPLIT_PER_GAME};" in tool_js, True)
+
+# One game of 20 neutral plays is enough to show a neutral figure; the same 20
+# plays spread over two games is not.
+ramp_rows = [row(opponent="AAA", PlayId=str(10 * i), GameClock="10:00")
+             for i in range(1, 21)]
+P.mark_prior_penalties(ramp_rows, set(P.OPTIONAL_COLUMNS))
+_, ramp_summary = P.build_season(ramp_rows, 2026, set(P.OPTIONAL_COLUMNS))
+check("20 neutral plays in one game shows neutral",
+      ramp_summary["team"]["AAA"]["neutral"], 35.0)
+for r in ramp_rows[10:]:
+    r["week"] = "W2"
+_, ramp_summary = P.build_season(ramp_rows, 2026, set(P.OPTIONAL_COLUMNS))
+check("20 neutral plays over two games does not",
+      ramp_summary["team"]["AAA"]["neutral"], None)
+
+
 # ---------------------------------------------------------------- pass rate
 #
 # A dropback rate, not a PlayType rate. Sacks already arrive as PASS; scrambles
@@ -224,6 +258,10 @@ pass_rows = [
     row(opponent="AAA", PlayId="40", PlayType="RUSH", **{"Scramble?": "TRUE"}),
     row(opponent="AAA", PlayId="50", PlayType="RUSH", **{"Scramble?": "0"}),
 ]
+# The summary applies the one-game floor of 20 plays, so pad the five plays out
+# to twenty with the same 3-of-5 mix. Only the first five are decoded below.
+pass_rows += [dict(r, PlayId=str(100 * k + int(r["PlayId"])))
+              for k in range(1, 4) for r in pass_rows]
 P.mark_prior_penalties(pass_rows, set(P.OPTIONAL_COLUMNS))
 pass_payload, pass_summary = P.build_season(pass_rows, 2025, set(P.OPTIONAL_COLUMNS))
 flags = [P.ALPHABET.index(ch) for ch in pass_payload["cols"]["p"]]
@@ -237,8 +275,9 @@ check("neutral pass rate is 3 of 5", pass_summary["team"]["AAA"]["passrate"], 60
 # Pass rate must not inherit the 40-second play clock gate — it has no need of
 # one, and sharing the tempo denominator would quietly shrink it by a quarter.
 gate_rows = [
-    row(opponent="AAA", PlayId="10", PlayType="PASS", TimeSinceSnap=""),
-    row(opponent="AAA", PlayId="20", PlayType="RUSH", TimeSinceSnap=""),
+    row(opponent="AAA", PlayId=str(10 * i), PlayType="PASS" if i % 2 else "RUSH",
+        TimeSinceSnap="")
+    for i in range(1, 21)          # twenty plays, so the one-game floor is met
 ]
 P.mark_prior_penalties(gate_rows, set(P.OPTIONAL_COLUMNS))
 _, gate_summary = P.build_season(gate_rows, 2025, set(P.OPTIONAL_COLUMNS))
@@ -259,7 +298,8 @@ for raw, want in [
     ("SD", "LAC"), ("SDG", "LAC"), ("LAC", "LAC"),    # San Diego -> Los Angeles
     ("STL", "LAR"), ("LA", "LAR"), ("LAR", "LAR"),    # St. Louis -> Los Angeles
     ("JAC", "JAX"), ("JAX", "JAX"),
-    ("ARZ", "ARI"), ("BLT", "BAL"), ("CLV", "CLE"), ("HST", "HOU"),
+    ("ARZ", "ARI"), ("AZ", "ARI"), ("ARI", "ARI"),  # provider moved to AZ in 2026
+    ("BLT", "BAL"), ("CLV", "CLE"), ("HST", "HOU"),
     ("KAN", "KC"), ("NOR", "NO"), ("SFO", "SF"), ("GNB", "GB"), ("NWE", "NE"),
     ("TAM", "TB"),
     ("nyg", "NYG"), (" DAL ", "DAL"),                  # case and whitespace

@@ -65,6 +65,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config  # noqa: E402
+import offense  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
@@ -118,38 +119,12 @@ DEAD_BALL_RE = re.compile(r"\bkneels?\b|spiked the ball", re.IGNORECASE)
 CLOCK_RE = re.compile(r"^\s*(\d{0,2}):(\d{2})\s*$")
 
 # Franchises pooled under one code so a multi-season view shows 32 rows rather
-# than one row per name a franchise has worn. Without this, selecting 2021 next
-# to 2025 lists WFT and WAS as if they were different teams — which is exactly
-# what the tool did before this map existed.
-#
-# Two groups, both mapping to whatever the franchise is called now:
-#   * relocations and renames — WFT/WSH, OAK, SD, STL
-#   * alternate abbreviations for the same team, which differ between data
-#     providers and have a habit of changing when a sheet is rebuilt
-#
-# Rule of thumb for additions: normalise toward the CURRENT code, so history
-# folds into the present rather than the present being renamed into history.
-TEAM_ALIASES = {
-    # Washington: Redskins -> Football Team (2020-21) -> Commanders
-    "WFT": "WAS", "WSH": "WAS", "WAS": "WAS",
-    # Oakland -> Las Vegas, 2020
-    "OAK": "LV", "LVR": "LV", "RAI": "LV",
-    # San Diego -> Los Angeles, 2017
-    "SD": "LAC", "SDG": "LAC",
-    # St. Louis -> Los Angeles, 2016. "LA" is ambiguous in principle, but every
-    # feed that uses it means the Rams; the Chargers have always been LAC here.
-    "STL": "LAR", "SL": "LAR", "LA": "LAR", "RAM": "LAR",
-    # Same franchise, different house style
-    "JAC": "JAX", "ARZ": "ARI", "BLT": "BAL", "CLV": "CLE", "HST": "HOU",
-    "TAM": "TB", "KAN": "KC", "NOR": "NO", "SFO": "SF", "GNB": "GB",
-    "NWE": "NE", "NORL": "NO", "TBB": "TB",
-}
-
-
-def canonical_team(code):
-    """Fold a team abbreviation onto the franchise's current code."""
-    code = (code or "").strip().upper()
-    return TEAM_ALIASES.get(code, code)
+# than one row per name a franchise has worn. The map lives in config.py so all
+# three pull scripts fold identically: this script used to carry its own copy,
+# and the two drifted the first time a provider changed an abbreviation (ARI
+# became AZ in the 2026 sheet). Add new aliases there, not here.
+TEAM_ALIASES = config.TEAM_ALIASES
+canonical_team = config.canonical_team
 
 
 # --------------------------------------------------------------------------- io
@@ -603,15 +578,16 @@ def summarise(plays, drive_rows, teams):
     for t in teams:
         n_games = len(games[t]) or 1
         n_drives = len(drive_keys[t]) or 1
-        neu, tra = mean(neutral[t]), mean(trailing[t])
+        floor = split_floor(n_games)
+        neu = mean(neutral[t]) if neutral[t][1] >= floor else None
+        tra = mean(trailing[t]) if trailing[t][1] >= floor else None
         out[t] = {
             "sec": mean(tempo[t]),
             "neutral": neu,
             "gear": (round(neu - tra, 2)
-                     if neu is not None and tra is not None
-                     and trailing[t][1] >= MIN_GEAR_PLAYS else None),
+                     if neu is not None and tra is not None else None),
             "passrate": (round(100 * neupass[t][0] / neupass[t][1], 1)
-                         if neupass[t][1] else None),
+                         if neupass[t][1] >= floor else None),
             "nohuddle": round(100 * nohuddle[t] / counts[t]) if counts[t] else 0,
             "plays": counts[t],
             "plays_game": round(counts[t] / n_games, 1),
@@ -622,10 +598,19 @@ def summarise(plays, drive_rows, teams):
     return {"teams": teams, "team": out}
 
 
-# Below this many trailing plays the gear-change number is mostly sampling noise.
-# Never binds at season level — the thinnest 2025 team has 113 — so it only takes
-# effect once a filter narrows things down.
-MIN_GEAR_PLAYS = 75
+# Below this many plays a split is mostly sampling noise. Never binds at season
+# level — the thinnest 2025 team has 113 trailing plays and 366 neutral — but in
+# the first weeks of a season nobody has 75 of anything (a team-game averages
+# about 28 neutral tempo plays), so the floor ramps with games played: 20 per
+# game, capped at 75, which is reached from four games on. Mirrors MIN_SPLIT and
+# MIN_SPLIT_PER_GAME in tools/pace/tool.html; keep the two in step.
+MIN_SPLIT = 75
+MIN_SPLIT_PER_GAME = 20
+
+
+def split_floor(games):
+    """Plays a split needs before it is shown, given how many games it spans."""
+    return min(MIN_SPLIT, MIN_SPLIT_PER_GAME * max(1, games))
 
 
 # ------------------------------------------------------------- static html
@@ -725,6 +710,11 @@ def main():
             print(f"{season}: sheet has no rows yet — skipping. The season stays "
                   f"out of pace_index.json, so the tool will not offer it.")
             continue
+        # The 2026 sheet logs every play once per team. Keep the offense's row
+        # only, or every team is credited with its opponent's snaps as well.
+        rows, note = offense.offense_rows(rows)
+        if note:
+            print(f"{season}: {note}")
         mark_prior_penalties(rows, present)
         missing = [c for c in OPTIONAL_COLUMNS if c not in present]
         if missing:
@@ -744,7 +734,7 @@ def main():
         if len(payload["teams"]) != 32:
             print(f"{season}: NOTE — {len(payload['teams'])} teams, not 32: "
                   f"{', '.join(payload['teams'])}. If one of those is an "
-                  f"alternate spelling, add it to TEAM_ALIASES in this script.")
+                  f"alternate spelling, add it to TEAM_ALIASES in scripts/config.py.")
 
         if payload["has_tempo"]:
             tempo_seasons.append(season)
