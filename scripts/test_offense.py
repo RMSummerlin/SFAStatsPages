@@ -150,7 +150,33 @@ check("provider codes fold before comparing", offense.spot_vote(
 single = [o for o, _ in pairs]
 same, note = offense.offense_rows(single)
 check("one-row-per-play sheet is returned as is", same is single, True)
-check("and carries no note", note, None)
+check("but is too small for the guard to judge", note, None)
+
+# Enough clean plays for the guard to judge: the offense's rows pass with a
+# note, the defense's rows stop the pull.
+def clean(pid, off, n):
+    deff = AWAY if off == HOME else HOME
+    return [play(pid + i, 1 + i // 4, off,
+                 f"(1:00) 3-R.Unner up the middle to {off} {30 + i % 9} for 5 yards.",
+                 75 - i % 9, 5)[0] for i in range(n)]
+
+good = clean(1000, HOME, 15) + clean(2000, AWAY, 15)
+same, note = offense.offense_rows(good)
+check("offensive rows pass the guard", same is good, True)
+check("guard reports its count", "30 of 30" in (note or ""), True)
+
+flipped = [dict(r, team=r["opponent"], opponent=r["team"]) for r in good]
+try:
+    offense.offense_rows(flipped)
+    failures.append("defensive rows should stop the pull")
+except SystemExit as exc:
+    check("guard names the problem", "DEFENSE" in str(exc), True)
+
+# A handful of odd descriptions must not trip it.
+mostly = good + [dict(r, team=r["opponent"], opponent=r["team"], PlayId=str(3000 + i))
+                 for i, r in enumerate(good[:3])]
+same, _ = offense.offense_rows(mostly)
+check("a few disagreeing plays are tolerated", same is mostly, True)
 
 # The 2021-2024 sheets have no GameId or PlayId at all.
 bare = [{k: v for k, v in r.items() if k not in ("GameId", "PlayId")} for r in rows]
