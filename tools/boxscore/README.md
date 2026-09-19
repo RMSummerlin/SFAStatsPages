@@ -4,7 +4,8 @@ One played game at a time: the scoreline, seven diverging bars showing which
 team was better in each category and by how much, and an offensive box score
 underneath in four groups (box score, efficiency, passing, rushing and
 tendencies) with each team's season average alongside once it has more than
-one game. Week stepper and a game picker that doubles as the slate view.
+one game. Season select, week stepper and a game picker that doubles as the
+slate view. Opens on the newest season's latest played week.
 
 Data decisions and every stat's definition are in `docs/boxscore-data.md`.
 
@@ -22,7 +23,7 @@ Base URL `https://rmsummerlin.github.io/SFAStatsPages/data/`
 | File | When |
 |---|---|
 | `boxscore_index.json` | on load: which seasons exist, which is default |
-| `boxscore_<season>.json` | on load: schedule, every played game's counters, season totals, stat and header definitions |
+| `boxscore_<season>.json` | on load for the default season, then on demand as a season is picked; cached after the first fetch. Schedule, every played game's counters, season totals, stat and header definitions |
 
 Both written by `scripts/pull_boxscore.py`, which also needs the nflverse
 schedule (shared with the matchup tool).
@@ -33,9 +34,16 @@ schedule (shared with the matchup tool).
 * Shortcode for the crawlable table: `[sharp_football_boxscore]` in a **Text
   Block** above the code block. `[sharp_football_boxscore game="CLE-JAX"]`
   (away team first) keeps just that game's two rows for a recap article.
-* Deep links: `#w1-cle-jax` opens week 1, CLE at JAX. The tool rewrites the
-  hash as the reader navigates, with `replaceState`, so it never adds history
-  entries. A hash for a game that is not in the data is ignored.
+* Deep links: `#w1-cle-jax` opens week 1, CLE at JAX, in the default season;
+  `#2024-w18-cle-bal` opens another season. The tool rewrites the hash as the
+  reader navigates, with `replaceState`, so it never adds history entries, and
+  leaves the season off the hash while the default season is showing so links
+  written before the season select keep working. A hash for a game that is
+  not in the data, or a season the index does not list, falls back to the
+  default season's latest week.
+* The season select is a native `<select>`, single choice: box scores are one
+  game at a time, so there is nothing to pool across seasons the way the pace
+  tool does.
 * The bottom sheet is `position:absolute` inside the root and scrolls
   internally. No `position:fixed`.
 * At 641px and up the four tables sit two across; on a phone they stack.
@@ -45,7 +53,7 @@ schedule (shared with the matchup tool).
 ## Things that look like bugs but are not
 
 * **The stepper stops at the latest week with a game in the data**, not the
-  current week. There is nothing to show for an unplayed game. A partly
+  current week, and past seasons open on week 18. There is nothing to show for an unplayed game. A partly
   played week (Thursday in, Sunday not) shows with the unplayed games greyed
   in the picker.
 * **A game the sheet has but the schedule lacks, or where the two disagree on

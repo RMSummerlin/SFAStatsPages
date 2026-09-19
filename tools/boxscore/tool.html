@@ -53,8 +53,15 @@
   font-size:20px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;line-height:1;white-space:nowrap}
 
 /* ---------- controls: the game picker, styled as a select ---------- */
-.pt-root.pt-bx .pt-controls{flex:0 0 auto;padding:6px 8px;background:var(--bg2);border-bottom:1px solid var(--b2)}
-.pt-root.pt-bx .pt-pick{width:100%;min-height:44px;padding:0 36px 0 12px;display:flex;align-items:center;gap:8px;
+.pt-root.pt-bx .pt-controls{flex:0 0 auto;display:flex;gap:6px;padding:6px 8px;background:var(--bg2);border-bottom:1px solid var(--b2)}
+/* Season: a native select, single choice. Box scores are one game at a time,
+   so there is nothing to pool across seasons the way the pace tool does. */
+.pt-root.pt-bx .pt-season{flex:0 0 auto;min-height:44px;padding:0 28px 0 10px;font-size:14px;font-weight:700;letter-spacing:.02em;
+  color:var(--ink);background-color:var(--w);border:1px solid var(--b1);border-radius:4px;cursor:pointer;
+  -webkit-appearance:none;-moz-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23111' stroke-width='2'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 9px center}
+.pt-root.pt-bx .pt-pick{flex:1;min-width:0;min-height:44px;padding:0 36px 0 12px;display:flex;align-items:center;gap:8px;
   text-align:left;font-size:14px;font-weight:600;letter-spacing:.02em;color:var(--ink);
   background-color:var(--w);border:1px solid var(--b1);border-radius:4px;
   background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23111' stroke-width='2'/%3E%3C/svg%3E");
@@ -171,7 +178,8 @@
   .pt-root.pt-bx .pt-title{font-size:20px}
   .pt-root.pt-bx .pt-week{font-size:24px}
   .pt-root.pt-bx .pt-controls{padding:6px 12px}
-  .pt-root.pt-bx .pt-pick{width:auto;min-width:300px;min-height:38px;font-size:13px}
+  .pt-root.pt-bx .pt-season{min-height:38px;font-size:13px}
+  .pt-root.pt-bx .pt-pick{flex:0 1 auto;min-width:300px;min-height:38px;font-size:13px}
   .pt-root.pt-bx .pt-card{padding:14px 18px 10px}
   .pt-root.pt-bx .pt-tname{font-size:24px}
   .pt-root.pt-bx .pt-score{font-size:46px}
@@ -201,6 +209,7 @@
     </div>
   </div>
   <div class="pt-controls">
+    <select class="pt-season" data-role="season" aria-label="Season"></select>
     <button type="button" class="pt-pick" data-role="pick" aria-haspopup="dialog"><span class="k">Game</span><span class="v" data-role="pickname">Loading&#8230;</span><span class="t" data-role="picktime"></span></button>
   </div>
 
@@ -332,9 +341,11 @@
     wrap.appendChild(el('div', 'pt-status', text));
   }
 
-  var D = null;                 // boxscore_<season>.json
+  var IX = null;                // boxscore_index.json
+  var SEASONS = {};             // season -> boxscore_<season>.json, fetched on demand
+  var D = null;                 // the season currently shown
   var STAT = {};                // key -> stat definition, from D.stats
-  var STATE = { week: 1, game: null };
+  var STATE = { season: null, week: 1, game: null };
 
   // ---- stats -----------------------------------------------------------------
 
@@ -631,7 +642,7 @@
 
   function openPicker(){
     var W = STATE.week;
-    var body = openSheet('Week ' + W + ' games', 'Each cell takes the colour of the team that was better in that category');
+    var body = openSheet(D.season + ' week ' + W + ' games', 'Each cell takes the colour of the team that was better in that category');
     var key = el('div', 'pt-glkey');
     D.header.forEach(function(h){ key.appendChild(el('span', null, h.short || h.label)); });
     body.appendChild(key);
@@ -691,20 +702,28 @@
       'interceptions and lost fumbles. Explosive plays are passes of ' + D.params.explosive_pass + '+ yards and runs of ' +
       D.params.explosive_rush + '+. Points per drive reads the score before and after each drive, so a missed extra point counts.';
   }
+  // #w1-cle-jax for the default season; #2024-w18-cle-jax for any other, so
+  // links written before there was a season picker keep opening the same game.
   function pushHash(){
     var g = gameById(STATE.game);
     if (!g || !window.history || !history.replaceState) return;
+    var pre = D.season === IX.default ? '' : D.season + '-';
     try {
-      history.replaceState(null, '', '#w' + STATE.week + '-' + g.away.toLowerCase() + '-' + g.home.toLowerCase());
+      history.replaceState(null, '', '#' + pre + 'w' + STATE.week + '-' + g.away.toLowerCase() + '-' + g.home.toLowerCase());
     } catch (e) {}
   }
-  function readHash(){
-    var m = /^#w(\d{1,2})-([a-z]{2,3})-([a-z]{2,3})$/.exec(location.hash || '');
+  function parseHash(){
+    var m = /^#(?:(\d{4})-)?w(\d{1,2})-([a-z]{2,3})-([a-z]{2,3})$/.exec(location.hash || '');
     if (!m) return null;
-    var w = parseInt(m[1], 10), a = m[2].toUpperCase(), h = m[3].toUpperCase();
-    if (w > maxWeek()) return null;
-    var g = gamesIn(w).filter(function(x){ return x.away === a && x.home === h; })[0];
-    return g && lineOf(g) ? {week: w, game: g.id} : null;
+    return { season: m[1] ? parseInt(m[1], 10) : null, week: parseInt(m[2], 10),
+             away: m[3].toUpperCase(), home: m[4].toUpperCase() };
+  }
+  // Resolve a parsed hash against the loaded season: null if the week is past
+  // what the data has or the game is not in it.
+  function readHash(h){
+    if (!h || h.week > maxWeek()) return null;
+    var g = gamesIn(h.week).filter(function(x){ return x.away === h.away && x.home === h.home; })[0];
+    return g && lineOf(g) ? {week: h.week, game: g.id} : null;
   }
   function setWeek(W){
     STATE.week = Math.max(1, Math.min(maxWeek(), W));
@@ -714,6 +733,52 @@
   $('prev').addEventListener('click', function(){ setWeek(STATE.week - 1); });
   $('next').addEventListener('click', function(){ setWeek(STATE.week + 1); });
   $('pick').addEventListener('click', openPicker);
+
+  function loadSeason(season){
+    if (SEASONS[season]) return Promise.resolve(SEASONS[season]);
+    return get(BASE + 'boxscore_' + season + '.json').then(function(blob){
+      SEASONS[season] = blob;
+      return blob;
+    });
+  }
+  function useSeason(blob){
+    D = blob;
+    STATE.season = D.season;
+    STAT = {};
+    D.stats.forEach(function(s){ STAT[s.key] = s; });
+    $('season').value = String(D.season);
+  }
+  // Open a season on its latest played week, or on the game a hash names.
+  function showSeason(season, hash){
+    return loadSeason(season).then(function(blob){
+      useSeason(blob);
+      var h = readHash(hash);
+      if (h){
+        STATE.week = h.week; STATE.game = h.game;
+      } else {
+        STATE.week = maxWeek();
+        STATE.game = firstPlayed(STATE.week);
+      }
+      if (!STATE.game){
+        showStatus('No games in the data for ' + D.season + ' week ' + STATE.week + ' yet.');
+        paintPick(null);
+        return;
+      }
+      render();
+      // Rewrite the hash unless it already names this game in this season.
+      if (!h || (hash.season || IX.default) !== D.season) pushHash();
+    });
+  }
+  $('season').addEventListener('change', function(){
+    var season = parseInt(this.value, 10);
+    if (season === STATE.season) return;
+    showStatus('Loading ' + season + '\u2026');
+    showSeason(season, null).catch(function(err){
+      showStatus('Couldn\u2019t load the ' + season + ' season. Reload the page to try again.');
+      $('season').value = String(STATE.season);
+      if (window.console) console.error('[boxscore]', err);
+    });
+  });
 
   function get(url){
     return fetch(url, {cache:'no-cache'}).then(function(r){
@@ -738,24 +803,21 @@
       showStatus('No seasons have box score data yet.');
       return;
     }
-    var season = ix.default || Math.max.apply(null, ix.seasons);
-    return get(BASE + 'boxscore_' + season + '.json').then(function(blob){
-      D = blob;
-      D.stats.forEach(function(s){ STAT[s.key] = s; });
-      var h = readHash();
-      if (h){
-        STATE.week = h.week; STATE.game = h.game;
-      } else {
-        STATE.week = maxWeek();
-        STATE.game = firstPlayed(STATE.week);
-      }
-      if (!STATE.game){
-        showStatus('No games in the data for week ' + STATE.week + ' yet.');
-        paintPick(null);
-        return;
-      }
-      render();
+    IX = ix;
+    if (!IX.default) IX.default = Math.max.apply(null, ix.seasons);
+    // Newest season first in the list; the default is the newest with data.
+    var sel = $('season');
+    ix.seasons.slice().sort(function(a, b){ return b - a; }).forEach(function(y){
+      var o = document.createElement('option');
+      o.value = String(y); o.textContent = String(y);
+      sel.appendChild(o);
     });
+    // A hash may name another season; anything the index does not list falls
+    // back to the default so a stale link still opens the tool.
+    var hash = parseHash();
+    var season = IX.default;
+    if (hash && hash.season && ix.seasons.indexOf(hash.season) >= 0) season = hash.season;
+    return showSeason(season, hash);
   }).catch(function(err){
     // render() never runs, so hideServerPreload() is never called and the
     // shortcode table stays on the page as the fallback.
