@@ -23,9 +23,9 @@ access and its key is stored in the repo secret `GOOGLE_SERVICE_ACCOUNT_JSON`. S
 
 Update cadence: checked every 30 minutes, all week (actual source data changes ~3x/week on a variable schedule, so we poll frequently and only commit when something changes).
 
-Other inputs: the matchup tool reads two things that are not the sheet — nflverse
+Other inputs: the matchup and box score tools read the nflverse schedule
 `games.csv` (from `raw.githubusercontent.com`, fetched every run and cached to
-`data/schedule_<season>.json`) and `data/offseason_changes_<season>.json`, which
+`data/schedule_<season>.json`), and the matchup tool also reads `data/offseason_changes_<season>.json`, which
 `scripts/offseason_changes.py` drafts once a year from nflverse plus the Wikipedia
 coordinator navboxes and an editor then corrects by hand. Both are covered in
 [`docs/matchup-data.md`](docs/matchup-data.md). So a scheduled run needs outbound access to
@@ -45,6 +45,7 @@ SFAStatsPages/
 │   ├── personnel-grouping-data.md  ← data decisions behind the personnel tool
 │   ├── pace-data.md                ← data decisions behind the pace tool
 │   ├── matchup-data.md             ← data decisions and backtest behind the matchup tool
+│   ├── boxscore-data.md            ← data decisions and stat definitions behind the box score tool
 │   └── matchup-talking-points.md   ← page copy and method explanations for the matchup article
 ├── data/                           ← served via Pages: generated JSON and preload tables,
 │                                     plus two caches and one hand-corrected input (see below)
@@ -55,6 +56,7 @@ SFAStatsPages/
 │   ├── pull_personnel_grouping.py  ← pull + transform (auto-run by the workflow)
 │   ├── pull_pace.py                ← pull + transform (auto-run by the workflow)
 │   ├── pull_matchup.py             ← pull + transform (auto-run by the workflow)
+│   ├── pull_boxscore.py            ← pull + transform (auto-run by the workflow)
 │   ├── offseason_changes.py        ← drafts data/offseason_changes_<season>.json once a year (never on the schedule)
 │   ├── test_pace.py                ← regression tests (auto-run by the workflow)
 │   ├── test_offense.py             ← regression tests (auto-run by the workflow)
@@ -62,6 +64,7 @@ SFAStatsPages/
 │   ├── test_teams.py               ← regression tests (auto-run by the workflow)
 │   ├── test_empty_season.py        ← regression tests (auto-run by the workflow)
 │   ├── test_matchup.py             ← regression tests (auto-run by the workflow)
+│   ├── test_boxscore.py            ← regression tests (auto-run by the workflow)
 │   ├── lint_embed.py               ← checks a fragment against the embed rules
 │   ├── build_embed.py              ← strips the dev notes to produce embed.html
 │   └── preloads.py                 ← folds each tool's preload table into preloads.json
@@ -70,7 +73,8 @@ SFAStatsPages/
 ├── tools/
 │   ├── personnel-grouping/         ← tool.html + embed.html + README.md
 │   ├── pace/                       ← tool.html + embed.html + README.md
-│   └── matchup/                    ← tool.html + embed.html + README.md
+│   ├── matchup/                    ← tool.html + embed.html + README.md
+│   └── boxscore/                   ← tool.html + embed.html + README.md
 ├── wordpress/
 │   ├── sfa-preloads.php            ← Code Snippets body: shortcodes for the crawlable tables
 │   └── README.md                   ← install, caching and refresh schedule
@@ -108,7 +112,7 @@ differently if one goes missing:
 |---|---|---|
 | `<tool>_<season>.json`, `<tool>_index.json` | output | Rebuilt by the next pull. |
 | `<tool>_preload.html`, `preloads.json` | output | Rebuilt by the next pull, via `preloads.write_manifest()`. |
-| `schedule_<season>.json` | cache of nflverse `games.csv` | Re-fetched next run. It exists so one bad fetch does not take the matchup tool down. |
+| `schedule_<season>.json` | cache of nflverse `games.csv` | Re-fetched next run. It exists so one bad fetch does not take the matchup or box score tool down. |
 | `matchup_prior_<season>.json` | cache of last season's per-team totals | Re-read from the prior season's ~16 MB sheet — which is the reason it is cached. Force a re-read with `--refresh-prior`. |
 | `offseason_changes_<season>.json` | **hand-corrected input** | Not regenerated on the schedule. `pull_matchup.py` prints a warning and applies no QB or coaching haircuts, which silently changes every rating it publishes. Redraft with `scripts/offseason_changes.py` and review it by hand again. |
 
@@ -163,12 +167,14 @@ your machine; see `docs/tool-checklist.md` section 4.
 python scripts/pull_personnel_grouping.py
 python scripts/pull_pace.py
 python scripts/pull_matchup.py
+python scripts/pull_boxscore.py
 
 # --- or from a downloaded CSV export, without touching the sheet ---
 python scripts/pull_personnel_grouping.py --csv ~/Downloads/export.csv --season 2025
 python scripts/pull_pace.py --csv ~/Downloads/export.csv --season 2025
 python scripts/pull_matchup.py --csv cur.csv --prior-csv prev.csv --season 2026 \
     --schedule data/schedule_2026.json     # fully offline: no sheet, no nflverse fetch
+python scripts/pull_boxscore.py --csv cur.csv --season 2026 --schedule data/schedule_2026.json
 
 # every season in config.py rather than just the current one
 python scripts/pull_pace.py --all
@@ -179,6 +185,7 @@ python scripts/test_dead_ball.py
 python scripts/test_teams.py
 python scripts/test_empty_season.py
 python scripts/test_matchup.py
+python scripts/test_boxscore.py
 
 # --- embeds ---
 python scripts/build_embed.py            # regenerate every embed.html from its tool.html

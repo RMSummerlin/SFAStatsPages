@@ -9,6 +9,7 @@
  *   [sharp_football_personnel]   personnel grouping frequency
  *   [sharp_football_pace]        offensive pace
  *   [sharp_football_matchup]     weekly matchups, whole slate; game="KC-BUF" keeps one game
+ *   [sharp_football_boxscore]    box scores, latest played week; game="CLE-JAX" keeps one game
  *
  * Paste this file into Code Snippets as a PHP (Functions) snippet, scope "Run
  * everywhere", omitting the opening PHP tag on line 1. Code Snippets supplies it.
@@ -265,8 +266,28 @@ add_shortcode( 'sharp_football_pace', 'sfa_preload_pace_shortcode' );
  */
 function sfa_preload_matchup_shortcode( $atts ) {
 	$atts = shortcode_atts( array( 'game' => '' ), $atts, 'sharp_football_matchup' );
-	$html = sfa_preload_render( 'matchup' );
-	$game = strtolower( preg_replace( '/[^A-Za-z-]/', '', (string) $atts['game'] ) );
+	return sfa_preload_keep_game( sfa_preload_render( 'matchup' ), $atts['game'] );
+}
+add_shortcode( 'sharp_football_matchup', 'sfa_preload_matchup_shortcode' );
+
+/*
+ * The box score table carries every game of the latest played week, two rows
+ * per game (one per offense). A recap article keeps just its own game with
+ * [sharp_football_boxscore game="CLE-JAX"], away team first, same row class
+ * convention as the matchup table.
+ */
+function sfa_preload_boxscore_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'game' => '' ), $atts, 'sharp_football_boxscore' );
+	return sfa_preload_keep_game( sfa_preload_render( 'boxscore' ), $atts['game'] );
+}
+add_shortcode( 'sharp_football_boxscore', 'sfa_preload_boxscore_shortcode' );
+
+/**
+ * Keep only the rows of one game (row class g-<away>-<home>) in a table that
+ * carries a whole week. Unknown or absent game: the whole table.
+ */
+function sfa_preload_keep_game( $html, $game ) {
+	$game = strtolower( preg_replace( '/[^A-Za-z-]/', '', (string) $game ) );
 	if ( '' === $game || false === strpos( $html, 'class="g-' . $game . '"' ) ) {
 		return $html;
 	}
@@ -281,4 +302,3 @@ function sfa_preload_matchup_shortcode( $atts ) {
 	);
 	return null === $kept ? $html : $kept;
 }
-add_shortcode( 'sharp_football_matchup', 'sfa_preload_matchup_shortcode' );

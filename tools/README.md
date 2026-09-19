@@ -35,3 +35,4 @@ previewed on the same page without their styles colliding.
 | `personnel-grouping/` | Fixed 11/12/13/21/22 columns plus 2+ TE / 2+ RB / 3+ WR, a usage/efficiency toggle, and EPA / yards / success rate on hover |
 | `pace/` | Offensive tempo and play volume, with a Tempo/Volume toggle, a neutral-situation column and a gear-change column |
 | `matchup/` | One game at a time: offense vs defense ranks in five battles with the edge drawn between them, a week stepper, a slate picker and a detail sheet |
+| `boxscore/` | One played game at a time: the scoreline, seven diverging bars showing which team was better in each category, and an offensive box score in four groups with season averages |
