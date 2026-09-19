@@ -70,10 +70,18 @@ and `data/offseason_changes_<season>.json` (see the docs).
   sums ten absolute edges, so five moderate edges outrank one big one.
 * **The final score appears on a card but the offense EPA line does not.**
   nflverse has the score; the sheet does not have the game yet.
-* **Two teams share a color family but show as different shades.** When both
-  primaries are within about 95 RGB units of each other the home team takes its
-  alternate, then the away team. Colors come from the injury report tool's map so
-  the two tools agree.
+* **Two teams share a color family but show as different shades.** When the two
+  teams' text colours or fill colours land within a CIE76 ΔE of 22 the home
+  team takes its fallback, then its text colour as the fill too, then the away
+  team changes. The palette (fill / text / fallback per team) is shared with the
+  box score tool and explained in `docs/avada-embed-rules.md`.
+* **A team's name is a darker shade than its bar.** The bar is the real brand
+  colour; the name and every figure use the text value, the brand colour
+  darkened until it clears 4.5:1.
+* **No caption under a battle bar.** The unit holding the edge is bold in its
+  team's colour and the other rank is muted grey; "Big edge" / "Even" is spoken
+  in the row's `aria-label` and leads the detail sheet. Below the `EDGE_SOME`
+  threshold neither side is bold.
 * **Percentiles, not raw values, drive the bar length.** A 1st vs 32nd pairing
   fills the half-track regardless of how far apart the underlying numbers are.
   The pop-out dumbbells show the actual distance.

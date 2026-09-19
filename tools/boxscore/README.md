@@ -47,6 +47,16 @@ schedule (shared with the matchup tool).
 * The bottom sheet is `position:absolute` inside the root and scrolls
   internally. No `position:fixed`.
 * At 641px and up the four tables sit two across; on a phone they stack.
+* Team colours come in three values, fill / text / fallback, shared with the
+  matchup tool and explained in `docs/avada-embed-rules.md`. The real brand
+  colour only paints the rule over the team name, the bars and the picker
+  swatches; every letter and figure uses the darkened text value, so a
+  Jaguars figure is no longer 3.1:1 teal. When two teams clash on either
+  value, the home team falls back first.
+* The header bars carry no caption and no quartile ticks. The better side's
+  figure is bold in the team's text colour and the other side is muted grey;
+  the gap is spoken in the row's `aria-label` and shown in the picker
+  swatch tooltips.
 * Stat rows, groups and header categories come from the data file, so adding
   a stat is a pull edit. The tool only knows how to format each `kind`.
 

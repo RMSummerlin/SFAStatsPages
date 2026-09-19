@@ -19,11 +19,18 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DOC_LEVEL_TAGS = ["<!doctype", "<html", "<head", "<body", "<meta", "<title"]
 LANDMARKS = ["header", "footer", "nav", "main", "section", "article", "aside"]
 BRAND_COLORS = {"#cc0000", "#000", "#111", "#7f8c9a", "#b0bec5",
-                "#cdd5de", "#dde2e8", "#f4f5f7", "#f9fafb", "#fff",
-                # Two deliberate exceptions, both in the masthead: #cc0000 is
-                # unreadable on black, and the toggle border needs a mid grey
-                # that is not in the body palette.
-                "#ff5a4d", "#5c6773"}
+                "#cdd5de", "#dde2e8", "#f4f5f7", "#f9fafb", "#fff",
+                # Added by the box score visual rework, see the type and
+                # contrast section of docs/avada-embed-rules.md: the muted
+                # text grey, the header band, and the table stripe.
+                "#4e5154", "#222529", "#f6f6f6",
+                # One deliberate exception, in the masthead: #cc0000 is
+                # unreadable on the dark band.
+                "#ff5a4d"}
+# Type floor, in px. Three quarters of the traffic is on a phone, and nothing
+# smaller than this is readable there. Applies to the CSS and to the font
+# sizes the scripts write into their SVG charts.
+MIN_FONT_PX = 11
 # Elements Avada styles heavily enough that leaving them undeclared is a bug.
 TABLE_ELEMENTS = ["table", "thead", "tbody", "tr", "th", "td", "caption"]
 
@@ -115,6 +122,11 @@ def lint(path: Path):
                          "long lists will scroll the page")
         if "min-width:641px" not in css.replace(" ", ""):
             warns.append("no min-width:641px enhancement — is this really mobile-first?")
+        small = sorted({m for m in re.findall(r"font-size\s*:\s*([\d.]+)px", css)
+                        if float(m) < MIN_FONT_PX}, key=float)
+        if small:
+            fails.append(f"font-size below {MIN_FONT_PX}px in CSS: "
+                         + ", ".join(v + "px" for v in small))
 
         # Scoping is one-directional. Putting every selector under .pt-root stops
         # our styles escaping into Avada; it does nothing to stop Avada's styles
@@ -165,6 +177,14 @@ def lint(path: Path):
                 fails.append(f"uses {api} — not permitted in an embed")
         if re.search(r"\bapi[_-]?key\b|secret|Bearer ", js, re.I):
             fails.append("looks like it contains a credential — embeds must stay public-only")
+        # SVG text the scripts draw: 'font-size':8 or font-size="8.5". The
+        # viewBox scales with the panel, but on a phone it is close to 1:1.
+        small = sorted({m for m in re.findall(
+                            r"font-size['\"]?\s*[:=]\s*['\"]?([\d.]+)", js)
+                        if float(m) < MIN_FONT_PX}, key=float)
+        if small:
+            fails.append(f"font-size below {MIN_FONT_PX}px in script-drawn text: "
+                         + ", ".join(v + "px" for v in small))
         # The crawlable table used to be pasted into the fragment between
         # SFA:PRELOAD markers. It is now rendered by the shortcode in
         # wordpress/sfa-preloads.php and hidden once the tool paints, so the
