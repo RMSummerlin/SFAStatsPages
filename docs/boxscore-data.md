@@ -75,23 +75,38 @@ tool shows a dash.
 
 ## Header bar scales
 
-The difference that fills the whole half-track, chosen from the spread of
-week 1 2026 game differences so a big blowout reaches about three quarters of
-the way and only an extreme game hits the end:
+The difference that fills the whole half-track, set at the 99th percentile of
+the absolute home-minus-away difference over 1,375 regular-season games (2021
+to 2025 in full, plus 2026 week 1). A typical game fills about a third of the
+track, a 95th-percentile blowout about three quarters, and one game in a
+hundred reaches the end.
 
-| Category | Scale | Largest week 1 difference |
-|---|---|---|
-| Success rate | 20 pts | 13.4 pts |
-| EPA per play | 0.65 | 0.51 |
-| Dropback EPA | 1.00 | 0.79 |
-| Rush EPA | 0.55 | 0.38 |
-| Explosive plays | 8 | 6 |
-| Pressure rate | 35 pts | 25 pts |
-| Turnover EPA | 18 | 13.9 |
+| Category | Scale | SD of the difference | 95th pct | 99th pct | Largest |
+|---|---|---|---|---|---|
+| Success rate | 30 pts | 11.0 | 21.9 | 29.9 | 46.8 |
+| EPA per play | 0.70 | 0.26 | 0.53 | 0.68 | 0.89 |
+| Dropback EPA | 1.10 | 0.40 | 0.79 | 1.12 | 1.82 |
+| Rush EPA | 0.85 | 0.31 | 0.63 | 0.87 | 1.14 |
+| Explosive plays | 10 | 4.1 | 8 | 10 | 16 |
+| Pressure rate | 36 pts | 13.8 | 27.8 | 36.1 | 46.6 |
+| Turnover EPA | 22 | 7.9 | 15.8 | 21.8 | 28.2 |
 
 They are published in the data file, so changing one is a pull edit, not a
-tool edit. Revisit them after a few weeks if the bars are routinely full or
-routinely short.
+tool edit.
+
+## Backfill check
+
+Running the pull over the 2021 to 2025 exports (all columns present, 272
+games a season, 271 in 2022 for the cancelled Bills-Bengals game) found:
+
+* The two teams' possession sums to 60:00 within 30 seconds in every
+  non-overtime game, and to more in every overtime game.
+* Drive points never exceed the team's final score; the gap averages about
+  one point a team-game, which is the defensive and special teams scoring
+  that sits on no drive.
+* Drives per team-game average 10.5 to 11.1, range 6 to 19.
+* Every game in every sheet matched a schedule entry with the teams agreeing
+  on each other as opponents.
 
 ## Inputs beyond the sheet
 

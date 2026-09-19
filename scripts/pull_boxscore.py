@@ -153,17 +153,19 @@ GROUPS = [
 ]
 
 # The diverging bars above the table: which team was better in each category
-# and by how much. `scale` is the difference that fills the whole half-track;
-# set from the spread of week-to-week game differences so a typical blowout
-# reaches about three quarters of the way and only a freak game hits the end.
+# and by how much. `scale` is the difference that fills the whole half-track,
+# set at the 99th percentile of the home-minus-away difference over the 1,375
+# regular-season games of 2021 to 2026 week 1, so a typical game fills about a
+# third of the track, a blowout (95th percentile) about three quarters, and
+# only one game in a hundred reaches the end. Numbers in docs/boxscore-data.md.
 HEADER = [
-    dict(key="sr",      label="Success rate",     short="SR",   scale=0.20),
-    dict(key="epa",     label="EPA per play",     short="EPA",  scale=0.65),
-    dict(key="db_epa",  label="Dropback EPA",     short="Pass", scale=1.00),
-    dict(key="run_epa", label="Rush EPA",         short="Rush", scale=0.55),
-    dict(key="explo",   label="Explosive plays",  short="Expl", scale=8),
-    dict(key="prsr",    label="Pressure rate",    short="Prsr", scale=0.35),
-    dict(key="to_epa",  label="Turnover EPA",     short="TO",   scale=18),
+    dict(key="sr",      label="Success rate",     short="SR",   scale=0.30),
+    dict(key="epa",     label="EPA per play",     short="EPA",  scale=0.70),
+    dict(key="db_epa",  label="Dropback EPA",     short="Pass", scale=1.10),
+    dict(key="run_epa", label="Rush EPA",         short="Rush", scale=0.85),
+    dict(key="explo",   label="Explosive plays",  short="Expl", scale=10),
+    dict(key="prsr",    label="Pressure rate",    short="Prsr", scale=0.36),
+    dict(key="to_epa",  label="Turnover EPA",     short="TO",   scale=22),
 ]
 STAT_BY_KEY = {s["key"]: s for s in STATS}
 
@@ -716,12 +718,16 @@ def main():
     known.sort()
     pm.write_json(DATA_DIR / f"{TOOL}_index.json", {"seasons": known, "default": max(known) if known else None})
 
-    if built:
+    # The crawlable table is the newest season's. A --csv run for an old
+    # season must not overwrite it with that season's final week.
+    if built and max(built)[0] == max(known):
         season, preload = max(built)
         (DATA_DIR / f"{TOOL}_preload.html").write_text(preload + "\n", encoding="utf-8")
         if preloads.write_manifest():
             print("Refreshed data/preloads.json.")
         print("Refreshed the crawlable preload table in data/.")
+    elif built:
+        print(f"{max(built)[0]}: not the newest season on disk; preload table left as {max(known)}'s.")
 
 
 if __name__ == "__main__":
