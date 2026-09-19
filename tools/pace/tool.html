@@ -7,6 +7,11 @@
    Any property we leave undeclared falls back to inheritance, and inheritance
    loses to any Avada rule that matches the element directly — which is why bare
    th/td were picking up theme colours and fonts. Declare them explicitly. */
+/* Greys. --muted (#4e5154, 8.6:1 on white) is the only grey allowed on text
+   under 24px: the brand's #7f8c9a is 3.4:1 and fails under every caption, so it
+   is kept for shapes (the chart bars, the league line) and control edges, where
+   a border needs 3:1 and the body border #cdd5de is 1.3:1. Nothing in this
+   tool is set below 11px. */
 .pt-root.pt-pc *{box-sizing:border-box;margin:0;padding:0;font-family:inherit;color:inherit}
 .pt-root.pt-pc table,.pt-root.pt-pc thead,.pt-root.pt-pc tbody,.pt-root.pt-pc tfoot,
 .pt-root.pt-pc tr,.pt-root.pt-pc th,.pt-root.pt-pc td,.pt-root.pt-pc caption{
@@ -14,7 +19,7 @@
   text-transform:none;letter-spacing:normal;text-shadow:none;box-shadow:none;
   vertical-align:middle;width:auto;height:auto}
 .pt-root.pt-pc{
-  --red:#cc0000; --ink:#111; --g1:#7f8c9a; --g2:#b0bec5;
+  --red:#cc0000; --ink:#111; --muted:#4e5154; --g1:#7f8c9a; --g2:#b0bec5;
   --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --w:#fff;
   font-family:'Interstate Condensed','Interstate','Roboto Condensed','Arial Narrow',
     'Helvetica Neue',Arial,sans-serif;
@@ -36,22 +41,22 @@
 /* ---------- header ---------- */
 .pt-root.pt-pc .pt-head{flex:0 0 auto;padding:12px 12px 10px;border-bottom:2px solid var(--ink)}
 .pt-root.pt-pc .pt-title{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.01em}
-.pt-root.pt-pc .pt-sub{margin-top:3px;font-size:13px;color:var(--g1)}
+.pt-root.pt-pc .pt-sub{margin-top:3px;font-size:13px;color:var(--muted)}
 .pt-root.pt-pc .pt-sub b{color:var(--ink);font-weight:700}
-.pt-root.pt-pc .pt-modes{display:flex;margin-top:10px;border:1px solid var(--b1)}
+.pt-root.pt-pc .pt-modes{display:flex;margin-top:10px;border:1px solid var(--g1)}
 .pt-root.pt-pc .pt-mode{flex:1;min-height:44px;padding:0 14px;font-size:13px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.04em;color:var(--g1)}
-.pt-root.pt-pc .pt-mode+.pt-mode{border-left:1px solid var(--b1)}
+  text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.pt-root.pt-pc .pt-mode+.pt-mode{border-left:1px solid var(--g1)}
 .pt-root.pt-pc .pt-mode[aria-pressed="true"]{background:var(--ink);color:var(--w)}
 
 /* ---------- filter bar ---------- */
 .pt-root.pt-pc .pt-bar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;
   padding:8px 12px;border-bottom:1px solid var(--b2);background:var(--bg2)}
-.pt-root.pt-pc .pt-fb{min-height:44px;padding:4px 10px;border:1px solid var(--b1);background:var(--w);
+.pt-root.pt-pc .pt-fb{min-height:44px;padding:4px 10px;border:1px solid var(--g1);background:var(--w);
   display:flex;flex-direction:column;justify-content:center;align-items:flex-start;text-align:left}
 .pt-root.pt-pc .pt-fb[data-on="1"]{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
-.pt-root.pt-pc .pt-fb .l{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
-  color:var(--g1)}
+.pt-root.pt-pc .pt-fb .l{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--muted)}
 .pt-root.pt-pc .pt-fb .v{font-size:13px;font-weight:700;white-space:nowrap}
 .pt-root.pt-pc .pt-reset{margin-left:auto;min-height:44px;padding:0 12px;font-size:12px;font-weight:700;
   text-transform:uppercase;letter-spacing:.05em;color:var(--red)}
@@ -62,16 +67,16 @@
   background:var(--w);border:1px solid var(--ink);padding:8px;
   box-shadow:0 6px 20px rgba(0,0,0,.16)}
 .pt-root.pt-pc .pt-pop[hidden]{display:none}
-.pt-root.pt-pc .pt-pop .h{font-size:10px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.07em;color:var(--g1);margin-bottom:6px}
+.pt-root.pt-pc .pt-pop .h{font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--muted);margin-bottom:6px}
 .pt-root.pt-pc .pt-opts{display:flex;flex-wrap:wrap;gap:4px}
-.pt-root.pt-pc .pt-opt{min-height:38px;min-width:44px;padding:0 10px;border:1px solid var(--b1);
+.pt-root.pt-pc .pt-opt{min-height:38px;min-width:44px;padding:0 10px;border:1px solid var(--g1);
   font-size:13px;font-weight:700;background:var(--w)}
 .pt-root.pt-pc .pt-opt[aria-pressed="true"]{background:var(--ink);color:var(--w);border-color:var(--ink)}
 .pt-root.pt-pc .pt-popfoot{display:flex;gap:6px;margin-top:8px;padding-top:8px;
   border-top:1px solid var(--b2)}
 .pt-root.pt-pc .pt-popfoot button{flex:1;min-height:40px;font-size:12px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--b1)}
+  text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--g1)}
 .pt-root.pt-pc .pt-popfoot .go{background:var(--ink);color:var(--w);border-color:var(--ink)}
 
 /* ---------- table ---------- */
@@ -80,17 +85,17 @@
 .pt-root.pt-pc .pt-grid th,.pt-root.pt-pc .pt-grid td{padding:0;text-align:center;white-space:nowrap;
   border-bottom:1px solid var(--b2)}
 .pt-root.pt-pc .pt-grid thead th{position:sticky;top:0;z-index:3;background:var(--w);
-  border-bottom:2px solid var(--ink);font-size:10px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.05em;color:var(--g1)}
+  border-bottom:2px solid var(--ink);font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--muted)}
 .pt-root.pt-pc .pt-grid thead th button{width:100%;min-height:44px;font:inherit;color:inherit;padding:3px 4px}
 .pt-root.pt-pc .pt-grid thead th[aria-sort]{color:var(--red)}
-.pt-root.pt-pc .pt-grid thead th[aria-sort]::after{content:' \25BC';font-size:8px}
-.pt-root.pt-pc .pt-grid thead th[aria-sort=ascending]::after{content:' \25B2';font-size:8px}
+.pt-root.pt-pc .pt-grid thead th[aria-sort]::after{content:' \25BC'}
+.pt-root.pt-pc .pt-grid thead th[aria-sort=ascending]::after{content:' \25B2'}
 /* Rank and team stay put while the numbers scroll sideways. Without this the
    team abbreviation scrolls away and the numbers belong to nobody. Sticky cells
    need their own opaque background or the scrolling content shows through. */
 .pt-root.pt-pc .pt-rank{position:sticky;left:0;z-index:2;width:34px;
-  background:var(--w);color:var(--g2);font-size:11px}
+  background:var(--w);color:var(--muted);font-size:12px}
 .pt-root.pt-pc .pt-team{position:sticky;left:34px;z-index:2;
   background:var(--w);text-align:left;font-weight:700;
   border-right:1px solid var(--b2)}
@@ -124,12 +129,12 @@
 .pt-root.pt-pc.pt-tight .pt-num{padding:0 3px}
 .pt-root.pt-pc .pt-teamcell{display:flex;align-items:center;gap:6px;min-height:44px;
   width:100%;padding:0 8px;font:inherit;color:inherit;text-align:left}
-.pt-root.pt-pc .pt-teamcell::before{content:'\25B8';font-size:9px;color:var(--g2);
+.pt-root.pt-pc .pt-teamcell::before{content:'\25B8';font-size:11px;color:var(--g2);
   transition:transform .12s}
 .pt-root.pt-pc .pt-open .pt-teamcell::before{transform:rotate(90deg);color:var(--red)}
 .pt-root.pt-pc .pt-num{display:block;min-height:44px;line-height:44px;padding:0 6px}
 .pt-root.pt-pc .pt-lead{font-weight:700}
-.pt-root.pt-pc .pt-thin{color:var(--g2)}
+.pt-root.pt-pc .pt-thin{color:var(--muted)}
 .pt-root.pt-pc .pt-pos{color:var(--red)}
 .pt-root.pt-pc .pt-grid tfoot th,.pt-root.pt-pc .pt-grid tfoot td{position:sticky;bottom:0;z-index:3;
   background:var(--w);border-top:2px solid var(--ink);border-bottom:0;font-size:12px;font-weight:700}
@@ -146,22 +151,22 @@
   letter-spacing:.04em;margin-bottom:8px}
 .pt-root.pt-pc .pt-cards{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .pt-root.pt-pc .pt-card{flex:1 1 88px;border:1px solid var(--b2);background:var(--w);padding:6px 8px}
-.pt-root.pt-pc .pt-card .k{font-size:9px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.06em;color:var(--g1)}
+.pt-root.pt-pc .pt-card .k{font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--muted)}
 .pt-root.pt-pc .pt-card .n{font-size:17px;font-weight:700}
-.pt-root.pt-pc .pt-card .r{font-size:10px;color:var(--g1)}
+.pt-root.pt-pc .pt-card .r{font-size:11px;color:var(--muted)}
 .pt-root.pt-pc .pt-chart{margin-bottom:12px}
 .pt-root.pt-pc .pt-chart:last-child{margin-bottom:0}
-.pt-root.pt-pc .pt-ctitle{font-size:10px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.06em;color:var(--g1);margin-bottom:4px}
+.pt-root.pt-pc .pt-ctitle{font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
 .pt-root.pt-pc .pt-chart svg{display:block;width:100%;height:auto;background:var(--w);
   border:1px solid var(--b2)}
-.pt-root.pt-pc .pt-note{font-size:11px;color:var(--g1);margin-top:6px}
+.pt-root.pt-pc .pt-note{font-size:12px;color:var(--muted);margin-top:6px}
 
 /* ---------- status + footer ---------- */
-.pt-root.pt-pc .pt-status{padding:26px 14px;text-align:center;font-size:13px;color:var(--g1)}
+.pt-root.pt-pc .pt-status{padding:26px 14px;text-align:center;font-size:14px;color:var(--muted)}
 .pt-root.pt-pc .pt-foot{flex:0 0 auto;padding:8px 12px;border-top:1px solid var(--b2);
-  background:var(--bg2);font-size:11px;color:var(--g1)}
+  background:var(--bg2);font-size:12px;color:var(--muted)}
 .pt-root.pt-pc .pt-foot b{color:var(--ink);font-weight:700}
 
 
@@ -170,7 +175,7 @@
   .pt-root.pt-pc .pt-title{font-size:25px}
   .pt-root.pt-pc .pt-grid{font-size:14px}
   .pt-root.pt-pc .pt-grid thead th{font-size:11px}
-  .pt-root.pt-pc .pt-rank{width:44px;font-size:12px}
+  .pt-root.pt-pc .pt-rank{width:44px}
   .pt-root.pt-pc .pt-team{left:44px}
   .pt-root.pt-pc .pt-card{flex:1 1 112px}
   .pt-root.pt-pc .pt-charts{display:flex;gap:12px}
@@ -866,17 +871,17 @@
       var cx = x0 + w * i + w / 2;
       if (v == null){
         s.appendChild(node('text', {x:cx, y:y1 - 4, 'text-anchor':'middle',
-          'font-size':8, fill:'#b0bec5'}, '\u2014'));
+          'font-size':11, fill:'#4e5154'}, '\u2014'));
       } else {
         var y = scale(v);
         s.appendChild(node('rect', {x:x0 + w * i + w * 0.18, y:y,
           width:w * 0.64, height:Math.max(1, y1 - y),
           fill: v < league ? '#cc0000' : '#7f8c9a'}));
         s.appendChild(node('text', {x:cx, y:y - 3, 'text-anchor':'middle',
-          'font-size':9, 'font-weight':700, fill:'#111'}, v.toFixed(1)));
+          'font-size':11, 'font-weight':700, fill:'#111'}, v.toFixed(1)));
       }
-      s.appendChild(node('text', {x:cx, y:162, 'text-anchor':'middle',
-        'font-size':8, fill:'#7f8c9a'}, b.label));
+      s.appendChild(node('text', {x:cx, y:164, 'text-anchor':'middle',
+        'font-size':11, fill:'#4e5154'}, b.label));
     });
     s.appendChild(node('line', {x1:x0, x2:x1, y1:y1, y2:y1, stroke:'#111', 'stroke-width':1}));
 
@@ -885,10 +890,10 @@
     s.appendChild(node('line', {x1:x0, x2:x1, y1:scale(league), y2:scale(league),
       stroke:'#7f8c9a', 'stroke-width':1, 'stroke-dasharray':'3 3'}));
     var lbl = 'NFL avg ' + league.toFixed(1) + 's';
-    s.appendChild(node('rect', {x:x1 - lbl.length * 4.1 - 2, y:scale(league) - 11,
-      width:lbl.length * 4.1 + 2, height:10, fill:'#fff', opacity:.85}));
+    s.appendChild(node('rect', {x:x1 - lbl.length * 5.6 - 2, y:scale(league) - 14,
+      width:lbl.length * 5.6 + 2, height:13, fill:'#fff', opacity:.85}));
     s.appendChild(node('text', {x:x1, y:scale(league) - 3, 'text-anchor':'end',
-      'font-size':8, fill:'#7f8c9a'}, lbl));
+      'font-size':11, fill:'#4e5154'}, lbl));
     s.appendChild(node('title', {},
       teamName(r.team) + ' play clock used by score margin'));
 
@@ -926,7 +931,7 @@
 
     if (pts.length < 2){
       s2.appendChild(node('text', {x:150, y:92, 'text-anchor':'middle',
-        'font-size':10, fill:'#b0bec5'}, 'Not enough weeks in this filter'));
+        'font-size':12, fill:'#4e5154'}, 'Not enough weeks in this filter'));
       box.appendChild(s2);
       return box;
     }
@@ -958,11 +963,11 @@
     pts.forEach(function(p){
       s2.appendChild(node('circle', {cx:sx(p.w), cy:sy(p.v), r:2, fill:'#cc0000'}));
     });
-    s2.appendChild(node('text', {x:x0, y:166, 'font-size':8, fill:'#7f8c9a'},
+    s2.appendChild(node('text', {x:x0, y:168, 'font-size':11, fill:'#4e5154'},
       weekLabel(wLo)));
-    s2.appendChild(node('text', {x:x1, y:166, 'text-anchor':'end', 'font-size':8,
-      fill:'#7f8c9a'}, weekLabel(wHi)));
-    s2.appendChild(node('text', {x:2, y:sy(mean) - 3, 'font-size':8, fill:'#7f8c9a'},
+    s2.appendChild(node('text', {x:x1, y:168, 'text-anchor':'end', 'font-size':11,
+      fill:'#4e5154'}, weekLabel(wHi)));
+    s2.appendChild(node('text', {x:2, y:sy(mean) - 3, 'font-size':11, fill:'#4e5154'},
       mean.toFixed(1)));
     s2.appendChild(node('title', {}, teamName(r.team) + ' play clock used by week'));
     box.appendChild(s2);

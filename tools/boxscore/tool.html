@@ -14,9 +14,14 @@
   font:inherit;color:inherit;background:none;border:0;text-align:inherit;
   text-transform:none;letter-spacing:normal;text-shadow:none;box-shadow:none;
   vertical-align:middle;width:auto;height:auto}
+/* Greys. --muted (#4e5154, 8.6:1 on white) is the only grey allowed on text
+   under 24px: the brand's #7f8c9a is 3.4:1 and fails under every caption and
+   season figure. --g1 keeps two jobs, the losing score (46px+) and the borders
+   of the picker swatches. Nothing in this tool is set below 11px. */
 .pt-root.pt-bx{
-  --red:#cc0000; --ink:#111; --g1:#7f8c9a; --g2:#b0bec5;
-  --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --w:#fff; --black:#000;
+  --red:#cc0000; --ink:#111; --muted:#4e5154; --g1:#7f8c9a; --g2:#b0bec5;
+  --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --stripe:#f6f6f6;
+  --w:#fff; --black:#000; --head:#222529;
   font-family:'Interstate Condensed','Interstate','Roboto Condensed','Arial Narrow',
     'Helvetica Neue',Arial,sans-serif;
   color:var(--ink); background:var(--w);
@@ -41,10 +46,12 @@
 .pt-root.pt-bx :focus-visible{outline:2px solid var(--red);outline-offset:2px}
 .pt-root.pt-bx [hidden]{display:none !important}
 
-/* ---------- masthead: black bar, red rule, week badge top right ---------- */
+/* ---------- masthead: dark bar, red rule, week badge top right ----------
+   #222529 rather than pure black: it matches the site's header band, and black
+   next to a red rule vibrates. */
 .pt-root.pt-bx .pt-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;
-  padding:8px 12px 7px;background:var(--black);color:var(--w);border-bottom:3px solid var(--red)}
-.pt-root.pt-bx .pt-title{flex:1;min-width:0;font-size:17px;font-weight:700;letter-spacing:.03em;
+  padding:8px 12px 7px;background:var(--head);color:var(--w);border-bottom:3px solid var(--red)}
+.pt-root.pt-bx .pt-title{flex:1;min-width:0;font-size:18px;font-weight:700;letter-spacing:.04em;
   line-height:1.1;text-transform:uppercase;color:var(--w)}
 .pt-root.pt-bx .pt-wknav{flex:0 0 auto;display:flex;align-items:stretch}
 .pt-root.pt-bx .pt-wkbtn{min-width:34px;min-height:34px;color:var(--w);font-size:20px;font-weight:700;line-height:1}
@@ -52,63 +59,78 @@
 .pt-root.pt-bx .pt-week{padding:3px 10px 4px;display:flex;align-items:center;background:var(--red);color:var(--w);
   font-size:20px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;line-height:1;white-space:nowrap}
 
-/* ---------- controls: the game picker, styled as a select ---------- */
+/* ---------- controls: the game picker, styled as a select ----------
+   Control edges are --g1: a border needs 3:1 against its surface and the body
+   border #cdd5de is 1.3:1. */
 .pt-root.pt-bx .pt-controls{flex:0 0 auto;display:flex;gap:6px;padding:6px 8px;background:var(--bg2);border-bottom:1px solid var(--b2)}
 /* Season: a native select, single choice. Box scores are one game at a time,
    so there is nothing to pool across seasons the way the pace tool does. */
 .pt-root.pt-bx .pt-season{flex:0 0 auto;min-height:44px;padding:0 28px 0 10px;font-size:14px;font-weight:700;letter-spacing:.02em;
-  color:var(--ink);background-color:var(--w);border:1px solid var(--b1);border-radius:4px;cursor:pointer;
+  color:var(--ink);background-color:var(--w);border:1px solid var(--g1);border-radius:4px;cursor:pointer;
   -webkit-appearance:none;-moz-appearance:none;appearance:none;
   background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23111' stroke-width='2'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 9px center}
 .pt-root.pt-bx .pt-pick{flex:1;min-width:0;min-height:44px;padding:0 36px 0 12px;display:flex;align-items:center;gap:8px;
   text-align:left;font-size:14px;font-weight:600;letter-spacing:.02em;color:var(--ink);
-  background-color:var(--w);border:1px solid var(--b1);border-radius:4px;
+  background-color:var(--w);border:1px solid var(--g1);border-radius:4px;
   background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23111' stroke-width='2'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 12px center}
-.pt-root.pt-bx .pt-pick .k{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g1)}
+.pt-root.pt-bx .pt-pick .k{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .pt-root.pt-bx .pt-pick .v{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pt-root.pt-bx .pt-pick .t{font-size:11px;font-weight:600;color:var(--g1);white-space:nowrap}
+.pt-root.pt-bx .pt-pick .t{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap}
 
 /* ---------- card ---------- */
 .pt-root.pt-bx .pt-wrap{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
 .pt-root.pt-bx .pt-card{padding:12px 12px 10px}
-/* Scoreline: both teams and their points, centred on the "at". */
+/* Scoreline: both teams and their points, centred on the "at". Each team block
+   carries a 5px rule in the team's FILL colour above the name: the one place
+   the real brand hue gets a large shape, so identity survives when the two
+   TEXT colours have been darkened toward each other. The rule's colour and
+   the name's are set inline from the script. */
 .pt-root.pt-bx .pt-game{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;column-gap:6px;
   padding-bottom:10px;border-bottom:1px solid var(--b2)}
-.pt-root.pt-bx .pt-teamblk{min-width:0;text-align:center}
-.pt-root.pt-bx .pt-tname{font-size:19px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1.05;
+.pt-root.pt-bx .pt-teamblk{min-width:0;text-align:center;border-top:5px solid var(--b2);padding-top:8px}
+.pt-root.pt-bx .pt-tname{font-size:21px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1.05;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pt-root.pt-bx .pt-score{font-size:38px;font-weight:700;line-height:1;margin-top:4px}
+.pt-root.pt-bx .pt-score{font-size:46px;font-weight:700;line-height:1;margin-top:4px}
 .pt-root.pt-bx .pt-score.lost{color:var(--g1)}
-.pt-root.pt-bx .pt-tqb{margin-top:4px;font-size:11px;color:var(--g1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pt-root.pt-bx .pt-at{align-self:center;font-size:11px;font-weight:700;color:var(--g2);
+.pt-root.pt-bx .pt-tqb{margin-top:4px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-root.pt-bx .pt-at{align-self:center;font-size:11px;font-weight:700;color:var(--muted);
   text-transform:uppercase;letter-spacing:.1em;text-align:center;min-width:34px}
-.pt-root.pt-bx .pt-at b{display:block;color:var(--red);font-size:10px;margin-bottom:4px}
-.pt-root.pt-bx .pt-when{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);
-  text-align:center;margin-top:8px}
-.pt-root.pt-bx .pt-when span{color:var(--g1);font-weight:400;letter-spacing:.02em;text-transform:none}
-/* The one-line verdict: how many of the header categories the winner took. */
-.pt-root.pt-bx .pt-verdict{font-size:14px;line-height:1.35;text-align:center;margin-top:8px}
+.pt-root.pt-bx .pt-at b{display:block;color:var(--red);font-size:11px;margin-bottom:4px}
+/* Date line in sentence case and muted grey: red is the brand signal, and the
+   masthead and the FINAL flag already spend it. */
+.pt-root.pt-bx .pt-when{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+/* The one-line verdict: how many of the header categories the winner took.
+   The most interesting line in the tool, so it is set above the body copy. */
+.pt-root.pt-bx .pt-verdict{font-size:16px;line-height:1.35;text-align:center;margin-top:8px}
 .pt-root.pt-bx .pt-verdict b{font-weight:700}
 
 /* ---------- header bars ----------
    One row per category. The track's centre is even; the fill grows from the
-   centre toward the team that was better, in that team's colour, and its
+   centre toward the team that was better, in that team's FILL colour, and its
    length is the actual difference over the category's scale from the data
    file. The two teams' values sit at either end so the bar is never the only
-   thing carrying the number. Horizontal rather than the column chart it is
-   modelled on: seven columns do not fit a phone, seven rows do. */
-.pt-root.pt-bx .pt-bars{margin-top:10px}
-.pt-root.pt-bx .pt-cols{display:flex;align-items:flex-end;font-size:9px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.08em;color:var(--g1);padding:4px 0 3px;border-bottom:2px solid var(--ink)}
+   thing carrying the number: the better side is bold in the team's TEXT
+   colour, the other is regular weight in muted grey, so weight carries the
+   answer rather than two shouting numbers. No caption under the bar and no
+   quartile ticks: the caption restated what the two end figures already say,
+   and the ticks marked a scale that is never labelled. That takes a row from
+   64px to 44px and puts all seven on one phone screen. Horizontal rather than
+   the column chart it is modelled on: seven columns do not fit a phone, seven
+   rows do. */
+.pt-root.pt-bx .pt-bars{margin-top:10px;border:1px solid var(--b2)}
+.pt-root.pt-bx .pt-cols{display:flex;align-items:center;font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--muted);padding:7px 8px 6px;background:var(--bg);border-bottom:2px solid var(--ink)}
 .pt-root.pt-bx .pt-cols .l{width:78px}
 .pt-root.pt-bx .pt-cols .o{width:48px;text-align:right;white-space:nowrap}
 .pt-root.pt-bx .pt-cols .t{flex:1;text-align:center}
 .pt-root.pt-bx .pt-cols .d{width:48px;text-align:left;white-space:nowrap}
-.pt-root.pt-bx .pt-brow{display:flex;align-items:center;width:100%;min-height:44px;border-bottom:1px solid var(--b2)}
-.pt-root.pt-bx .pt-brow .l{width:78px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1.1}
-.pt-root.pt-bx .pt-brow .o,.pt-root.pt-bx .pt-brow .d{width:48px;font-size:14px;font-weight:700;white-space:nowrap}
+.pt-root.pt-bx .pt-brow{display:flex;align-items:center;width:100%;min-height:44px;padding:0 8px;border-bottom:1px solid var(--b2)}
+.pt-root.pt-bx .pt-brow:last-child{border-bottom:0}
+.pt-root.pt-bx .pt-brow .l{width:78px;font-size:13px;font-weight:600;line-height:1.1;color:var(--ink)}
+.pt-root.pt-bx .pt-brow .o,.pt-root.pt-bx .pt-brow .d{width:48px;font-size:15px;font-weight:400;color:var(--muted);white-space:nowrap}
+.pt-root.pt-bx .pt-brow .o.best,.pt-root.pt-bx .pt-brow .d.best{font-weight:700}
 .pt-root.pt-bx .pt-brow .o{text-align:right;padding-right:6px}
 .pt-root.pt-bx .pt-brow .d{text-align:left;padding-left:6px}
 .pt-root.pt-bx .pt-trackwrap{display:block;flex:1;min-width:0;padding:0 2px}
@@ -117,28 +139,32 @@
 .pt-root.pt-bx .pt-track .fill{display:block;position:absolute;top:2px;bottom:2px}
 .pt-root.pt-bx .pt-track .fill.fa{right:50%}
 .pt-root.pt-bx .pt-track .fill.fh{left:50%}
-.pt-root.pt-bx .pt-track .q{display:block;position:absolute;top:0;bottom:0;width:1px;background:var(--b1)}
-.pt-root.pt-bx .pt-edge{display:block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
-  color:var(--g1);text-align:center;margin-top:3px}
 
 /* ---------- box score tables ----------
    One table per group so the desktop layout can lay them out two across.
    Each cell carries the game figure large and, once a team has more than one
-   game, its season average small underneath. The better figure is bold. */
+   game, its season average small underneath. The better figure is bold ink,
+   the other regular weight in muted grey; figures are the product, so they are
+   never smaller than their labels. Rows are striped and 44px tall: a
+   two-column comparison is far easier to track across on a stripe, and the
+   height meets the touch floor. */
 .pt-root.pt-bx .pt-groups{margin-top:14px}
-.pt-root.pt-bx .pt-legend{font-size:11px;color:var(--g1);text-align:center;margin:0 0 8px;line-height:1.35}
-.pt-root.pt-bx .pt-box{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
-.pt-root.pt-bx .pt-box th,.pt-root.pt-bx .pt-box td{padding:6px 4px;border-bottom:1px solid var(--b2);text-align:center;color:var(--ink);font:inherit}
-.pt-root.pt-bx .pt-box th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g1)}
-.pt-root.pt-bx .pt-box th.gh{font-size:12px;letter-spacing:.06em;color:var(--ink);text-align:left;padding-top:10px;border-bottom:2px solid var(--ink)}
-.pt-root.pt-bx .pt-box th.gh span{float:right;font-size:11px;font-weight:700;letter-spacing:.06em}
-.pt-root.pt-bx .pt-box th.gh span i{display:inline-block;width:56px;font-style:normal;text-align:center}
-.pt-root.pt-bx .pt-box th.lab{font-size:12px;font-weight:400;letter-spacing:0;text-transform:none;text-align:left;color:var(--ink);white-space:normal;line-height:1.15}
-.pt-root.pt-bx .pt-box td.n{width:64px;white-space:nowrap;font-weight:400;color:var(--g1)}
+.pt-root.pt-bx .pt-legend{font-size:12px;color:var(--muted);text-align:center;margin:0 0 8px;line-height:1.35}
+.pt-root.pt-bx .pt-box{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:12px}
+.pt-root.pt-bx .pt-box th,.pt-root.pt-bx .pt-box td{padding:5px 6px;border-bottom:1px solid var(--b2);text-align:center;color:var(--ink);font:inherit}
+.pt-root.pt-bx .pt-box tbody tr{height:44px}
+.pt-root.pt-bx .pt-box tbody tr:nth-child(even){background:var(--stripe)}
+.pt-root.pt-bx .pt-box th.gh{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink);text-align:left;padding-top:10px;border-bottom:2px solid var(--ink)}
+.pt-root.pt-bx .pt-box th.gh span{float:right;font-size:13px;font-weight:700;letter-spacing:.07em}
+.pt-root.pt-bx .pt-box th.gh span i{display:inline-block;width:60px;font-style:normal;text-align:center}
+.pt-root.pt-bx .pt-box th.lab{font-size:14px;font-weight:400;letter-spacing:0;text-transform:none;text-align:left;color:var(--ink);white-space:normal;line-height:1.15}
+.pt-root.pt-bx .pt-box td.n{width:72px;white-space:nowrap;font-size:15px;font-weight:400;color:var(--muted)}
 .pt-root.pt-bx .pt-box td.n.best{font-weight:700;color:var(--ink)}
 .pt-root.pt-bx .pt-box td.n.same{color:var(--ink)}
-.pt-root.pt-bx .pt-box td.n small{display:block;font-size:10px;font-weight:400;color:var(--g1);margin-top:1px}
-.pt-root.pt-bx .pt-box td.n .sub{font-size:10px;font-weight:400;color:var(--g1);margin-left:3px}
+/* The season figure keeps --g1: at 11px it is still a secondary figure, but
+   readable, and the eye should land on the game figure above it. */
+.pt-root.pt-bx .pt-box td.n small{display:block;font-size:11px;font-weight:400;color:var(--g1);margin-top:1px}
+.pt-root.pt-bx .pt-box td.n .sub{font-size:11px;font-weight:400;color:var(--muted);margin-left:3px}
 
 /* ---------- bottom sheet (game picker) ---------- */
 .pt-root.pt-bx .pt-scrim{position:absolute;left:0;top:0;right:0;bottom:0;z-index:39;background:rgba(17,17,17,.35)}
@@ -146,53 +172,53 @@
   display:flex;flex-direction:column;background:var(--w);border-top:3px solid var(--red);
   box-shadow:0 -6px 20px rgba(0,0,0,.18)}
 .pt-root.pt-bx .pt-shead{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 12px;
-  background:var(--black);color:var(--w)}
+  background:var(--head);color:var(--w)}
 .pt-root.pt-bx .pt-shead .h{flex:1;min-width:0;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;line-height:1.15}
-.pt-root.pt-bx .pt-shead .h small{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--g2);margin-top:2px}
+.pt-root.pt-bx .pt-shead .h small{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--g2);margin-top:2px}
 .pt-root.pt-bx .pt-close{flex:0 0 auto;min-height:40px;min-width:44px;font-size:24px;font-weight:700;color:var(--w)}
 .pt-root.pt-bx .pt-sbody{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 12px 14px;text-align:center}
 .pt-root.pt-bx .pt-gl{width:100%;display:flex;align-items:center;gap:8px;min-height:54px;padding:6px 0;
   border-bottom:1px solid var(--b2);text-align:left}
 .pt-root.pt-bx .pt-gl:disabled{cursor:default}
-.pt-root.pt-bx .pt-gl:disabled .nm{color:var(--g1)}
+.pt-root.pt-bx .pt-gl:disabled .nm{color:var(--muted)}
 .pt-root.pt-bx .pt-gl .nm{width:96px;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1.1}
-.pt-root.pt-bx .pt-gl .nm small{display:block;font-size:10px;font-weight:400;letter-spacing:0;color:var(--g1);text-transform:none;margin-top:2px}
+.pt-root.pt-bx .pt-gl .nm small{display:block;font-size:11px;font-weight:400;letter-spacing:0;color:var(--muted);text-transform:none;margin-top:2px}
 .pt-root.pt-bx .pt-gl[aria-current="true"] .nm small{color:var(--red);font-weight:700}
 .pt-root.pt-bx .pt-strip{flex:1;display:flex;align-items:center;gap:3px}
-.pt-root.pt-bx .pt-strip .c{flex:1;height:12px;border:1px solid var(--b2);background:var(--bg)}
-.pt-root.pt-bx .pt-gl .cats{width:44px;text-align:right;font-size:11px;font-weight:700;color:var(--g1);white-space:nowrap}
-.pt-root.pt-bx .pt-glkey{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--g1);
+.pt-root.pt-bx .pt-strip .c{flex:1;height:12px;border:1px solid var(--g1);background:var(--bg)}
+.pt-root.pt-bx .pt-gl .cats{width:44px;text-align:right;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.pt-root.pt-bx .pt-glkey{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--muted);
   display:flex;gap:3px;margin:0 52px 6px 104px;text-align:center}
-.pt-root.pt-bx .pt-glkey span{flex:1 1 0;min-width:0;text-align:center;white-space:nowrap}
-.pt-root.pt-bx .pt-note{font-size:11px;color:var(--g1);margin-top:8px;line-height:1.35;text-align:center}
+.pt-root.pt-bx .pt-glkey span{flex:1 1 0;min-width:0;text-align:center;white-space:nowrap;overflow:hidden}
+.pt-root.pt-bx .pt-note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.35;text-align:center}
 
 /* ---------- status + footer ---------- */
-.pt-root.pt-bx .pt-status{padding:26px 14px;text-align:center;font-size:13px;color:var(--g1)}
+.pt-root.pt-bx .pt-status{padding:26px 14px;text-align:center;font-size:14px;color:var(--muted)}
 .pt-root.pt-bx .pt-foot{flex:0 0 auto;padding:7px 12px;border-top:1px solid var(--b2);
-  background:var(--bg2);font-size:11px;color:var(--g1);line-height:1.45}
+  background:var(--bg2);font-size:12px;color:var(--muted);line-height:1.45}
 .pt-root.pt-bx .pt-foot b{color:var(--ink);font-weight:700}
 
 /* ---------- desktop enhancement ---------- */
 @media (min-width:641px){
   .pt-root.pt-bx .pt-head{padding:9px 14px 8px}
-  .pt-root.pt-bx .pt-title{font-size:20px}
-  .pt-root.pt-bx .pt-week{font-size:24px}
+  .pt-root.pt-bx .pt-title{font-size:21px}
+  .pt-root.pt-bx .pt-week{font-size:23px}
   .pt-root.pt-bx .pt-controls{padding:6px 12px}
   .pt-root.pt-bx .pt-season{min-height:38px;font-size:13px}
   .pt-root.pt-bx .pt-pick{flex:0 1 auto;min-width:300px;min-height:38px;font-size:13px}
   .pt-root.pt-bx .pt-card{padding:14px 18px 10px}
-  .pt-root.pt-bx .pt-tname{font-size:24px}
-  .pt-root.pt-bx .pt-score{font-size:46px}
+  .pt-root.pt-bx .pt-tname{font-size:27px}
+  .pt-root.pt-bx .pt-score{font-size:58px}
+  .pt-root.pt-bx .pt-verdict{font-size:17px}
   .pt-root.pt-bx .pt-bars{max-width:720px;margin:12px auto 0}
-  .pt-root.pt-bx .pt-brow .l{width:110px;font-size:13px}
+  .pt-root.pt-bx .pt-brow .l{width:110px}
   .pt-root.pt-bx .pt-cols .l{width:110px}
-  .pt-root.pt-bx .pt-brow .o,.pt-root.pt-bx .pt-brow .d{width:60px;font-size:15px}
+  .pt-root.pt-bx .pt-brow .o,.pt-root.pt-bx .pt-brow .d{width:60px}
   .pt-root.pt-bx .pt-cols .o,.pt-root.pt-bx .pt-cols .d{width:60px}
   .pt-root.pt-bx .pt-groups{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;align-items:start}
   .pt-root.pt-bx .pt-legend{grid-column:1 / -1}
-  .pt-root.pt-bx .pt-box{font-size:14px}
-  .pt-root.pt-bx .pt-box th.lab{font-size:13px}
-  .pt-root.pt-bx .pt-box td.n{width:76px}
+  .pt-root.pt-bx .pt-box td.n{width:84px}
+  .pt-root.pt-bx .pt-box th.gh span i{width:72px}
   .pt-root.pt-bx .pt-sheet{left:8%;right:8%;max-height:86%}
   .pt-root.pt-bx .pt-gl .nm{width:150px}
   .pt-root.pt-bx .pt-glkey{margin-left:158px}
@@ -260,31 +286,73 @@
     TEN:['Tennessee Titans','Titans'], WAS:['Washington Commanders','Commanders']
   };
 
-  // Same map as the matchup tool (which took it from the injury report tool),
-  // so every tool paints a team the same colour. The secondary is the team's
-  // alternate, used only when the two teams in a game are too close to tell
-  // apart on a 16px bar.
+  // Team palette, shared with the matchup tool so every tool paints a team the
+  // same way. Three values per team, [fill, text, fallback]:
+  //   fill      the real brand colour. Only ever paints a large shape (the rule
+  //             over a team name, a bar, a picker swatch), never a letter or a
+  //             figure, so it needs no contrast floor and Packers gold stays gold.
+  //   text      that colour darkened in-hue until it clears 4.5:1 on #f4f5f7,
+  //             the darkest surface the tool puts type on, so one value is safe
+  //             everywhere. The only team colour allowed on text. Half the
+  //             league's brand colours fail 4.5:1 as text; this is why.
+  //   fallback  the team's other brand colour, already text-safe, used for both
+  //             fill and text when the two teams in a game land within a CIE76
+  //             delta E of 22 of each other. Darkening to a floor compresses the
+  //             palette a little (51 of the 496 possible pairings put the two
+  //             text colours inside 22, about one game in ten) and the fallback
+  //             separates every one of them; see gameColors() for the fills.
+  // Colour is never the only thing telling the two sides apart: the rows carry
+  // the abbreviation at both ends and keep away left, home right, everywhere.
   var COLORS = {
-    ARI:['#97233F','#FFB612'], ATL:['#A71930','#6B6B6B'], BAL:['#5B4CA6','#9E7C0C'], BUF:['#00338D','#C60C30'],
-    CAR:['#0085CA','#2C2C2C'], CHI:['#C83803','#0B162A'], CIN:['#FB4F14','#3B3B3B'], CLE:['#FF3C00','#311D00'],
-    DAL:['#7192B6','#041E42'], DEN:['#FB4F14','#002244'], DET:['#0076B6','#B0B7BC'], GB:['#FFB612','#203731'],
-    HOU:['#A6192E','#03202F'], IND:['#3E7CB1','#002C5F'], JAX:['#00A3A1','#D7A22A'], KC:['#E31837','#FFB81C'],
-    LV:['#A5ACAF','#333333'], LAC:['#0080C6','#FFC20E'], LAR:['#1B4FA8','#FFD100'], MIA:['#00A5AC','#FC4C02'],
-    MIN:['#7B52AB','#FFC62F'], NE:['#C60C30','#002244'], NO:['#D3BC8D','#3A3A3A'], NYG:['#2A5AC7','#A71930'],
-    NYJ:['#3A8F63','#125740'], PHI:['#0F8A78','#A5ACAF'], PIT:['#FFB612','#333333'], SF:['#C8102E','#B3995D'],
-    SEA:['#69BE28','#002244'], TB:['#D50A0A','#FF7900'], TEN:['#4B92DB','#0C2340'], WAS:['#A9453D','#FFB612']
+    ARI:['#97233F','#97233F','#000000'], ATL:['#A71930','#A71930','#697276'], BAL:['#241773','#241773','#8A6D0B'],
+    BUF:['#00338D','#00338D','#C60C30'], CAR:['#0085CA','#0076B4','#101820'], CHI:['#0B162A','#C83803','#0B162A'],
+    CIN:['#FB4F14','#D03804','#000000'], CLE:['#FF3C00','#D43200','#311D00'], DAL:['#041E42','#041E42','#667276'],
+    DEN:['#002244','#002244','#D03804'], DET:['#0076B6','#0076B6','#101820'], GB:['#FFB612','#203731','#203731'],
+    HOU:['#03202F','#A6192E','#03202F'], IND:['#002C5F','#002C5F','#687276'], JAX:['#006778','#006778','#8E6B1B'],
+    KC:['#E31837','#DD1736','#976700'], LAC:['#0080C6','#0076B7','#8F6B00'], LAR:['#003594','#003594','#876E00'],
+    LV:['#A5ACAF','#697276','#101820'], MIA:['#008E97','#007D85','#CC3E02'], MIN:['#4F2683','#4F2683','#916A00'],
+    NE:['#002244','#C60C30','#002244'], NO:['#D3BC8D','#886C34','#101820'], NYG:['#0B2265','#0B2265','#A71930'],
+    NYJ:['#125740','#125740','#000000'], PHI:['#004C54','#004C54','#697276'], PIT:['#FFB612','#966800','#101820'],
+    SEA:['#002244','#002244','#467E1B'], SF:['#AA0000','#AA0000','#836E3E'], TB:['#D50A0A','#D50A0A','#34302B'],
+    TEN:['#0C2340','#0C2340','#2772C1'], WAS:['#5A1414','#5A1414','#966800']
   };
-  var COLOR_MIN_DIST = 95;   // RGB distance below which two teams read as one colour
+  var COLOR_MIN_DE = 22;   // CIE76 delta E below which two text colours read as one
   function hexRgb(h){ return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
-  function dist(a, b){
-    var p = hexRgb(a), q = hexRgb(b);
+  // sRGB -> CIE L*a*b* (D65), so the clash test measures perceived difference
+  // rather than RGB distance, which overrates two navies and underrates a red
+  // against an orange.
+  function lab(hex){
+    var c = hexRgb(hex).map(function(v){ v /= 255; return (v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)) * 100; });
+    var x = (c[0] * 0.4124 + c[1] * 0.3576 + c[2] * 0.1805) / 95.047;
+    var y = (c[0] * 0.2126 + c[1] * 0.7152 + c[2] * 0.0722) / 100;
+    var z = (c[0] * 0.0193 + c[1] * 0.1192 + c[2] * 0.9505) / 108.883;
+    var f = function(t){ return t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116; };
+    x = f(x); y = f(y); z = f(z);
+    return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+  }
+  function deltaE(a, b){
+    var p = lab(a), q = lab(b);
     return Math.sqrt((p[0] - q[0]) * (p[0] - q[0]) + (p[1] - q[1]) * (p[1] - q[1]) + (p[2] - q[2]) * (p[2] - q[2]));
   }
+  // {fill, text} for each of the two teams in a game. Both keep their own
+  // values unless the two clash, on text or on fill: then the home team tries
+  // its fallback, then its text colour as the fill too (a third of the league
+  // has the same navy as fill and as fallback), and only if neither separates
+  // them does the away team change. Every one of the 992 ordered pairings
+  // resolves within these three candidates; 858 need no change at all.
+  function candidates(t){
+    return [{fill:t[0], text:t[1]}, {fill:t[2], text:t[2]}, {fill:t[1], text:t[1]}];
+  }
+  function apart(p, q){ return deltaE(p.text, q.text) >= COLOR_MIN_DE && deltaE(p.fill, q.fill) >= COLOR_MIN_DE; }
   function gameColors(g){
-    var a = (COLORS[g.away] || ['#cc0000', '#111111']), h = (COLORS[g.home] || ['#111111', '#cc0000']);
-    var ca = a[0], ch = h[0];
-    if (dist(ca, ch) < COLOR_MIN_DIST) ch = h[1];
-    if (dist(ca, ch) < COLOR_MIN_DIST) ca = a[1];
+    var A = candidates(COLORS[g.away] || ['#cc0000', '#cc0000', '#111111']);
+    var H = candidates(COLORS[g.home] || ['#111111', '#111111', '#cc0000']);
+    var ca = A[0], ch = H[0];
+    outer: for (var i = 0; i < A.length; i++){
+      for (var j = 0; j < H.length; j++){
+        if (apart(A[i], H[j])){ ca = A[i]; ch = H[j]; break outer; }
+      }
+    }
     var out = {}; out[g.away] = ca; out[g.home] = ch;
     return out;
   }
@@ -382,7 +450,8 @@
     if (kind === 'yl'){ var yl = 100 - v; return yl <= 50 ? 'Own ' + Math.round(yl) : 'Opp ' + Math.round(100 - yl); }
     return String(v);
   }
-  // The difference label under a header bar, in the category's own units.
+  // The gap between the two sides in the category's own units: the bar row's
+  // aria-label and the picker swatch tooltips.
   function fmtDiff(kind, d){
     var a = Math.abs(d);
     if (kind === 'pct' || kind === 'frac') return (a * 100).toFixed(1) + ' pts';
@@ -465,9 +534,9 @@
     // Header bars.
     var bars = el('div', 'pt-bars');
     var cols = el('div', 'pt-cols');
-    var co = el('span', 'o', g.away); co.style.color = C[g.away];
-    var cd = el('span', 'd', g.home); cd.style.color = C[g.home];
-    cols.appendChild(el('span', 'l')); cols.appendChild(co); cols.appendChild(el('span', 't', 'Who was better')); cols.appendChild(cd);
+    var co = el('span', 'o', g.away); co.style.color = C[g.away].text;
+    var cd = el('span', 'd', g.home); cd.style.color = C[g.home].text;
+    cols.appendChild(el('span', 'l', 'Category')); cols.appendChild(co); cols.appendChild(el('span', 't', 'Who was better')); cols.appendChild(cd);
     bars.appendChild(cols);
     cats.forEach(function(c){ bars.appendChild(barRow(g, c, C)); });
     card.appendChild(bars);
@@ -495,8 +564,9 @@
 
   function teamBlock(g, team, pts, oppPts, L, color){
     var blk = el('div', 'pt-teamblk');
+    blk.style.borderTopColor = color.fill;
     var nm = el('div', 'pt-tname', teamName(team, Math.min(nameTier(), 1)));
-    nm.style.color = color;
+    nm.style.color = color.text;
     blk.appendChild(nm);
     var sc = el('div', 'pt-score', pts == null ? '\u2013' : String(pts));
     if (pts != null && oppPts != null && pts < oppPts) sc.className += ' lost';
@@ -520,43 +590,42 @@
       v.innerHTML = 'A tie. ' + g.away + ' took <b>' + na + '</b> of ' + n + ' categories, ' + g.home + ' <b>' + nh + '</b>.';
     } else if (ln > wn){
       b = el('b', null, loser + ' was better in ' + ln + ' of ' + n + ' categories and still lost.');
-      b.style.color = C[loser];
+      b.style.color = C[loser].text;
       v.appendChild(b);
     } else if (ln === wn){
       v.innerHTML = 'Even on the categories, <b>' + wn + '</b> each' + (n - wn - ln ? ' with ' + (n - wn - ln) + ' tied' : '') + '.';
     } else {
       b = el('b', null, w + ' won ' + wn + ' of ' + n + ' categories.');
-      b.style.color = C[w];
+      b.style.color = C[w].text;
       v.appendChild(b);
       if (ln) v.appendChild(document.createTextNode(' ' + loser + ' took ' + ln + '.'));
     }
     return v;
   }
 
+  // The better side's figure is bold in its team's text colour; the other is
+  // regular weight in muted grey. The gap itself is only spelled out in the
+  // aria-label: on screen the two end figures and the bar already say it.
   function barRow(g, c, C){
     var row = el('div', 'pt-brow');
     row.appendChild(el('span', 'l', c.label));
-    var o = el('span', 'o', fmtNum(c.kind, c.va)); o.style.color = C[g.away];
+    var who = c.side > 0 ? g.away : c.side < 0 ? g.home : null;
+    var o = el('span', 'o' + (c.side > 0 ? ' best' : ''), fmtNum(c.kind, c.va));
+    if (c.side > 0) o.style.color = C[g.away].text;
     row.appendChild(o);
     var tw = el('span', 'pt-trackwrap');
     var t = el('span', 'pt-track');
-    [0.25, 0.75].forEach(function(q){
-      var m = el('span', 'q'); m.style.left = (q * 100) + '%'; t.appendChild(m);
-    });
-    var who = c.side > 0 ? g.away : c.side < 0 ? g.home : null;
     if (who && c.diff != null){
       var fill = el('span', 'fill ' + (c.side > 0 ? 'fa' : 'fh'));
       fill.style.width = (Math.min(1, Math.abs(c.diff) / c.scale) * 50) + '%';
-      fill.style.background = C[who];
+      fill.style.background = C[who].fill;
       t.appendChild(fill);
     }
     t.appendChild(el('span', 'mid'));
     tw.appendChild(t);
-    var ew = el('span', 'pt-edge', who ? who + ' by ' + fmtDiff(c.kind, c.diff) : (c.diff == null ? 'No data' : 'Even'));
-    if (who) ew.style.color = C[who];
-    tw.appendChild(ew);
     row.appendChild(tw);
-    var d = el('span', 'd', fmtNum(c.kind, c.vh)); d.style.color = C[g.home];
+    var d = el('span', 'd' + (c.side < 0 ? ' best' : ''), fmtNum(c.kind, c.vh));
+    if (c.side < 0) d.style.color = C[g.home].text;
     row.appendChild(d);
     row.setAttribute('aria-label', c.label + ': ' + g.away + ' ' + fmtNum(c.kind, c.va) + ', ' + g.home + ' ' +
       fmtNum(c.kind, c.vh) + (who ? ', ' + who + ' better by ' + fmtDiff(c.kind, c.diff) : ''));
@@ -570,8 +639,8 @@
     th.setAttribute('colspan', '3');
     th.setAttribute('scope', 'colgroup');
     var sp = el('span');
-    var ia = el('i', null, g.away); ia.style.color = C[g.away];
-    var ih = el('i', null, g.home); ih.style.color = C[g.home];
+    var ia = el('i', null, g.away); ia.style.color = C[g.away].text;
+    var ih = el('i', null, g.home); ih.style.color = C[g.home].text;
     sp.appendChild(ia); sp.appendChild(ih);
     th.appendChild(sp);
     tr.appendChild(th);
@@ -664,7 +733,7 @@
         if (c.side !== 0){
           var who = c.side > 0 ? g.away : g.home;
           if (c.side > 0) na++; else nh++;
-          cel.style.background = tint(C[who], Math.min(1, 0.35 + Math.abs(c.diff) / c.scale));
+          cel.style.background = tint(C[who].fill, Math.min(1, 0.35 + Math.abs(c.diff) / c.scale));
           cel.title = c.label + ': ' + who + ' by ' + fmtDiff(c.kind, c.diff);
         }
         strip.appendChild(cel);

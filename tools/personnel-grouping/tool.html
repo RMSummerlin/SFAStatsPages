@@ -9,6 +9,11 @@
    Any property we leave undeclared falls back to inheritance, and inheritance
    loses to any Avada rule that matches the element directly — which is why bare
    th/td were picking up theme colours and fonts. Declare them explicitly. */
+/* Greys. --muted (#4e5154, 8.6:1 on white) is the only grey allowed on text
+   under 24px: the brand's #7f8c9a is 3.4:1 and fails under every caption, so it
+   is kept for shapes (the 3+ WR series, the donut slice) and control edges,
+   where a border needs 3:1 and the body border #cdd5de is 1.3:1. Nothing in
+   this tool is set below 11px. */
 .pt-root.pt-pg *{box-sizing:border-box;margin:0;padding:0;font-family:inherit;color:inherit}
 .pt-root.pt-pg table,.pt-root.pt-pg thead,.pt-root.pt-pg tbody,.pt-root.pt-pg tfoot,
 .pt-root.pt-pg tr,.pt-root.pt-pg th,.pt-root.pt-pg td,.pt-root.pt-pg caption{
@@ -16,8 +21,8 @@
   text-transform:none;letter-spacing:normal;text-shadow:none;box-shadow:none;
   vertical-align:middle;width:auto;height:auto}
 .pt-root.pt-pg{
-  --red:#cc0000; --ink:#111; --g1:#7f8c9a; --g2:#b0bec5;
-  --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --w:#fff;
+  --red:#cc0000; --ink:#111; --muted:#4e5154; --g1:#7f8c9a; --g2:#b0bec5;
+  --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --w:#fff; --head:#222529;
   font-family:'Interstate Condensed','Interstate','Roboto Condensed','Arial Narrow',
     'Helvetica Neue',Arial,sans-serif;
   color:var(--ink); background:var(--w);
@@ -35,28 +40,30 @@
 .pt-root.pt-pg button{background:none;border:0;cursor:pointer}
 .pt-root.pt-pg :focus-visible{outline:2px solid var(--red);outline-offset:1px}
 
-/* ---------- header ---------- */
-.pt-root.pt-pg .pt-head{flex:0 0 auto;background:var(--ink);color:var(--w)}
+/* ---------- header ----------
+   #222529 rather than near-black: it matches the site's header band, and black
+   next to a red rule vibrates. */
+.pt-root.pt-pg .pt-head{flex:0 0 auto;background:var(--head);color:var(--w)}
 .pt-root.pt-pg .pt-headin{padding:13px 12px 12px;border-left:5px solid var(--red)}
-.pt-root.pt-pg .pt-kick{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:#ff5a4d}
+.pt-root.pt-pg .pt-kick{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:#ff5a4d}
 .pt-root.pt-pg .pt-title{margin-top:4px;font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:.005em;line-height:1.04}
 .pt-root.pt-pg .pt-sub{margin-top:4px;font-size:13px;color:var(--g2)}
 .pt-root.pt-pg .pt-sub b{color:var(--w);font-weight:700}
 .pt-root.pt-pg .pt-modewrap{display:flex;padding:0 12px 12px}
-.pt-root.pt-pg .pt-modes{display:flex;width:100%;border:1px solid #5c6773}
+.pt-root.pt-pg .pt-modes{display:flex;width:100%;border:1px solid var(--g1)}
 .pt-root.pt-pg .pt-mode{flex:1;min-height:44px;padding:0 16px;font-size:13px;font-weight:700;
   text-transform:uppercase;letter-spacing:.04em;color:var(--g2);white-space:nowrap}
-.pt-root.pt-pg .pt-mode+.pt-mode{border-left:1px solid #5c6773}
+.pt-root.pt-pg .pt-mode+.pt-mode{border-left:1px solid var(--g1)}
 .pt-root.pt-pg .pt-mode[aria-pressed="true"]{background:var(--red);color:var(--w)}
 
 /* ---------- filter bar ---------- */
 .pt-root.pt-pg .pt-bar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;
   padding:9px 12px;background:var(--bg);border-bottom:1px solid var(--b1)}
-.pt-root.pt-pg .pt-fb{min-height:44px;padding:4px 10px;border:1px solid var(--b1);background:var(--w);
+.pt-root.pt-pg .pt-fb{min-height:44px;padding:4px 10px;border:1px solid var(--g1);background:var(--w);
   text-align:left;display:flex;flex-direction:column;justify-content:center;gap:1px;
   min-width:74px}
-.pt-root.pt-pg .pt-fb .l{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
-  color:var(--g1);white-space:nowrap}
+.pt-root.pt-pg .pt-fb .l{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--muted);white-space:nowrap}
 .pt-root.pt-pg .pt-fb .v{font-size:13px;font-weight:700;white-space:nowrap}
 .pt-root.pt-pg .pt-fb.on{border-color:var(--red);background:#fff5f5}
 .pt-root.pt-pg .pt-fb.on .v{color:var(--red)}
@@ -64,10 +71,10 @@
 .pt-root.pt-pg .pt-fb[aria-expanded="true"] .l{color:var(--g2)}
 .pt-root.pt-pg .pt-fb[aria-expanded="true"] .v{color:var(--w)}
 .pt-root.pt-pg .pt-neu{min-height:44px;display:inline-flex;align-items:center;gap:7px;padding:0 10px;
-  border:1px solid var(--b1);background:var(--w);font-size:13px;font-weight:700;cursor:pointer}
+  border:1px solid var(--g1);background:var(--w);font-size:13px;font-weight:700;cursor:pointer}
 .pt-root.pt-pg .pt-neu input{width:17px;height:17px;accent-color:var(--red)}
 .pt-root.pt-pg .pt-neu.on{border-color:var(--red);background:#fff5f5;color:var(--red)}
-.pt-root.pt-pg .pt-clear{min-height:44px;padding:0 10px;font-size:12px;color:var(--g1);
+.pt-root.pt-pg .pt-clear{min-height:44px;padding:0 10px;font-size:12px;color:var(--muted);
   text-decoration:underline;text-underline-offset:2px}
 
 /* ---------- popover ---------- */
@@ -78,10 +85,10 @@
 .pt-root.pt-pg .pt-poph{display:flex;align-items:baseline;gap:10px;margin-bottom:9px;
   padding-bottom:7px;border-bottom:1px solid var(--b2)}
 .pt-root.pt-pg .pt-poph b{font-size:12px;text-transform:uppercase;letter-spacing:.07em}
-.pt-root.pt-pg .pt-poph button{margin-left:auto;font-size:12px;color:var(--g1);text-decoration:underline;
+.pt-root.pt-pg .pt-poph button{margin-left:auto;font-size:12px;color:var(--muted);text-decoration:underline;
   text-underline-offset:2px;min-height:32px}
 .pt-root.pt-pg .pt-chips{display:flex;flex-wrap:wrap;gap:5px;max-width:330px}
-.pt-root.pt-pg .pt-chip{min-height:38px;min-width:38px;padding:0 10px;border:1px solid var(--b1);
+.pt-root.pt-pg .pt-chip{min-height:38px;min-width:38px;padding:0 10px;border:1px solid var(--g1);
   background:var(--w);font-size:13px;font-weight:600;display:inline-flex;
   align-items:center;justify-content:center}
 .pt-root.pt-pg .pt-chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--w)}
@@ -116,7 +123,7 @@
 /* ---------- table ---------- */
 .pt-root.pt-pg .pt-body{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
 .pt-root.pt-pg .pt-grid{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
-.pt-root.pt-pg .pt-grid caption{text-align:left;padding:8px 12px;font-size:12px;color:var(--g1);caption-side:top}
+.pt-root.pt-pg .pt-grid caption{text-align:left;padding:8px 12px;font-size:12px;color:var(--muted);caption-side:top}
 .pt-root.pt-pg .pt-grid th,.pt-root.pt-pg .pt-grid td{padding:0;text-align:center;white-space:nowrap;
   border-bottom:1px solid var(--b2)}
 .pt-root.pt-pg .pt-grid thead th{position:sticky;top:0;z-index:3;background:var(--w);
@@ -124,8 +131,8 @@
   text-transform:uppercase;letter-spacing:.03em;vertical-align:bottom}
 .pt-root.pt-pg .pt-grid thead th button{width:100%;font:inherit;padding:3px 0}
 .pt-root.pt-pg .pt-grid thead th[aria-sort]{color:var(--red)}
-.pt-root.pt-pg .pt-grid thead th[aria-sort]::after{content:' \25BC';font-size:8px}
-.pt-root.pt-pg .pt-grid thead th[aria-sort=ascending]::after{content:' \25B2';font-size:8px}
+.pt-root.pt-pg .pt-grid thead th[aria-sort]::after{content:' \25BC'}
+.pt-root.pt-pg .pt-grid thead th[aria-sort=ascending]::after{content:' \25B2'}
 .pt-root.pt-pg .pt-rank{position:sticky;left:0;z-index:2;background:var(--bg);width:36px;
   min-width:36px;font-size:15px;font-weight:700;color:var(--ink);
   border-right:1px solid var(--b1)}
@@ -142,7 +149,9 @@
 .pt-root.pt-pg .pt-row.open:nth-child(even) .pt-team,.pt-root.pt-pg .pt-row.open:nth-child(even) .pt-rank{background:var(--ink)}
 .pt-root.pt-pg .pt-g{padding:5px 4px !important;min-width:56px;border-right:1px solid var(--b2)}
 .pt-root.pt-pg .pt-pc{display:block;font-size:14px;font-weight:700}
-.pt-root.pt-pg .pt-ct{display:block;font-size:10px;opacity:.6}
+/* The count under a percentage inherits the cell's ink (white on the dark end
+   of the ramp), so it dims by opacity rather than taking the muted grey. */
+.pt-root.pt-pg .pt-ct{display:block;font-size:11px;opacity:.75}
 .pt-root.pt-pg .pt-nil{background:var(--bg2);color:var(--g2)}
 .pt-root.pt-pg .pt-sfirst{border-left:3px solid var(--ink) !important}
 .pt-root.pt-pg .pt-plays{min-width:58px;font-weight:700;font-size:13px;padding:0 8px !important;
@@ -158,21 +167,21 @@
 .pt-root.pt-pg .pt-dwrap{padding:14px 12px;display:grid;gap:16px}
 .pt-root.pt-pg .pt-dhead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .pt-root.pt-pg .pt-dhead b{font-size:17px}
-.pt-root.pt-pg .pt-dhead span{font-size:12px;color:var(--g1)}
+.pt-root.pt-pg .pt-dhead span{font-size:12px;color:var(--muted)}
 .pt-root.pt-pg .pt-card{min-width:0}
 .pt-root.pt-pg .pt-ctitle{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
-  color:var(--g1);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--b1)}
+  color:var(--muted);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--b1)}
 .pt-root.pt-pg .pt-chart{max-width:460px;margin:0 auto}
 .pt-root.pt-pg .pt-svg{display:block;width:100%;height:auto;overflow:visible}
 .pt-root.pt-pg .pt-key{display:flex;flex-wrap:wrap;gap:3px 12px;margin-top:8px;font-size:11.5px}
 .pt-root.pt-pg .pt-key span{display:inline-flex;align-items:center;gap:5px}
 .pt-root.pt-pg .pt-key i{width:10px;height:10px;display:inline-block;flex:0 0 auto}
 .pt-root.pt-pg .pt-key b{font-weight:700}
-.pt-root.pt-pg .pt-thin{font-size:11px;color:var(--g1);margin-top:6px;line-height:1.4}
+.pt-root.pt-pg .pt-thin{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
 
 /* ---------- footer / states ---------- */
 .pt-root.pt-pg .pt-foot{flex:0 0 auto;padding:10px 12px;border-top:1px solid var(--b1);background:var(--bg2);
-  font-size:11px;color:var(--g1);line-height:1.45}
+  font-size:12px;color:var(--muted);line-height:1.45}
 .pt-root.pt-pg .pt-foot b{color:var(--ink)}
 .pt-root.pt-pg .pt-legtog{font-size:11px;font-weight:700;text-transform:uppercase;
   letter-spacing:.06em;color:var(--ink);text-decoration:underline;text-underline-offset:2px;
@@ -182,7 +191,7 @@
 .pt-root.pt-pg .pt-legrow{display:grid;grid-template-columns:44px 1fr;gap:9px;
   align-items:baseline;font-size:11.5px;line-height:1.4}
 .pt-root.pt-pg .pt-legrow b{font-size:13px;font-weight:700;color:var(--ink)}
-.pt-root.pt-pg .pt-msg{padding:28px 16px;text-align:center;font-size:14px;color:var(--g1)}
+.pt-root.pt-pg .pt-msg{padding:28px 16px;text-align:center;font-size:14px;color:var(--muted)}
 .pt-root.pt-pg .pt-msg b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
 
 @media (min-width:641px){
@@ -275,6 +284,8 @@
   var SIX_OL = 'Six-lineman looks are folded into their grouping, so the receiver count '
              + 'is one lower on those snaps.';
   var C_RED = '#cc0000', C_INK = '#111', C_G1 = '#7f8c9a', C_G2 = '#b0bec5', C_B2 = '#dde2e8';
+  // Chart captions are 11px, so they take the muted grey; C_G1 stays on shapes.
+  var C_MUTED = '#4e5154';
 
   var $ = function(id){ return document.getElementById(id); };
   function el(tag, cls, html){
@@ -872,12 +883,12 @@
     var big = slices.slice().sort(function(a,b){ return b.n-a.n; })[0];
     g += '<text x="'+CX+'" y="'+(CY+2)+'" text-anchor="middle" font-size="23" '+
       'font-weight="700" fill="'+C_INK+'">'+r0(pct(big.n,row.plays))+'%</text>'+
-      '<text x="'+CX+'" y="'+(CY+17)+'" text-anchor="middle" font-size="8.5" fill="'+C_G1+
+      '<text x="'+CX+'" y="'+(CY+18)+'" text-anchor="middle" font-size="11" fill="'+C_MUTED+
       '" letter-spacing="1">'+(big.k==='heavy'?'HEAVY':big.k==='spread'?'3+ WR':'OTHER')+'</text>';
     slices.forEach(function(sl, i){
       var y = 52 + i*38;
       g += '<rect x="158" y="'+(y-10)+'" width="11" height="11" fill="'+sl.c+'"/>'+
-        '<text x="175" y="'+y+'" font-size="10" fill="'+C_G1+'">'+sl.l+'</text>'+
+        '<text x="175" y="'+y+'" font-size="11" fill="'+C_MUTED+'">'+sl.l+'</text>'+
         '<text x="175" y="'+(y+16)+'" font-size="15" font-weight="700" fill="'+C_INK+'">'+
         r0(pct(sl.n,row.plays))+'%</text>';
     });
@@ -899,8 +910,8 @@
     [0,25,50,75,100].forEach(function(v){
       g += '<line x1="'+L+'" y1="'+y(v)+'" x2="'+(CW-R)+'" y2="'+y(v)+'" stroke="'+
         (v?C_B2:C_G2)+'" stroke-width="1"/>'+
-        '<text x="'+(L-4)+'" y="'+(y(v)+3)+'" text-anchor="end" font-size="8.5" fill="'+
-        C_G1+'">'+v+'</text>';
+        '<text x="'+(L-4)+'" y="'+(y(v)+4)+'" text-anchor="end" font-size="11" fill="'+
+        C_MUTED+'">'+v+'</text>';
     });
     var series = [{k:'te2',c:C_INK,l:'2+ TE'},{k:'rb2',c:C_RED,l:'2+ RB'},{k:'wr3',c:C_G1,l:'3+ WR'}];
     series.forEach(function(sr){
@@ -920,8 +931,8 @@
     });
     pts.forEach(function(p, i){
       if (pts.length <= 10 || i === 0 || i === pts.length-1 || (i+1) % 3 === 0)
-        g += '<text x="'+x(i)+'" y="'+(CH-12)+'" text-anchor="middle" font-size="8.5" fill="'+
-          C_G1+'">'+p.week+'</text>';
+        g += '<text x="'+x(i)+'" y="'+(CH-12)+'" text-anchor="middle" font-size="11" fill="'+
+          C_MUTED+'">'+p.week+'</text>';
     });
     var order = [];
     pts.forEach(function(p){ if (order.indexOf(p.season) < 0) order.push(p.season); });
@@ -929,7 +940,7 @@
       var idx = [];
       pts.forEach(function(p, i){ if (p.season === yr) idx.push(i); });
       g += '<text x="'+((x(idx[0])+x(idx[idx.length-1]))/2)+'" y="'+(CH-2)+
-        '" text-anchor="middle" font-size="8.5" font-weight="700" fill="'+C_INK+'">'+yr+'</text>';
+        '" text-anchor="middle" font-size="11" font-weight="700" fill="'+C_INK+'">'+yr+'</text>';
     });
     var key = series.map(function(sr){
       return '<span><i style="background:'+sr.c+'"></i>'+sr.l+'</span>';
@@ -965,8 +976,8 @@
     for (var v = 0; v <= axisMax + 0.001; v += step){
       g += '<line x1="'+L+'" y1="'+y(v).toFixed(1)+'" x2="'+(CW-R)+'" y2="'+y(v).toFixed(1)+
         '" stroke="'+(v?C_B2:C_G2)+'" stroke-width="1"/>'+
-        '<text x="'+(L-5)+'" y="'+(y(v)+3).toFixed(1)+'" text-anchor="end" font-size="8.5" '+
-        'fill="'+C_G1+'">'+v+'</text>';
+        '<text x="'+(L-5)+'" y="'+(y(v)+4).toFixed(1)+'" text-anchor="end" font-size="11" '+
+        'fill="'+C_MUTED+'">'+v+'</text>';
     }
 
     codes.forEach(function(c, i){
@@ -989,10 +1000,10 @@
 
       var lab = Math.min(barTop, y(lp));
       g += '<text x="'+cx.toFixed(1)+'" y="'+(lab-14).toFixed(1)+'" text-anchor="middle" '+
-        'font-size="9" font-weight="700" fill="'+C_G1+'">'+
+        'font-size="11" font-weight="700" fill="'+C_MUTED+'">'+
         (diff > 0 ? '+' : '')+r0(diff)+'%</text>';
       g += '<text x="'+cx.toFixed(1)+'" y="'+(lab-4).toFixed(1)+'" text-anchor="middle" '+
-        'font-size="10.5" font-weight="700" fill="'+C_INK+'">'+r0(p)+'%</text>';
+        'font-size="11" font-weight="700" fill="'+C_INK+'">'+r0(p)+'%</text>';
 
       g += '<text x="'+cx.toFixed(1)+'" y="'+(CH-B+14)+'" text-anchor="middle" '+
         'font-size="11" font-weight="700" fill="'+C_INK+'">'+code2(c)+'</text>';

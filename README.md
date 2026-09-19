@@ -139,7 +139,8 @@ string literal changed. `--check` reports a stale `embed.html` without writing o
 - No `position: fixed` for in-flow UI (only for intentional full-screen modals).
 - Long scrollable lists get their own bounded scroll panel, not page-level scroll.
 - Brand font: Interstate Condensed (self-hosted).
-- Brand colors: black `#000`, Sharp red `#cc0000`, backgrounds `#f4f5f7` / `#fff` / `#f9fafb`, text `#111`, grays `#7f8c9a` / `#b0bec5`, borders `#cdd5de` / `#dde2e8`.
+- Brand colors: black `#000`, header band `#222529`, Sharp red `#cc0000`, backgrounds `#f4f5f7` / `#fff` / `#f9fafb`, table stripe `#f6f6f6`, text `#111`, muted text `#4e5154`, grays `#7f8c9a` / `#b0bec5` (shapes and figures 24px and up, never small text), borders `#cdd5de` / `#dde2e8` (control edges use `#7f8c9a`).
+- Type floor 11px; text under 24px is `#111` or `#4e5154`. Team colours are a fill / text / fallback triple; see the type and contrast section of `docs/avada-embed-rules.md`.
 - Audience is ~75% mobile — design mobile-first, enhance at `min-width: 641px`.
 
 Run `python scripts/lint_embed.py` to check every tool against these mechanically.
