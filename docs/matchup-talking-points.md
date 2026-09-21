@@ -151,8 +151,10 @@ from before a play to after it, given down, distance and field position. A
 positive number means the play left the offense better off than average.
 
 **What is success rate?** The share of plays that keep an offense on schedule:
-gaining 40% of needed yards on first down, 60% on second, or converting on
-third and fourth.
+gaining 45% of the distance to go on first down, 60% on second, or converting on
+third and fourth. The threshold is rounded to whole yards, so first-and-10 needs
+5 and second-and-7 needs 4. Full definition and where it comes from:
+`docs/metric-definitions.md`.
 
 **Why does a defense's rank bunch toward the middle early?** Defensive efficiency
 is far less predictable from one season to the next than offensive efficiency,

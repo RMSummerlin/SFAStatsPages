@@ -46,7 +46,8 @@ SFAStatsPages/
 │   ├── pace-data.md                ← data decisions behind the pace tool
 │   ├── matchup-data.md             ← data decisions and backtest behind the matchup tool
 │   ├── boxscore-data.md            ← data decisions and stat definitions behind the box score tool
-│   └── matchup-talking-points.md   ← page copy and method explanations for the matchup article
+│   ├── matchup-talking-points.md   ← page copy and method explanations for the matchup article
+│   └── metric-definitions.md       ← the wording every tool shares for success rate, EPA and explosives
 ├── data/                           ← served via Pages: generated JSON and preload tables,
 │                                     plus two caches and one hand-corrected input (see below)
 ├── scripts/
@@ -58,6 +59,7 @@ SFAStatsPages/
 │   ├── pull_matchup.py             ← pull + transform (auto-run by the workflow)
 │   ├── pull_boxscore.py            ← pull + transform (auto-run by the workflow)
 │   ├── offseason_changes.py        ← drafts data/offseason_changes_<season>.json once a year (never on the schedule)
+│   ├── derive_success_rule.py      ← re-derives the sheet's success flag from an export (never on the schedule)
 │   ├── test_pace.py                ← regression tests (auto-run by the workflow)
 │   ├── test_offense.py             ← regression tests (auto-run by the workflow)
 │   ├── test_dead_ball.py           ← regression tests (auto-run by the workflow)
