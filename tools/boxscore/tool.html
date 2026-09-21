@@ -155,8 +155,16 @@
 .pt-root.pt-bx .pt-box tbody tr{height:44px}
 .pt-root.pt-bx .pt-box tbody tr:nth-child(even){background:var(--stripe)}
 .pt-root.pt-bx .pt-box th.gh{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink);text-align:left;padding-top:10px;border-bottom:2px solid var(--ink)}
-.pt-root.pt-bx .pt-box th.gh span{float:right;font-size:13px;font-weight:700;letter-spacing:.07em}
-.pt-root.pt-bx .pt-box th.gh span i{display:inline-block;width:60px;font-style:normal;text-align:center}
+/* The group name and the two team names share one line. A float drops to the
+   next line as soon as the name beside it runs long, which stood the header
+   two rows tall and pushed the team names off their columns; a flex row inside
+   the cell cannot. The names keep their width, the group name takes what is
+   left and wraps into it. The row lives in a div: display:flex on the th
+   itself would take the cell out of the table's column model. */
+.pt-root.pt-bx .pt-box th.gh .gr{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.pt-root.pt-bx .pt-box th.gh .gn{min-width:0}
+.pt-root.pt-bx .pt-box th.gh .gt{flex:0 0 auto;white-space:nowrap;font-size:13px;font-weight:700;letter-spacing:.07em}
+.pt-root.pt-bx .pt-box th.gh .gt i{display:inline-block;width:60px;font-style:normal;text-align:center}
 .pt-root.pt-bx .pt-box th.lab{font-size:14px;font-weight:400;letter-spacing:0;text-transform:none;text-align:left;color:var(--ink);white-space:normal;line-height:1.15}
 .pt-root.pt-bx .pt-box td.n{width:72px;white-space:nowrap;font-size:15px;font-weight:400;color:var(--muted)}
 .pt-root.pt-bx .pt-box td.n.best{font-weight:700;color:var(--ink)}
@@ -215,7 +223,7 @@
   .pt-root.pt-bx .pt-groups{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;align-items:start}
   .pt-root.pt-bx .pt-legend{grid-column:1 / -1}
   .pt-root.pt-bx .pt-box td.n{width:84px}
-  .pt-root.pt-bx .pt-box th.gh span i{width:72px}
+  .pt-root.pt-bx .pt-box th.gh .gt i{width:72px}
   .pt-root.pt-bx .pt-sheet{left:8%;right:8%;max-height:86%}
   .pt-root.pt-bx .pt-gl .nm{width:150px}
   .pt-root.pt-bx .pt-glkey{margin-left:158px}
@@ -592,7 +600,6 @@
       b = el('b', null, w + ' won ' + wn + ' of ' + n + ' categories.');
       b.style.color = C[w].text;
       v.appendChild(b);
-      if (ln) v.appendChild(document.createTextNode(' ' + loser + ' took ' + ln + '.'));
     }
     return v;
   }
@@ -629,14 +636,17 @@
   function groupTable(g, grp, L, C, withSeason){
     var t = el('table', 'pt-box');
     var thead = el('thead'), tr = el('tr');
-    var th = el('th', 'gh', grp.label);
+    var th = el('th', 'gh');
     th.setAttribute('colspan', '3');
     th.setAttribute('scope', 'colgroup');
-    var sp = el('span');
+    var row = el('div', 'gr');
+    row.appendChild(el('span', 'gn', grp.label));
+    var sp = el('span', 'gt');
     var ia = el('i', null, g.away); ia.style.color = C[g.away].text;
     var ih = el('i', null, g.home); ih.style.color = C[g.home].text;
     sp.appendChild(ia); sp.appendChild(ih);
-    th.appendChild(sp);
+    row.appendChild(sp);
+    th.appendChild(row);
     tr.appendChild(th);
     thead.appendChild(tr);
     t.appendChild(thead);
