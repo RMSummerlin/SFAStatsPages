@@ -36,7 +36,7 @@
   -webkit-font-smoothing:antialiased;
 }
 /* The desktop clamp floor is taller than a phone. Without this override the
-   footer and the bottom sheet sit below the fold on a 700px viewport. */
+   bottom sheet sits below the fold on a 700px viewport. */
 @media (max-width:640px){
   .pt-root.pt-bx{max-height:85vh;max-height:85svh}
 }
@@ -155,8 +155,19 @@
 .pt-root.pt-bx .pt-box tbody tr{height:44px}
 .pt-root.pt-bx .pt-box tbody tr:nth-child(even){background:var(--stripe)}
 .pt-root.pt-bx .pt-box th.gh{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink);text-align:left;padding-top:10px;border-bottom:2px solid var(--ink)}
-.pt-root.pt-bx .pt-box th.gh span{float:right;font-size:13px;font-weight:700;letter-spacing:.07em}
-.pt-root.pt-bx .pt-box th.gh span i{display:inline-block;width:60px;font-style:normal;text-align:center}
+/* The group name and the two team names share one line. A float drops to the
+   next line as soon as the name beside it runs long, which stood the header
+   two rows tall and pushed the team names off their columns; a flex row inside
+   the cell cannot. The names keep their width, the group name takes what is
+   left and wraps into it. The row lives in a div: display:flex on the th
+   itself would take the cell out of the table's column model. */
+.pt-root.pt-bx .pt-box th.gh .gr{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.pt-root.pt-bx .pt-box th.gh .gn{min-width:0}
+/* Each name box is a whole figure column wide, and the pair hangs 6px past the
+   cell's content edge -- the padding the figures carry on their right -- so a
+   name centres on its own column rather than on the pair of them. */
+.pt-root.pt-bx .pt-box th.gh .gt{flex:0 0 auto;white-space:nowrap;margin-right:-6px;font-size:13px;font-weight:700;letter-spacing:.07em}
+.pt-root.pt-bx .pt-box th.gh .gt i{display:inline-block;width:72px;font-style:normal;text-align:center}
 .pt-root.pt-bx .pt-box th.lab{font-size:14px;font-weight:400;letter-spacing:0;text-transform:none;text-align:left;color:var(--ink);white-space:normal;line-height:1.15}
 .pt-root.pt-bx .pt-box td.n{width:72px;white-space:nowrap;font-size:15px;font-weight:400;color:var(--muted)}
 .pt-root.pt-bx .pt-box td.n.best{font-weight:700;color:var(--ink)}
@@ -192,11 +203,8 @@
 .pt-root.pt-bx .pt-glkey span{flex:1 1 0;min-width:0;text-align:center;white-space:nowrap;overflow:hidden}
 .pt-root.pt-bx .pt-note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.35;text-align:center}
 
-/* ---------- status + footer ---------- */
+/* ---------- status ---------- */
 .pt-root.pt-bx .pt-status{padding:26px 14px;text-align:center;font-size:14px;color:var(--muted)}
-.pt-root.pt-bx .pt-foot{flex:0 0 auto;padding:7px 12px;border-top:1px solid var(--b2);
-  background:var(--bg2);font-size:12px;color:var(--muted);line-height:1.45}
-.pt-root.pt-bx .pt-foot b{color:var(--ink);font-weight:700}
 
 /* ---------- desktop enhancement ---------- */
 @media (min-width:641px){
@@ -218,7 +226,7 @@
   .pt-root.pt-bx .pt-groups{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;align-items:start}
   .pt-root.pt-bx .pt-legend{grid-column:1 / -1}
   .pt-root.pt-bx .pt-box td.n{width:84px}
-  .pt-root.pt-bx .pt-box th.gh span i{width:72px}
+  .pt-root.pt-bx .pt-box th.gh .gt i{width:84px}
   .pt-root.pt-bx .pt-sheet{left:8%;right:8%;max-height:86%}
   .pt-root.pt-bx .pt-gl .nm{width:150px}
   .pt-root.pt-bx .pt-glkey{margin-left:158px}
@@ -243,8 +251,6 @@
 
   <div class="pt-scrim" data-role="scrim" hidden></div>
   <div class="pt-sheet" data-role="sheet" role="dialog" aria-modal="true" hidden></div>
-
-  <div class="pt-foot" data-role="foot"></div>
 </div>
 
 <script>
@@ -559,7 +565,6 @@
     wrap.scrollTop = 0;
     hideServerPreload();
     paintPick(g);
-    paintFoot(g);
   }
 
   function teamBlock(g, team, pts, oppPts, L, color){
@@ -598,7 +603,6 @@
       b = el('b', null, w + ' won ' + wn + ' of ' + n + ' categories.');
       b.style.color = C[w].text;
       v.appendChild(b);
-      if (ln) v.appendChild(document.createTextNode(' ' + loser + ' took ' + ln + '.'));
     }
     return v;
   }
@@ -635,14 +639,17 @@
   function groupTable(g, grp, L, C, withSeason){
     var t = el('table', 'pt-box');
     var thead = el('thead'), tr = el('tr');
-    var th = el('th', 'gh', grp.label);
+    var th = el('th', 'gh');
     th.setAttribute('colspan', '3');
     th.setAttribute('scope', 'colgroup');
-    var sp = el('span');
+    var row = el('div', 'gr');
+    row.appendChild(el('span', 'gn', grp.label));
+    var sp = el('span', 'gt');
     var ia = el('i', null, g.away); ia.style.color = C[g.away].text;
     var ih = el('i', null, g.home); ih.style.color = C[g.home].text;
     sp.appendChild(ia); sp.appendChild(ih);
-    th.appendChild(sp);
+    row.appendChild(sp);
+    th.appendChild(row);
     tr.appendChild(th);
     thead.appendChild(tr);
     t.appendChild(thead);
@@ -764,12 +771,6 @@
     var prev = $('prev'), next = $('next');
     prev.hidden = STATE.week <= 1;
     next.hidden = STATE.week >= maxWeek();
-  }
-  function paintFoot(g){
-    $('foot').innerHTML = '<b>Offense only, pass and rush plays.</b> Kneels and spikes are left out; special teams and ' +
-      'penalty-only plays are not in the data. Turnover EPA is the expected points the offense gave away on its ' +
-      'interceptions and lost fumbles. Explosive plays are passes of ' + D.params.explosive_pass + '+ yards and runs of ' +
-      D.params.explosive_rush + '+. Points per drive reads the score before and after each drive, so a missed extra point counts.';
   }
   // #w1-cle-jax for the default season; #2024-w18-cle-jax for any other, so
   // links written before there was a season picker keep opening the same game.
