@@ -136,9 +136,6 @@
 .pt-root.pt-bx .pt-note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.35;text-align:center}
 
 .pt-root.pt-bx .pt-status{padding:26px 14px;text-align:center;font-size:14px;color:var(--muted)}
-.pt-root.pt-bx .pt-foot{flex:0 0 auto;padding:7px 12px;border-top:1px solid var(--b2);
-  background:var(--bg2);font-size:12px;color:var(--muted);line-height:1.45}
-.pt-root.pt-bx .pt-foot b{color:var(--ink);font-weight:700}
 
 @media (min-width:641px){
   .pt-root.pt-bx .pt-head{padding:9px 14px 8px}
@@ -184,8 +181,6 @@
 
   <div class="pt-scrim" data-role="scrim" hidden></div>
   <div class="pt-sheet" data-role="sheet" role="dialog" aria-modal="true" hidden></div>
-
-  <div class="pt-foot" data-role="foot"></div>
 </div>
 
 <script>
@@ -446,7 +441,6 @@
     wrap.scrollTop = 0;
     hideServerPreload();
     paintPick(g);
-    paintFoot(g);
   }
 
   function teamBlock(g, team, pts, oppPts, L, color){
@@ -640,12 +634,6 @@
     var prev = $('prev'), next = $('next');
     prev.hidden = STATE.week <= 1;
     next.hidden = STATE.week >= maxWeek();
-  }
-  function paintFoot(g){
-    $('foot').innerHTML = '<b>Offense only, pass and rush plays.</b> Kneels and spikes are left out; special teams and ' +
-      'penalty-only plays are not in the data. Turnover EPA is the expected points the offense gave away on its ' +
-      'interceptions and lost fumbles. Explosive plays are passes of ' + D.params.explosive_pass + '+ yards and runs of ' +
-      D.params.explosive_rush + '+. Points per drive reads the score before and after each drive, so a missed extra point counts.';
   }
   function pushHash(){
     var g = gameById(STATE.game);

@@ -149,7 +149,7 @@ GROUPS = [
     dict(key="box",  label="Box score"),
     dict(key="eff",  label="Efficiency"),
     dict(key="pass", label="Passing"),
-    dict(key="run",  label="Rushing and tendencies"),
+    dict(key="run",  label="Rushing/Tendencies"),
 ]
 
 # The diverging bars above the table: which team was better in each category
