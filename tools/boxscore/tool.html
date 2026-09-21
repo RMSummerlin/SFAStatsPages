@@ -201,7 +201,6 @@
 .pt-root.pt-bx .pt-glkey{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--muted);
   display:flex;gap:3px;margin:0 52px 6px 104px;text-align:center}
 .pt-root.pt-bx .pt-glkey span{flex:1 1 0;min-width:0;text-align:center;white-space:nowrap;overflow:hidden}
-.pt-root.pt-bx .pt-note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.35;text-align:center}
 
 /* ---------- status ---------- */
 .pt-root.pt-bx .pt-status{padding:26px 14px;text-align:center;font-size:14px;color:var(--muted)}
@@ -730,7 +729,6 @@
       if (g.id === STATE.game) row.setAttribute('aria-current', 'true');
       var nm = el('span', 'nm', gameLabel(g));
       var sub = (g.as != null && g.hs != null) ? 'Final ' + g.as + '-' + g.hs : fmtTime(g);
-      if (!L) sub += ' \u00b7 not in the data yet';
       nm.appendChild(el('small', null, g.id === STATE.game ? 'Showing \u00b7 ' + sub : sub));
       row.appendChild(nm);
       var strip = el('span', 'pt-strip');
@@ -757,9 +755,6 @@
       }
       body.appendChild(row);
     });
-    var note = el('div', 'pt-note');
-    note.textContent = 'The count on the right is categories won, away team first.';
-    body.appendChild(note);
   }
 
   // ---- chrome ------------------------------------------------------------------
