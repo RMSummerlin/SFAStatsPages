@@ -120,6 +120,22 @@ and is left out rather than guessed.
 **Which team is the offense:** the 2026 sheet may log every play twice. The
 rows pass through `offense.offense_rows()` first, like every other pull.
 
+## Previous meetings
+
+Each season file carries `meetings`: game id → the same two teams' three most
+recent earlier games, newest first, as `[season, week, away, home, away pts,
+home pts]`. The tool shows them as buttons under the date line, and each
+opens that game's box score, loading its season if need be.
+
+* Only games the box score data publishes count, so every button opens a box
+  score. That means regular season, 2021 on: the Super Bowl and other
+  playoff games are not in the sheets.
+* A season's own earlier weeks count, so a division rematch lists the first
+  game.
+* The list only looks backward, so adding a season never changes an older
+  file. The pull reads the older seasons from their files on disk; an `--all`
+  run goes oldest first and writes each before building the next.
+
 ## Things that look like bugs but are not
 
 * **The season column is missing in week 1.** It appears once a team has two

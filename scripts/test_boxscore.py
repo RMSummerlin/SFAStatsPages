@@ -155,6 +155,26 @@ def test_definitions():
     print("ok  stat, header and preload definitions agree")
 
 
+def test_meetings():
+    def game(gid, w, away, home, a, h):
+        return {"id": gid, "w": w, "away": away, "home": home, "as": a, "hs": h}
+    old = {"season": 2029, "games": {"a": {}, "b": {}, "c": {}},
+           "schedule": [game("a", 3, "BBB", "AAA", 10, 7), game("b", 9, "AAA", "BBB", 21, 24),
+                        game("c", 4, "AAA", "CCC", 3, 0), game("d", 12, "AAA", "BBB", None, None)]}
+    new = {"season": 2030, "games": {"x": {}, "y": {}, "z": {}},
+           "schedule": [game("x", 2, "AAA", "BBB", 20, 17), game("y", 5, "CCC", "DDD", 1, 0),
+                        game("z", 14, "BBB", "AAA", 13, 6), game("u", 16, "AAA", "BBB", None, None)]}
+    m = pb.meetings(new, pb.published_games(old))
+    # Newest first, either side home, and this season's own earlier game counts.
+    assert m["z"] == [[2030, 2, "AAA", "BBB", 20, 17], [2029, 9, "AAA", "BBB", 21, 24],
+                      [2029, 3, "BBB", "AAA", 10, 7]], m["z"]
+    assert m["x"] == [[2029, 9, "AAA", "BBB", 21, 24], [2029, 3, "BBB", "AAA", 10, 7]]
+    # No earlier meeting, or a game not published, gets no entry; an unpublished
+    # earlier game is never listed.
+    assert "y" not in m and "u" not in m
+    print("ok  meetings list earlier published games of the pair, newest first")
+
+
 if __name__ == "__main__":
     test_turnovers_and_first_downs()
     test_zero_fill()
@@ -162,4 +182,5 @@ if __name__ == "__main__":
     test_game_matching()
     test_preload_and_totals()
     test_definitions()
+    test_meetings()
     print("all boxscore tests passed")
