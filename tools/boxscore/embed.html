@@ -72,6 +72,13 @@
 .pt-root.pt-bx .pt-when{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
 .pt-root.pt-bx .pt-verdict{font-size:16px;line-height:1.35;text-align:center;margin-top:8px}
 .pt-root.pt-bx .pt-verdict b{font-weight:700}
+.pt-root.pt-bx .pt-met{margin-top:10px;text-align:center}
+.pt-root.pt-bx .pt-met .k{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.pt-root.pt-bx .pt-met .row{display:flex;justify-content:center;gap:6px}
+.pt-root.pt-bx .pt-mbtn{flex:0 1 112px;min-width:0;min-height:44px;padding:4px 6px;border:1px solid var(--g1);border-radius:4px;
+  background:var(--w);text-align:center;line-height:1.15}
+.pt-root.pt-bx .pt-mbtn small{display:block;font-size:11px;color:var(--muted);white-space:nowrap}
+.pt-root.pt-bx .pt-mbtn b{display:block;font-size:14px;font-weight:700;white-space:nowrap}
 
 .pt-root.pt-bx .pt-bars{margin-top:10px;border:1px solid var(--b2)}
 .pt-root.pt-bx .pt-cols{display:flex;align-items:center;font-size:11px;font-weight:700;text-transform:uppercase;
@@ -98,6 +105,9 @@
 .pt-root.pt-bx .pt-legend{font-size:12px;color:var(--muted);text-align:center;margin:0 0 8px;line-height:1.35}
 .pt-root.pt-bx .pt-box{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:12px}
 .pt-root.pt-bx .pt-box th,.pt-root.pt-bx .pt-box td{padding:5px 6px;border-bottom:1px solid var(--b2);text-align:center;color:var(--ink);font:inherit}
+.pt-root.pt-bx .pt-box th,.pt-root.pt-bx .pt-box td{border-top:0 !important;border-left:0 !important;
+  border-right:0 !important;outline:0 !important;box-shadow:none !important}
+.pt-root.pt-bx .pt-box tbody th,.pt-root.pt-bx .pt-box tbody td{border-bottom:1px solid var(--b2) !important}
 .pt-root.pt-bx .pt-box tbody tr{height:44px}
 .pt-root.pt-bx .pt-box tbody tr:nth-child(even){background:var(--stripe)}
 .pt-root.pt-bx .pt-box th.gh{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink);text-align:left;padding-top:10px;border-bottom:2px solid var(--ink)}
@@ -122,19 +132,19 @@
 .pt-root.pt-bx .pt-shead .h small{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--g2);margin-top:2px}
 .pt-root.pt-bx .pt-close{flex:0 0 auto;min-height:40px;min-width:44px;font-size:24px;font-weight:700;color:var(--w)}
 .pt-root.pt-bx .pt-sbody{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 12px 14px;text-align:center}
-.pt-root.pt-bx .pt-gl{width:100%;display:flex;align-items:center;gap:8px;min-height:54px;padding:6px 0;
+.pt-root.pt-bx .pt-glnote{font-size:12px;line-height:1.35;color:var(--muted);text-align:left;margin:0 0 8px}
+.pt-root.pt-bx .pt-glhead{display:flex;justify-content:space-between;gap:8px;padding-bottom:5px;border-bottom:2px solid var(--ink);
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.pt-root.pt-bx .pt-gl{width:100%;display:flex;align-items:center;gap:10px;min-height:58px;padding:7px 0;
   border-bottom:1px solid var(--b2);text-align:left}
 .pt-root.pt-bx .pt-gl:disabled{cursor:default}
 .pt-root.pt-bx .pt-gl:disabled .nm{color:var(--muted)}
-.pt-root.pt-bx .pt-gl .nm{width:96px;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1.1}
-.pt-root.pt-bx .pt-gl .nm small{display:block;font-size:11px;font-weight:400;letter-spacing:0;color:var(--muted);text-transform:none;margin-top:2px}
+.pt-root.pt-bx .pt-gl .nm{flex:1;min-width:0;font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1.1}
+.pt-root.pt-bx .pt-gl .nm small{display:block;font-size:13px;font-weight:400;letter-spacing:0;color:var(--muted);text-transform:none;margin-top:3px}
 .pt-root.pt-bx .pt-gl[aria-current="true"] .nm small{color:var(--red);font-weight:700}
-.pt-root.pt-bx .pt-strip{flex:1;display:flex;align-items:center;gap:3px}
-.pt-root.pt-bx .pt-strip .c{flex:1;height:12px;border:1px solid var(--g1);background:var(--bg)}
-.pt-root.pt-bx .pt-gl .cats{width:44px;text-align:right;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
-.pt-root.pt-bx .pt-glkey{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--muted);
-  display:flex;gap:3px;margin:0 52px 6px 104px;text-align:center}
-.pt-root.pt-bx .pt-glkey span{flex:1 1 0;min-width:0;text-align:center;white-space:nowrap;overflow:hidden}
+.pt-root.pt-bx .pt-strip{flex:0 0 auto;display:flex;align-items:center;gap:2px}
+.pt-root.pt-bx .pt-strip .c{width:11px;height:11px;border:1px solid var(--g1);background:var(--bg)}
+.pt-root.pt-bx .pt-gl .cats{flex:0 0 auto;min-width:44px;text-align:right;font-size:18px;font-weight:700;color:var(--ink);white-space:nowrap}
 
 .pt-root.pt-bx .pt-status{padding:26px 14px;text-align:center;font-size:14px;color:var(--muted)}
 
@@ -159,8 +169,9 @@
   .pt-root.pt-bx .pt-box td.n{width:84px}
   .pt-root.pt-bx .pt-box th.gh .gt i{width:84px}
   .pt-root.pt-bx .pt-sheet{left:8%;right:8%;max-height:86%}
-  .pt-root.pt-bx .pt-gl .nm{width:150px}
-  .pt-root.pt-bx .pt-glkey{margin-left:158px}
+  .pt-root.pt-bx .pt-glnote,.pt-root.pt-bx .pt-glhead,.pt-root.pt-bx .pt-gl{max-width:640px;margin-left:auto;margin-right:auto}
+  .pt-root.pt-bx .pt-strip{gap:3px}
+  .pt-root.pt-bx .pt-strip .c{width:14px;height:14px}
 }
 </style>
 
@@ -414,6 +425,8 @@
     if (g.stadium) when.appendChild(el('span', null, ' \u00b7 ' + g.stadium));
     card.appendChild(when);
 
+    var met = meetingsLine(g, C);
+    if (met) card.appendChild(met);
     card.appendChild(verdict(g, cats, C));
 
     var bars = el('div', 'pt-bars');
@@ -456,6 +469,39 @@
     var qb = (L.qb && L.qb[team]) || '';
     blk.appendChild(el('div', 'pt-tqb', qb ? 'QB ' + qb : ''));
     return blk;
+  }
+
+  function meetingsLine(g, C){
+    var ms = (D.meetings || {})[g.id];
+    if (!ms || !ms.length) return null;
+    var box = el('div', 'pt-met');
+    box.appendChild(el('span', 'k', 'Previous meetings'));
+    var row = el('div', 'row');
+    ms.forEach(function(m){
+      var season = m[0], w = m[1], away = m[2], home = m[3], ap = m[4], hp = m[5];
+      var win = ap === hp ? null : ap > hp ? away : home;
+      var b = el('button', 'pt-mbtn');
+      b.type = 'button';
+      b.appendChild(el('small', null, season + ' \u00b7 Wk ' + w));
+      var score = win ? win + ' ' + Math.max(ap, hp) + '\u2013' + Math.min(ap, hp) : 'Tie ' + ap + '\u2013' + hp;
+      var s = el('b', null, score);
+      if (win && C[win]) s.style.color = C[win].text;
+      b.appendChild(s);
+      b.setAttribute('aria-label', 'Open ' + season + ' week ' + w + ', ' + away + ' ' + ap + ' at ' + home + ' ' + hp);
+      b.addEventListener('click', function(){ openMeeting(season, w, away, home); });
+      row.appendChild(b);
+    });
+    box.appendChild(row);
+    return box;
+  }
+  function openMeeting(season, w, away, home){
+    if (!SEASONS[season]) showStatus('Loading ' + season + '\u2026');
+    var prev = STATE.season;
+    showSeason(season, {season:season, week:w, away:away, home:home}).then(pushHash).catch(function(err){
+      showStatus('Couldn\u2019t load the ' + season + ' season. Reload the page to try again.');
+      $('season').value = String(prev);
+      if (window.console) console.error('[boxscore]', err);
+    });
   }
 
   function verdict(g, cats, C){
@@ -586,10 +632,13 @@
 
   function openPicker(){
     var W = STATE.week;
-    var body = openSheet(D.season + ' week ' + W + ' games', 'Each cell takes the colour of the team that was better in that category');
-    var key = el('div', 'pt-glkey');
-    D.header.forEach(function(h){ key.appendChild(el('span', null, h.short || h.label)); });
-    body.appendChild(key);
+    var body = openSheet(D.season + ' week ' + W + ' games');
+    body.appendChild(el('p', 'pt-glnote', 'The count is categories won, away team first. Each square is one category, ' +
+      'in the colour of the team that won it: ' + D.header.map(function(h){ return h.label; }).join(', ') + '.'));
+    var gh = el('div', 'pt-glhead');
+    gh.appendChild(el('span', null, 'Game'));
+    gh.appendChild(el('span', null, 'Categories'));
+    body.appendChild(gh);
     gamesIn(W).forEach(function(g){
       var C = gameColors(g);
       var L = lineOf(g);

@@ -6,7 +6,9 @@ publish one box score per played game for the Box Score tool.
 Outputs (all under data/):
   boxscore_<season>.json   every played game's two team lines (raw counters),
                            each team's season-to-date counters, the stat and
-                           header definitions the tool renders from
+                           header definitions the tool renders from, and
+                           each game's earlier meetings of the same two teams,
+                           read from the older season files on disk
   boxscore_index.json      which seasons exist + which is the default
   boxscore_preload.html    crawlable table for the latest played week
   schedule_<season>.json   cached nflverse schedule (shared with the matchup tool)
@@ -602,6 +604,62 @@ def preload_table(season, W, schedule, games, names):
     )
 
 
+# ------------------------------------------------------------------- meetings
+
+# How many earlier meetings of the same two teams the tool lists under the
+# date line. Three covers a division pair's last season and a half.
+MEETINGS_MAX = 3
+
+
+def published_games(blob):
+    """(season, week, away, home, away pts, home pts) for every game a season
+    file publishes. Only published games, so every meeting the tool lists opens
+    a box score rather than a 'not in the data yet'."""
+    out = []
+    for g in blob["schedule"]:
+        if g["id"] in blob["games"] and g["as"] is not None and g["hs"] is not None:
+            out.append((blob["season"], g["w"], g["away"], g["home"], g["as"], g["hs"]))
+    return out
+
+
+def meetings(blob, earlier):
+    """Game id -> the same two teams' most recent earlier meetings, newest
+    first, as [season, week, away, home, away pts, home pts]. `earlier` is the
+    earlier seasons' published games; this season's own earlier weeks count
+    too, so a division rematch lists the first game. Games with no earlier
+    meeting in the data are left out. Only looks backward, so a season file
+    never needs rewriting when a later season is added."""
+    pool = {}
+    for m in list(earlier) + published_games(blob):
+        pool.setdefault(frozenset(m[2:4]), []).append(m)
+    for ms in pool.values():
+        ms.sort(key=lambda m: (m[0], m[1]), reverse=True)
+    out = {}
+    for g in blob["schedule"]:
+        if g["id"] not in blob["games"]:
+            continue
+        prior = [list(m) for m in pool.get(frozenset((g["away"], g["home"])), [])
+                 if (m[0], m[1]) < (blob["season"], g["w"])]
+        if prior:
+            out[g["id"]] = prior[:MEETINGS_MAX]
+    return out
+
+
+def earlier_games(season):
+    """Published games of every season file on disk older than `season`. An
+    --all run goes oldest first and writes each file before the next is built,
+    so this sees the fresh ones."""
+    out = []
+    for path in sorted(DATA_DIR.glob(f"{TOOL}_*.json")):
+        parts = path.stem.split("_")
+        if len(parts) == 2 and parts[1].isdigit() and int(parts[1]) < season:
+            try:
+                out += published_games(json.loads(path.read_text(encoding="utf-8")))
+            except (json.JSONDecodeError, OSError, KeyError):
+                print(f"{season}: NOTE could not read {path.name}; its games are left out of the earlier meetings")
+    return out
+
+
 # ------------------------------------------------------------------------ main
 
 
@@ -689,7 +747,8 @@ def main():
             continue
 
         blob, preload = build_season(season, rows, present, schedule, today)
-        out = DATA_DIR / f"{TOOL}_{season}.json"
+        blob["meetings"] = meetings(blob, earlier_games(season))
+        out =DATA_DIR / f"{TOOL}_{season}.json"
         stamp = blob.pop("generated_utc")
         blob = json.loads(json.dumps(blob))
         unchanged = False

@@ -4,8 +4,10 @@ One played game at a time: the scoreline, seven diverging bars showing which
 team was better in each category and by how much, and an offensive box score
 underneath in four groups (box score, efficiency, passing, rushing and
 tendencies) with each team's season average alongside once it has more than
-one game. Season select, week stepper and a game picker that doubles as the
-slate view. Opens on the newest season's latest played week.
+one game. Under the date line, up to three previous meetings of the same two
+teams (2021 on), each opening that game. Season select, week stepper and a
+game picker that doubles as the slate view: each game with its category count
+large and seven small swatches for who took which category. Opens on the newest season's latest played week.
 
 Data decisions and every stat's definition are in `docs/boxscore-data.md`.
 
@@ -47,6 +49,10 @@ schedule (shared with the matchup tool).
 * The bottom sheet is `position:absolute` inside the root and scrolls
   internally. No `position:fixed`.
 * At 641px and up the four tables sit two across; on a phone they stack.
+* The box score cells pin their borders with `!important`: on the live site's
+  phone layout a theme rule drew a heavy box round every cell of the right
+  figure column, and a class-scoped reset loses to an id-scoped or
+  `!important` theme rule.
 * Team colours come in three values, fill / text / fallback, shared with the
   matchup tool and explained in `docs/avada-embed-rules.md`. The real brand
   colour only paints the rule over the team name, the bars and the picker
