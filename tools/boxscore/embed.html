@@ -603,6 +603,15 @@
     return td;
   }
 
+  function revealSheet(){
+    var s = $('sheet');
+    if (s.hidden) return;
+    var r = s.getBoundingClientRect();
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    if (r.top >= 0 && r.top <= vh - 160) return;
+    window.scrollBy(0, r.top < 0 ? r.top : Math.max(0, Math.min(r.bottom - vh, r.top)));
+  }
+
   function openSheet(title, sub){
     var s = $('sheet');
     s.innerHTML = '';
@@ -619,7 +628,11 @@
     s.appendChild(body);
     s.hidden = false;
     $('scrim').hidden = false;
-    x.focus();
+    setTimeout(function(){
+      if (!x.isConnected) return;
+      revealSheet();
+      x.focus({ preventScroll:true });
+    }, 0);
     return body;
   }
   function closeSheet(){

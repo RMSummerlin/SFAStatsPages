@@ -750,6 +750,25 @@
 
   // ---- bottom sheet ------------------------------------------------------------
 
+  // Opening the sheet must not throw the page around. Focusing the close button
+  // the moment the sheet opened, while it was still only its header, made the
+  // browser scroll the page to the bottom of the tool (the sheet is anchored
+  // there, up to 1320px below the picker on a desktop); the rows then grew the
+  // sheet upward and pushed that header off the top of the screen. So focus
+  // waits until the caller has filled the sheet, and skips the browser's
+  // scroll. The page moves only if the finished sheet's header is out of sight
+  // or too low to show any rows, and then only far enough to bring the sheet in.
+  function revealSheet(){
+    var s = $('sheet');
+    if (s.hidden) return;
+    var r = s.getBoundingClientRect();
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    if (r.top >= 0 && r.top <= vh - 160) return;
+    // Above the screen: bring the header to the top edge. Below it: bring the
+    // bottom up to the bottom edge, but never lift the header past the top.
+    window.scrollBy(0, r.top < 0 ? r.top : Math.max(0, Math.min(r.bottom - vh, r.top)));
+  }
+
   function openSheet(title, sub){
     var s = $('sheet');
     s.innerHTML = '';
@@ -766,7 +785,11 @@
     s.appendChild(body);
     s.hidden = false;
     $('scrim').hidden = false;
-    x.focus();
+    setTimeout(function(){
+      if (!x.isConnected) return;
+      revealSheet();
+      x.focus({ preventScroll:true });
+    }, 0);
     return body;
   }
   function closeSheet(){
