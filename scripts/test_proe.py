@@ -171,15 +171,23 @@ check("PROE from cells", P.proe_of([tw["AAA"]["1"], tw["AAA"]["2"]], 0), (10.0, 
 check("defense PROE against", P.proe_of([tw["AAA"]["1"]], 3), (-30.0, 10))
 check("no plays gives None", P.proe_of([], 0), (None, 0))
 
-# Last four reads the last four PLAYED weeks, skipping a bye.
+# Last four reads the last four PLAYED weeks, skipping a bye, and every figure
+# is centred so the league's play-weighted mean is zero.
 six = {}
 for i, w in enumerate((1, 2, 4, 5, 6, 7)):          # week 3 is the bye
     six[str(w)] = [10 if i < 2 else 5, 5.0, 10, 5, 5.0, 10, "BBB"]
-summary = P.summarise({"CCC": six}, ["CCC"])
-check("season PROE", summary["CCC"]["off"], round(100 * (40 - 30) / 60, 1))
-check("last four skips the bye and the early weeks", summary["CCC"]["off_l4"], 0.0)
+one = {"1": [5, 5.0, 10, 5, 5.0, 10, "CCC"]}          # a team exactly at expectation
+m = P.league_offset({"CCC": six, "DDD": one})
+check("league offset", round(m, 6), round((45 - 35) / 70, 6))
+summary = P.summarise({"CCC": six, "DDD": one}, ["CCC", "DDD"])
+check("season PROE, centred", summary["CCC"]["off"], round(100 * (40 - 30 - 60 * m) / 60, 1))
+check("a team at expectation reads minus the league", summary["DDD"]["off"], round(-100 * m, 1))
+check("last four skips the bye and the early weeks", summary["CCC"]["off_l4"], round(-100 * m, 1))
 check("games counted", summary["CCC"]["games"], 6)
+weighted = sum(summary[t]["off"] * summary[t]["off_n"] for t in ("CCC", "DDD")) / 70
+check("play-weighted league mean is zero", round(weighted, 1), 0.0)
 check("team with no plays", P.summarise({}, ["ZZZ"])["ZZZ"]["off"], None)
+check("empty league has no offset", P.league_offset({}), 0.0)
 
 
 # ------------------------------------------------------------------- byes

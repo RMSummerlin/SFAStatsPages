@@ -86,14 +86,37 @@ the cache does not hold exactly the completed seasons (first run, or a season
 rolled over), the pull re-reads every sheet and republishes every season, so
 the rollover needs no manual step beyond adding the new sheet to config.
 
-Two consequences worth stating plainly:
+### Displayed figures are centred on the season's league
 
-- **The league mean is not zero.** The league has leaned further toward the
-  run across 2021–2025 than the pool's average, so a typical 2025 or 2026
-  offense reads about one point negative. The public nflfastR tables show the
-  same effect at about two points, because their model was fit on 2006–2019.
-- **The 2026 numbers will shift once, by a fraction of a point,** when 2026
-  completes and joins the pool. Nothing else about a finished season changes.
+The pool is more pass-happy than the league has been since, so a typical 2025
+or 2026 offense measured against it reads about one point negative. Left
+alone, that would put every team a point or two below the tables readers
+compare against (Fantasy Points centres near zero; StatRankings sits at
+−0.2; the raw nflfastR tables at −2 because their model was fit on 2006 to
+2019). So every figure the tool shows subtracts the league's over-expected
+rate for that season on the plays in view, in the browser, before anything is
+summed or pooled:
+
+```
+offset_season = (Σ dropbacks − Σ expected) / Σ plays      over every team's plays in view
+team PROE     = 100 × Σ (dropbacks − expected − offset × plays) / Σ plays
+```
+
+The same offset applies to the offense and the defense side, since both sums
+cover the same plays, and the preload table does the same subtraction in
+`summarise()`. The NFL Average row therefore reads 0.0 by construction on the
+PROE column. A multi-season view centres each year on its own league before
+pooling, so a +3 always means three points above that season's league.
+
+What this costs: a team's number can move by a tenth or two when other teams
+play, because the league mean moved, and the drift of the league itself is no
+longer in the figures. That drift is one sentence of page copy, so it was the
+cheaper thing to lose. The uncentred figure is recoverable from the published
+file for anyone who wants it, since the file carries the raw sums.
+
+The validation below compares the uncentred figures, which is the like-for-like
+comparison with nflfastR's `pass_oe`; centring moves every team by the same
+constant within a season, so correlations and rank gaps are unchanged.
 
 ## Validation against nflfastR
 
@@ -170,7 +193,7 @@ count for the footer.
   and uses it to catch play-caller changes.
 - **Rank 1 is the most pass-heavy** on both tabs. PROE is a tendency, so the
   shading is diverging on value, teal above zero and red below, and the
-  footer row is the league mean rather than a target.
+  footer row is the play-weighted league figure, 0.0 on PROE by construction.
 - **Matchups add the two sides.** An offense at +4 against a defense whose
   opponents sit at +3 projects to about +7. That is the lean the track draws,
   against a full-track value of 15 points, with both inputs printed at the

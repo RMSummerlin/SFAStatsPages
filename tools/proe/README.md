@@ -48,6 +48,10 @@ range and the pooled seasons recompute everything on the spot.
 Shading is diverging and value-based: teal for positive, red for negative,
 depth against the largest figure in view. It carries *direction*, not quality.
 
+Every figure is centred so the league averages zero within each season: the
+season's league over-expected rate on the plays in view is subtracted before
+anything is summed or pooled. See `docs/proe-data.md`.
+
 ## Matchups
 
 Each game card has two rows, one per offense. The track is centred on zero and
@@ -72,11 +76,12 @@ before pasting.
 
 ## Things that will look like bugs but are not
 
-**The league average is below zero.** Expected rates come from the completed
-seasons in `scripts/config.py`, and the league has leaned further toward the
-run than that pool, so an average 2026 offense reads about a point negative.
-The public nflfastR tables show the same effect, more strongly, because their
-baseline is older.
+**The NFL Average row reads 0.0 on PROE.** Figures are centred so the league
+averages zero within each season on the plays in view. Expected rates come
+from a fixed pool of completed seasons, and the league drifts from year to
+year, so without the centring a run-heavy season would read a point below
+zero across the board. One consequence: a team's number can move by a tenth
+or two when other teams play, because the league mean moved.
 
 **Last 4 equals PROE for the first month.** A team with three games played has
 three games in both columns.

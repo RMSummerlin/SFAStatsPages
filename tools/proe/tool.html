@@ -356,6 +356,32 @@
     cells.forEach(function(c){ p += c[off]; e += c[off + 1]; n += c[off + 2]; });
     return n ? { v: 100 * (p - e) / n, n: n, rate: 100 * p / n, exp: 100 * e / n } : { v: null, n: 0, rate: null, exp: null };
   }
+  // Figures are centred so the league averages zero within each season: the
+  // expected rate underneath comes from a fixed pool of past seasons, and the
+  // league drifts from year to year, so without this every team would read a
+  // point or so below zero in a run-heavy year. The offset is the league's
+  // over-expected rate on the plays in view (the week range for the tables,
+  // the whole season for matchups), and the offense and defense sums are the
+  // same plays, so one offset serves both sides. Cached per render.
+  var OFFSET = {};
+  function leagueOffset(D, ranged){
+    var key = D.season + ':' + (ranged ? 1 : 0);
+    if (key in OFFSET) return OFFSET[key];
+    var p = 0, e = 0, n = 0;
+    D.teams.forEach(function(team){
+      var cells = D.tw[team] || {};
+      Object.keys(cells).forEach(function(w){
+        if (ranged && !inRange(Number(w))) return;
+        p += cells[w][0]; e += cells[w][1]; n += cells[w][2];
+      });
+    });
+    OFFSET[key] = n ? (p - e) / n : 0;
+    return OFFSET[key];
+  }
+  function centred(D, c, ranged){
+    var m = leagueOffset(D, ranged);
+    return [c[0], c[1] + m * c[2], c[2], c[3], c[4] + m * c[5], c[5], c[6]];
+  }
   // A team's played weeks in one season, ascending, inside the week range.
   function playedWeeks(D, team, off){
     var cells = D.tw[team] || {};
@@ -372,7 +398,7 @@
     allTeams().forEach(function(team){
       var cells = [], games = 0;
       sets.forEach(function(D){
-        playedWeeks(D, team, off).forEach(function(w){ cells.push(D.tw[team][w]); games++; });
+        playedWeeks(D, team, off).forEach(function(w){ cells.push(centred(D, D.tw[team][w], true)); games++; });
       });
       var all = proeOf(cells, off);
       // Last four: the newest selected season's last four played games inside
@@ -380,7 +406,7 @@
       var l4 = { v: null, n: 0 };
       if (N){
         var wk = playedWeeks(N, team, off).slice(-LAST_N);
-        l4 = proeOf(wk.map(function(w){ return N.tw[team][w]; }), off);
+        l4 = proeOf(wk.map(function(w){ return centred(N, N.tw[team][w], true); }), off);
         l4.games = wk.length;
       }
       rows.push({ team: team, proe: all.v, plays: all.n, rate: all.rate, exp: all.exp,
@@ -417,6 +443,7 @@
 
   function render(){
     hideServerPreload();
+    OFFSET = {};
     if (STATE.mode === 'mu'){ renderMatchups(); return; }
     var rows = aggregate().filter(function(r){ return r.plays > 0; });
     var wrap = $('wrap');
@@ -513,10 +540,14 @@
     var tfoot = el('tfoot'), fr = el('tr');
     fr.appendChild(el('th', 'pt-rank', ''));
     fr.appendChild(el('th', 'pt-team', 'NFL Average'));
-    COLUMNS.forEach(function(c){
-      var vals = rows.filter(function(r){ return r[c.key] != null; });
-      var mean = vals.length ? vals.reduce(function(s, r){ return s + r[c.key]; }, 0) / vals.length : null;
-      fr.appendChild(el('td', null, fmt(mean)));
+    // Play-weighted, so the PROE row reads 0.0 by construction and the Last 4
+    // row is the league over its last-four windows.
+    [['proe', 'plays'], ['l4', 'l4n']].forEach(function(pair){
+      var sum = 0, n = 0;
+      rows.forEach(function(r){
+        if (r[pair[0]] != null){ sum += r[pair[0]] * r[pair[1]]; n += r[pair[1]]; }
+      });
+      fr.appendChild(el('td', null, fmt(n ? sum / n : null)));
     });
     tfoot.appendChild(fr);
     table.appendChild(tfoot);
@@ -580,7 +611,7 @@
     var vals = [];
     for (var w = 1; w <= WEEKS; w++){
       var c = cells[w];
-      vals.push(c && c[off + 2] > 0 ? proeOf([c], off).v : null);
+      vals.push(c && c[off + 2] > 0 ? proeOf([centred(D, c, true)], off).v : null);
     }
     var present = vals.filter(function(v){ return v != null; });
     var top = Math.max(10, Math.ceil(present.reduce(function(m, v){ return Math.max(m, Math.abs(v)); }, 0) / 5) * 5);
@@ -647,7 +678,7 @@
   function unitProe(D, team, off){
     var cells = D.tw[team] || {};
     var list = Object.keys(cells).filter(function(w){ return cells[w][off + 2] > 0; })
-                                 .map(function(w){ return cells[w]; });
+                                 .map(function(w){ return centred(D, cells[w], false); });
     return proeOf(list, off);
   }
   function maxWeek(D){ return D.current_week || 1; }
