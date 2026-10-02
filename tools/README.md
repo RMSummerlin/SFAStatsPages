@@ -36,3 +36,4 @@ previewed on the same page without their styles colliding.
 | `pace/` | Offensive tempo and play volume, with a Tempo/Volume toggle, a neutral-situation column and a gear-change column |
 | `matchup/` | One game at a time: offense vs defense ranks in five battles with the edge drawn between them, a week stepper, a slate picker and a detail sheet |
 | `boxscore/` | One played game at a time: the scoreline, seven diverging bars showing which team was better in each category, and an offensive box score in four groups with season averages |
+| `proe/` | Pass rate over expected: offense and defense tables with a last-four column, a week range and pooled seasons, an 18-week chart per team, and a matchups tab pairing each offense with the defense it faces |
