@@ -329,11 +329,33 @@ def proe_of(cells, side):
     return (round(100 * (p - e) / n, 1) if n else None), n
 
 
+def league_offset(tw):
+    """The league's over-expected dropback rate, as a probability, over every
+    play in the season. Subtracted from every figure so the league averages
+    zero within each season: the expectation comes from a fixed pool of past
+    seasons and the league drifts, so without this a run-heavy year reads a
+    point below zero across the board. The offense sums cover every play, so
+    the same offset serves the defense side."""
+    p = e = n = 0.0
+    for cells in tw.values():
+        for c in cells.values():
+            p += c[0]
+            e += c[1]
+            n += c[2]
+    return (p - e) / n if n else 0.0
+
+
+def centred(c, m):
+    return [c[0], c[1] + m * c[2], c[2], c[3], c[4] + m * c[5], c[5], c[6]]
+
+
 def summarise(tw, teams):
-    """Season and last-four figures per team, both sides. For the preload table."""
+    """Season and last-four figures per team, both sides, centred on the
+    league. For the preload table; the tool does the same sums in the browser."""
+    m = league_offset(tw)
     out = {}
     for t in teams:
-        cells = tw.get(t, {})
+        cells = {w: centred(c, m) for w, c in tw.get(t, {}).items()}
         weeks = sorted(int(w) for w in cells)
         off_weeks = [w for w in weeks if cells[str(w)][2] > 0]
         def_weeks = [w for w in weeks if cells[str(w)][5] > 0]
@@ -408,6 +430,8 @@ def build_season(season, plays, dropped, baseline, schedule, today):
 def fmt(v):
     if v is None:
         return "—"
+    if abs(v) < 0.05:
+        return "0.0"
     return f"{v:+.1f}"
 
 
@@ -429,7 +453,8 @@ def preload_table(season, summary, names):
         "clock and score), in percentage points, so a positive number means the team "
         "calls passes more often than the situations call for. Sacks and scrambles count "
         "as pass calls. Defense is the same figure for the offenses a defense faced. "
-        "Last 4 covers the team's last four games.</caption>"
+        "Last 4 covers the team's last four games. Figures are centred so the league "
+        "averages zero for the season.</caption>"
         '<thead><tr><th scope="col">Rank</th><th scope="col">Team</th>'
         '<th scope="col">Offense PROE</th><th scope="col">Offense Last 4</th>'
         '<th scope="col">Defense PROE Against</th><th scope="col">Defense Last 4</th>'

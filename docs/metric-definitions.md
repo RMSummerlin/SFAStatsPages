@@ -91,10 +91,11 @@ page always count the same plays.
 ## Pass rate over expected
 
 **How often an offense calls a pass compared with how often a typical offense
-would have in the same situations**, in percentage points. Zero means the
-team called passes exactly as often as the league does from the same downs,
-distances, field positions, clock states and score margins. Positive means
-more pass calls than the situations warranted; negative means more runs.
+would have in the same situations**, in percentage points. Zero is the league
+average for that season: a team at zero called passes as often as the league
+did from the same downs, distances, field positions, clock states and score
+margins. Positive means more pass calls than the situations warranted;
+negative means more runs.
 
 A pass call is a dropback: a throw, a sack, or a scramble. Kneels and spikes
 are not play calls and are left out.
