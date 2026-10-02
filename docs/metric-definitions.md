@@ -87,3 +87,30 @@ offense and a defense is judged on EPA allowed.
 A pass gaining 15 or more yards, or a run gaining 10 or more. Set in
 `pull_matchup.py` and shared by every tool, so the box score and the matchup
 page always count the same plays.
+
+## Pass rate over expected
+
+**How often an offense calls a pass compared with how often a typical offense
+would have in the same situations**, in percentage points. Zero means the
+team called passes exactly as often as the league does from the same downs,
+distances, field positions, clock states and score margins. Positive means
+more pass calls than the situations warranted; negative means more runs.
+
+A pass call is a dropback: a throw, a sack, or a scramble. Kneels and spikes
+are not play calls and are left out.
+
+For a defense it is the same figure for the offenses it faced. A positive
+number means opponents pass against it more than expected.
+
+### Where the expectation comes from
+
+The league's dropback rate in the play's situation bucket, counted over every
+completed season since 2021: down, distance band, field zone, clock state and
+score margin band. No model, no betting line and no win probability, so a
+reader can rebuild any team's number from the sheet with a pivot table. The
+buckets, the fall-back for thin ones and the check against nflfastR's model
+(agreement of r = 0.98 to 0.99 in every season) are in `docs/proe-data.md`.
+
+The number to avoid printing is "pass rate". A raw pass rate is mostly game
+script: teams that trail throw, teams that lead run. The point of the metric
+is to take that out.

@@ -46,6 +46,7 @@ SFAStatsPages/
 │   ├── pace-data.md                ← data decisions behind the pace tool
 │   ├── matchup-data.md             ← data decisions and backtest behind the matchup tool
 │   ├── boxscore-data.md            ← data decisions and stat definitions behind the box score tool
+│   ├── proe-data.md                ← data decisions and validation behind the pass rate over expected tool
 │   ├── matchup-talking-points.md   ← page copy and method explanations for the matchup article
 │   └── metric-definitions.md       ← the wording every tool shares for success rate, EPA and explosives
 ├── data/                           ← served via Pages: generated JSON and preload tables,
@@ -58,6 +59,7 @@ SFAStatsPages/
 │   ├── pull_pace.py                ← pull + transform (auto-run by the workflow)
 │   ├── pull_matchup.py             ← pull + transform (auto-run by the workflow)
 │   ├── pull_boxscore.py            ← pull + transform (auto-run by the workflow)
+│   ├── pull_proe.py                ← pull + transform (auto-run by the workflow)
 │   ├── offseason_changes.py        ← drafts data/offseason_changes_<season>.json once a year (never on the schedule)
 │   ├── derive_success_rule.py      ← re-derives the sheet's success flag from an export (never on the schedule)
 │   ├── test_pace.py                ← regression tests (auto-run by the workflow)
@@ -67,6 +69,7 @@ SFAStatsPages/
 │   ├── test_empty_season.py        ← regression tests (auto-run by the workflow)
 │   ├── test_matchup.py             ← regression tests (auto-run by the workflow)
 │   ├── test_boxscore.py            ← regression tests (auto-run by the workflow)
+│   ├── test_proe.py                ← regression tests (auto-run by the workflow)
 │   ├── lint_embed.py               ← checks a fragment against the embed rules
 │   ├── build_embed.py              ← strips the dev notes to produce embed.html
 │   └── preloads.py                 ← folds each tool's preload table into preloads.json
@@ -76,7 +79,8 @@ SFAStatsPages/
 │   ├── personnel-grouping/         ← tool.html + embed.html + README.md
 │   ├── pace/                       ← tool.html + embed.html + README.md
 │   ├── matchup/                    ← tool.html + embed.html + README.md
-│   └── boxscore/                   ← tool.html + embed.html + README.md
+│   ├── boxscore/                   ← tool.html + embed.html + README.md
+│   └── proe/                       ← tool.html + embed.html + README.md
 ├── wordpress/
 │   ├── sfa-preloads.php            ← Code Snippets body: shortcodes for the crawlable tables
 │   └── README.md                   ← install, caching and refresh schedule
@@ -115,6 +119,7 @@ differently if one goes missing:
 | `<tool>_<season>.json`, `<tool>_index.json` | output | Rebuilt by the next pull. |
 | `<tool>_preload.html`, `preloads.json` | output | Rebuilt by the next pull, via `preloads.write_manifest()`. |
 | `schedule_<season>.json` | cache of nflverse `games.csv` | Re-fetched next run. It exists so one bad fetch does not take the matchup or box score tool down. |
+| `proe_baseline.json` | cache of each completed season's situation-bucket counts | Rebuilt by the next `pull_proe.py` run, which then re-reads every season's sheet once to refill it. It also refills itself when a season rolls over, since the pool must hold exactly the completed seasons. |
 | `matchup_prior_<season>.json` | cache of last season's per-team totals | Re-read from the prior season's ~16 MB sheet — which is the reason it is cached. Force a re-read with `--refresh-prior`. |
 | `offseason_changes_<season>.json` | **hand-corrected input** | Not regenerated on the schedule. `pull_matchup.py` prints a warning and applies no QB or coaching haircuts, which silently changes every rating it publishes. Redraft with `scripts/offseason_changes.py` and review it by hand again. |
 
@@ -171,6 +176,7 @@ python scripts/pull_personnel_grouping.py
 python scripts/pull_pace.py
 python scripts/pull_matchup.py
 python scripts/pull_boxscore.py
+python scripts/pull_proe.py
 
 # --- or from a downloaded CSV export, without touching the sheet ---
 python scripts/pull_personnel_grouping.py --csv ~/Downloads/export.csv --season 2025
@@ -178,6 +184,8 @@ python scripts/pull_pace.py --csv ~/Downloads/export.csv --season 2025
 python scripts/pull_matchup.py --csv cur.csv --prior-csv prev.csv --season 2026 \
     --schedule data/schedule_2026.json     # fully offline: no sheet, no nflverse fetch
 python scripts/pull_boxscore.py --csv cur.csv --season 2026 --schedule data/schedule_2026.json
+python scripts/pull_proe.py --csv cur.csv --season 2026 --out /tmp/proe   # against data/proe_baseline.json if present
+python scripts/pull_proe.py --csv-dir exports/ --out /tmp/proe            # <dir>/<season>.csv, rebuilds the baseline too
 
 # every season in config.py rather than just the current one
 python scripts/pull_pace.py --all
@@ -189,6 +197,7 @@ python scripts/test_teams.py
 python scripts/test_empty_season.py
 python scripts/test_matchup.py
 python scripts/test_boxscore.py
+python scripts/test_proe.py
 
 # --- embeds ---
 python scripts/build_embed.py            # regenerate every embed.html from its tool.html
@@ -223,7 +232,7 @@ Two things to know before trusting what you see:
 
 ## Status
 
-Three tools shipped:
+Five tools shipped:
 
 - **`tools/personnel-grouping/`** — personnel grouping frequency with a usage/efficiency
   toggle and EPA per play, yards per play and success rate on hover. 2021 through 2025.
@@ -235,6 +244,13 @@ Three tools shipped:
   backtest behind the blend in [`docs/matchup-data.md`](docs/matchup-data.md); the copy
   that runs around it in
   [`docs/matchup-talking-points.md`](docs/matchup-talking-points.md).
+- **`tools/boxscore/`** — one played game at a time: the scoreline, seven diverging bars
+  and an offensive box score with season averages. Data decisions in
+  [`docs/boxscore-data.md`](docs/boxscore-data.md).
+- **`tools/proe/`** — pass rate over expected for every offense and defense, with a
+  last-four column, a week range, pooled seasons, an 18-week chart per team and a
+  matchups tab. Bucket definitions and the check against nflfastR in
+  [`docs/proe-data.md`](docs/proe-data.md).
 
 The pace tool only offers seasons whose sheet carries the `TimeSinceSnap` column. Run the
 workflow with **Rebuild every season** ticked and read the log to find out which those are:

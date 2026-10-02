@@ -117,6 +117,14 @@ the prior season and inputs outside the sheets:
       sheet instead of whatever mid-season read got cached. Scheduled runs use the cache
       and never re-read it on their own
 
+One more for the **pass rate over expected tool**, which measures each season against
+every completed one:
+
+- [ ] Nothing to do by hand. `pull_proe.py` keeps the completed seasons' bucket counts in
+      `data/proe_baseline.json`; when `CURRENT_SEASON` moves on, the next run notices the
+      pool is a season short, re-reads every sheet once, refills the cache and republishes
+      every season. Expect that one run to take longer and to commit every `proe_*.json`
+
 Backfilling an old season works the same way: add it to `SEASON_SHEETS` (and
 `SEASON_GIDS` if the sheet's play-by-play is not on the first tab — check the `gid=`
 in its URL), then rebuild once.

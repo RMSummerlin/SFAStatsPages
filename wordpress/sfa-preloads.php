@@ -10,6 +10,7 @@
  *   [sharp_football_pace]        offensive pace
  *   [sharp_football_matchup]     weekly matchups, whole slate; game="KC-BUF" keeps one game
  *   [sharp_football_boxscore]    box scores, latest played week; game="CLE-JAX" keeps one game
+ *   [sharp_football_proe]        pass rate over expected, offense and defense, latest season
  *
  * Paste this file into Code Snippets as a PHP (Functions) snippet, scope "Run
  * everywhere", omitting the opening PHP tag on line 1. Code Snippets supplies it.
@@ -281,6 +282,11 @@ function sfa_preload_boxscore_shortcode( $atts ) {
 	return sfa_preload_keep_game( sfa_preload_render( 'boxscore' ), $atts['game'] );
 }
 add_shortcode( 'sharp_football_boxscore', 'sfa_preload_boxscore_shortcode' );
+
+function sfa_preload_proe_shortcode() {
+	return sfa_preload_render( 'proe' );
+}
+add_shortcode( 'sharp_football_proe', 'sfa_preload_proe_shortcode' );
 
 /**
  * Keep only the rows of one game (row class g-<away>-<home>) in a table that
