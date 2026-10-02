@@ -145,8 +145,9 @@ uses `LAR`. `config.canonical_team` folds both.
 * A team's rank moves between the week 3 card and the week 4 card without
   playing. The week 4 card includes week 3 games for everyone else, and the
   opponent adjustment re-solves.
-* The mismatch number in the picker can be high for a game with no big single
-  edge; it is the sum of ten absolute edges.
+* The Matchup Advantage Index in the picker can be high for a game with no big
+  single edge; it is net, the team ahead's five offensive edges minus the
+  opponent's five, so several moderate edges add up.
 * "New QB" on a team whose week 1 starter was the plan all along. The changes
   file compares against the prior season's most common starter, so a rookie or
   a free agent who started week 1 is new by that definition.

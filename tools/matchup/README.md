@@ -66,8 +66,13 @@ and `data/offseason_changes_<season>.json` (see the docs).
   gets the QB haircut from that week on.
 * **A split shows a dash but still carries a rank.** The dash is the 40-play
   gate this season; the rank is on the blended value, which exists.
-* **The mismatch sort puts a game with no huge single edge near the top.** It
-  sums ten absolute edges, so five moderate edges outrank one big one.
+* **The Matchup Advantage Index puts a game with no huge single edge near the
+  top.** It is net: the team's five offensive edges minus the opponent's five,
+  so five moderate edges outrank one big one, and a shootout where both
+  offenses hold big edges nets out near even.
+* **Picker cells are red and green, not team colours.** Green means the
+  offense has the better side of that battle, red the defense; depth is the
+  size of the edge. Team colours made the slate too busy to scan.
 * **The final score appears on a card but the offense EPA line does not.**
   nflverse has the score; the sheet does not have the game yet.
 * **Two teams share a color family but show as different shades.** When the two
