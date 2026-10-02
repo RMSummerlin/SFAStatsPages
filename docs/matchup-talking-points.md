@@ -31,7 +31,8 @@ the rating, how each unit has trended week to week, and where a defense's
 tendencies meet the offense's answer to them, such as how often the defense
 blitzes against how the offense performs when blitzed.
 
-Use the game menu to jump between games or sort the slate by biggest mismatch.
+Use the game menu to jump between games or sort the slate by the Matchup
+Advantage Index, which names the team holding the better units and by how much.
 
 ## How to read the five rows
 

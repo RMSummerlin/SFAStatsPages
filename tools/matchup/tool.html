@@ -196,11 +196,18 @@
 .pt-root.pt-mu .pt-strip .r{display:flex;align-items:center;gap:3px}
 .pt-root.pt-mu .pt-strip .r .t{width:40px;font-size:11px;font-weight:700;letter-spacing:.02em;text-align:left}
 .pt-root.pt-mu .pt-strip .c{flex:1;height:12px;border:1px solid var(--g1);background:var(--bg)}
-.pt-root.pt-mu .pt-strip .mis{width:34px;text-align:right;font-size:12px;font-weight:700;color:var(--muted)}
+/* The index column: the team ahead, then its net edge. */
+.pt-root.pt-mu .pt-gl .adv{width:50px;text-align:right;font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap}
+.pt-root.pt-mu .pt-gl .adv .tm{font-size:11px;margin-right:3px}
+.pt-root.pt-mu .pt-gl .adv.even{font-size:12px;color:var(--muted)}
 .pt-root.pt-mu .pt-glkey{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--muted);
-  display:flex;gap:6px;margin:0 40px 6px 147px;text-align:center}
+  display:flex;gap:3px;margin:0 0 6px 147px;text-align:center}
 .pt-root.pt-mu .pt-glkey span{flex:1;min-width:0;text-align:center;white-space:nowrap;overflow:hidden}
-.pt-root.pt-mu .pt-note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.35;text-align:center}
+.pt-root.pt-mu .pt-glkey .ak{flex:0 0 50px;margin-left:5px;text-align:right}
+/* Legend under the sort pills: the two swatches and what the number is. */
+.pt-root.pt-mu .pt-advkey{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 12px;margin:0 0 10px;
+  font-size:12px;color:var(--muted);line-height:1.3}
+.pt-root.pt-mu .pt-advkey i{display:inline-block;width:12px;height:12px;margin-right:4px;vertical-align:-2px;border:1px solid var(--g1)}
 
 /* ---------- status + footer ---------- */
 .pt-root.pt-mu .pt-status{padding:26px 14px;text-align:center;font-size:14px;color:var(--muted)}
@@ -271,6 +278,12 @@
 
   // Edge thresholds, in percentile difference. Half the track is 1.0.
   var EDGE_BIG = 0.5, EDGE_SOME = 0.25;
+  // Picker cells: green when the offense has the better side of the battle,
+  // red when the defense does, deeper with the size of the edge. One pair for
+  // every game, so the slate reads at a glance whatever the team colours. The
+  // green leans blue and the red leans orange so the two still separate for
+  // red-green colour blindness; the intensity carries the size either way.
+  var GOOD = '#1a9850', BAD = '#d73027';
   // Splits with fewer plays than this show a dash. The blend still produces a
   // number, but it is nearly all prior and the reader should know that.
   var MIN_SPLIT = 40;
@@ -516,12 +529,19 @@
     if (a >= EDGE_SOME) return e > 0 ? off + ' edge' : dfn + ' edge';
     return 'Even';
   }
-  function mismatch(W, g){
+  // Matchup Advantage Index: the away team's five offensive edges minus the
+  // home team's five. Positive means the away team holds the better units,
+  // negative the home team. advantage() returns the team ahead and by how much.
+  function netEdge(W, g){
     var s = 0;
     D.battles.forEach(function(b){
-      s += Math.abs(edgeOf(W, g.away, g.home, b.key).e) + Math.abs(edgeOf(W, g.home, g.away, b.key).e);
+      s += edgeOf(W, g.away, g.home, b.key).e - edgeOf(W, g.home, g.away, b.key).e;
     });
     return s;
+  }
+  function advantage(W, g){
+    var n = netEdge(W, g);
+    return { team: n >= 0 ? g.away : g.home, v: Math.abs(n) };
   }
   function flagsFor(W, team){
     var u = unitFor(W, team, 'off');
@@ -894,9 +914,9 @@
 
   function openPicker(){
     var W = STATE.week;
-    var body = openSheet('Week ' + W + ' games', 'Each bar takes the color of the team holding the edge');
+    var body = openSheet('Matchup Advantage Index', 'Week ' + W + ' games');
     var sorts = el('div', 'pt-sorts');
-    [['time', 'By kickoff'], ['mis', 'Biggest mismatch']].forEach(function(o){
+    [['time', 'By kickoff'], ['adv', 'Biggest advantage']].forEach(function(o){
       var b = el('button', 'pt-sort', o[1]);
       b.type = 'button';
       b.setAttribute('aria-pressed', STATE.sort === o[0] ? 'true' : 'false');
@@ -904,11 +924,22 @@
       sorts.appendChild(b);
     });
     body.appendChild(sorts);
+    var legend = el('div', 'pt-advkey');
+    [[GOOD, 'Good matchup for the offense'], [BAD, 'Bad matchup for the offense']].forEach(function(k){
+      var it = el('span');
+      var sw = el('i'); sw.style.background = k[0];
+      it.appendChild(sw);
+      it.appendChild(document.createTextNode(k[1]));
+      legend.appendChild(it);
+    });
+    legend.appendChild(el('span', null, 'Number: net edge for the team ahead'));
+    body.appendChild(legend);
     var key = el('div', 'pt-glkey');
     D.battles.forEach(function(b){ key.appendChild(el('span', null, b.label.slice(0, 4))); });
+    key.appendChild(el('span', 'ak', 'Index'));
     body.appendChild(key);
     var games = gamesIn(W).slice();
-    if (STATE.sort === 'mis') games.sort(function(a, b){ return mismatch(W, b) - mismatch(W, a); });
+    if (STATE.sort === 'adv') games.sort(function(a, b){ return advantage(W, b).v - advantage(W, a).v; });
     games.forEach(function(g){
       var C = gameColors(g);
       var row = el('button', 'pt-gl');
@@ -916,7 +947,7 @@
       if (g.id === STATE.game) row.setAttribute('aria-current', 'true');
       var nm = el('span', 'nm', gameLabel(g));
       var sub = (g.as != null && g.hs != null) ? 'Final ' + g.as + '-' + g.hs : fmtTime(g);
-      nm.appendChild(el('small', null, g.id === STATE.game ? 'Showing \u00b7 ' + sub : sub));
+      nm.appendChild(el('small', null, g.id === STATE.game ? 'Showing · ' + sub : sub));
       row.appendChild(nm);
       var strip = el('span', 'pt-strip');
       [[g.away, g.home], [g.home, g.away]].forEach(function(pair){
@@ -926,23 +957,31 @@
         D.battles.forEach(function(b){
           var e = edgeOf(W, pair[0], pair[1], b.key);
           var c = el('span', 'c');
-          c.style.background = tint(e.e >= 0 ? C[pair[0]].fill : C[pair[1]].fill, Math.min(1, Math.abs(e.e) / 0.8));
+          c.style.background = tint(e.e >= 0 ? GOOD : BAD, Math.min(1, Math.abs(e.e) / 0.8));
           c.title = b.label + ': ' + edgeWord(e.e, pair[0], pair[1]);
           r.appendChild(c);
         });
         strip.appendChild(r);
       });
       row.appendChild(strip);
-      row.appendChild(el('span', 'mis', mismatch(W, g).toFixed(1)));
+      var a = advantage(W, g), av = a.v.toFixed(1);
+      var adv = el('span', 'adv');
+      if (av === '0.0'){
+        adv.className = 'adv even';
+        adv.textContent = 'Even';
+      } else {
+        var tm = el('span', 'tm', a.team); tm.style.color = C[a.team].text;
+        adv.appendChild(tm);
+        adv.appendChild(document.createTextNode(av));
+      }
+      adv.title = 'Matchup Advantage Index';
+      row.appendChild(adv);
       row.addEventListener('click', function(){
         STATE.game = g.id; STATE.side = 0;
         closeSheet(); render(); pushHash();
       });
       body.appendChild(row);
     });
-    var note = el('div', 'pt-note');
-    note.textContent = 'The number on the right totals all ten edges, so the mismatch sort surfaces the game with the most lopsided units.';
-    body.appendChild(note);
   }
 
   // ---- chrome ------------------------------------------------------------------
