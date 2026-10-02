@@ -115,10 +115,37 @@ teams in both (Kansas City, Arizona, the Rams, New England, Denver in ours;
 Arizona, Kansas City, the Rams, New England and Atlanta then Denver in
 nflfastR's), and the bottom three are the same three.
 
-2026 through week 3 against nfelo's published table, which runs on nflfastR:
-r = 0.94 across 32 teams, mean gap 1.7 points, same top team (Dallas) and
-bottom team (Atlanta). The larger gap early in a season is sample size on both
-sides, not method.
+### Early-season agreement is looser, and that is sample size
+
+2026 through week 3, our method on the sheet against four published tables
+that all run on nflfastR's model (nfelo, muffed, Dynatyze and StatRankings):
+r = 0.93 to 0.94 across 32 teams, mean gap 1.5 to 1.8 points, same top
+team (Dallas) and bottom team (Atlanta). The same comparison over a full
+season sits at r = 0.98 to 0.99 with a 1.2-point gap, so the extra
+disagreement at three games is noise on about 180 plays a team, not a
+different answer.
+
+Three checks behind that reading:
+
+- **It is not the data.** The sheet and nflverse carry the identical 5,814
+  plays through week 3, with the same dropback rate for every team. Our
+  method on the nflverse rows reproduces our method on the sheet at
+  r = 0.999.
+- **It is not the betting line.** Adding a pre-game spread band to the bucket
+  key (favored by 7+, 3 to 6.5, pick, dog by 3 to 6.5, dog by 7+, from the
+  nflverse schedule) moves the full-season agreement from 0.986 to 0.992 in
+  the best year and leaves 2026 unchanged at 0.943. Not worth a sixth field
+  and a second data source.
+- **Per play, the two expectations agree.** Our bucket rate against
+  nflfastR's `xpass` on the same play: r = 0.88, mean gap 0.07. The largest
+  systematic differences are a few cells in the fourth quarter and the last
+  two minutes of the half, where ours expects three to six points less
+  passing because the 2021 to 2025 pool is more run-heavy than the model's
+  2006 to 2019 training years.
+
+What this means in practice: through the first month a team can sit two to
+three points, and a few rank positions, from a public nflfastR table. By
+midseason the two tables agree to the decimal on most teams.
 
 ## What is published
 
