@@ -430,6 +430,8 @@ def build_season(season, plays, dropped, baseline, schedule, today):
 def fmt(v):
     if v is None:
         return "—"
+    if abs(v) < 0.05:
+        return "0.0"
     return f"{v:+.1f}"
 
 

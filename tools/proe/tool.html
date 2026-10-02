@@ -422,6 +422,7 @@
 
   function fmt(v){
     if (v == null) return '—';
+    if (Math.abs(v) < 0.05) return '0.0';
     return (v > 0 ? '+' : '') + v.toFixed(1);
   }
   function fmtPct(v){ return v == null ? '—' : v.toFixed(1) + '%'; }
