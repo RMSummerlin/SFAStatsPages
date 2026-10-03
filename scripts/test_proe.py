@@ -133,6 +133,7 @@ check("kneel and spike excluded", dropped["kneel or spike"], 2)
 check("missing fields excluded", dropped["missing situation data"], 2)
 check("non-scrimmage excluded", dropped["not a pass or run"], 1)
 check("key carries the situation", plays[0]["key"], "1|d10|B|h1|e")
+check("play carries quarter and down for the split", (plays[0]["qtr"], plays[0]["down"]), (1, 1))
 
 # Without the Scramble? column a scramble is a run — the pull warns, this just
 # pins the behaviour.
@@ -151,21 +152,36 @@ check("kneeland is not a kneel", bool(P.DEAD_BALL_RE.search("tackled by 44-D.Kne
 
 base = P.Baseline({"1|d10|B|h1|e": [500, 1000]}, [2030])   # expectation 0.5 everywhere
 plays = []
+# AAA passes on first down in the first quarter and runs on second down in
+# the fourth, so the split cells differ from each other and from the sums.
 for w in (1, 2):
     for _ in range(6):
-        plays.append({"team": "AAA", "opp": "BBB", "week": w, "pass": 1, "key": "1|d10|B|h1|e"})
+        plays.append({"team": "AAA", "opp": "BBB", "week": w, "qtr": 1, "down": 1, "pass": 1, "key": "1|d10|B|h1|e"})
     for _ in range(4):
-        plays.append({"team": "AAA", "opp": "BBB", "week": w, "pass": 0, "key": "1|d10|B|h1|e"})
+        plays.append({"team": "AAA", "opp": "BBB", "week": w, "qtr": 4, "down": 2, "pass": 0, "key": "1|d10|B|h1|e"})
     for _ in range(2):
-        plays.append({"team": "BBB", "opp": "AAA", "week": w, "pass": 1, "key": "1|d10|B|h1|e"})
+        plays.append({"team": "BBB", "opp": "AAA", "week": w, "qtr": 1, "down": 1, "pass": 1, "key": "1|d10|B|h1|e"})
     for _ in range(8):
-        plays.append({"team": "BBB", "opp": "AAA", "week": w, "pass": 0, "key": "1|d10|B|h1|e"})
-tw, tiers = P.team_weeks(plays, base)
+        plays.append({"team": "BBB", "opp": "AAA", "week": w, "qtr": 1, "down": 1, "pass": 0, "key": "1|d10|B|h1|e"})
+tw, twq, tiers = P.team_weeks(plays, base)
 check("AAA offense week 1", tw["AAA"]["1"][:3], [6, 5.0, 10])
 check("AAA defense week 1 mirrors BBB offense", tw["AAA"]["1"][3:6], [2, 5.0, 10])
 check("BBB defense week 1 mirrors AAA offense", tw["BBB"]["1"][3:6], [6, 5.0, 10])
 check("opponent recorded", tw["AAA"]["1"][6], "BBB")
 check("every play resolved at tier 0", tiers, {0: 40})
+
+# The quarter/down split is the offense sum cut up: the cells add back to the
+# team-week, sort by quarter then down, and the opponent's cells are the
+# defense side. The tool relies on all three.
+check("split cells, sorted", twq["AAA"]["1"], [[1, 1, 6, 3.0, 6], [4, 2, 0, 2.0, 4]])
+check("split cells add back to the offense sum",
+      [sum(c[2] for c in twq["AAA"]["1"]), sum(c[3] for c in twq["AAA"]["1"]), sum(c[4] for c in twq["AAA"]["1"])],
+      tw["AAA"]["1"][:3])
+opp_cells = twq[tw["AAA"]["1"][6]]["1"]
+check("opponent's split cells are the defense side",
+      [sum(c[2] for c in opp_cells), sum(c[3] for c in opp_cells), sum(c[4] for c in opp_cells)],
+      tw["AAA"]["1"][3:6])
+check("a quarter nobody played is absent, not zero", [c[:2] for c in twq["BBB"]["2"]], [[1, 1]])
 
 check("PROE from cells", P.proe_of([tw["AAA"]["1"], tw["AAA"]["2"]], 0), (10.0, 20))
 check("defense PROE against", P.proe_of([tw["AAA"]["1"]], 3), (-30.0, 10))
@@ -231,6 +247,7 @@ check("preload header", '<th scope="col">Offense PROE</th>' in html, True)
 for col in ("team", "opponent", "week", "qtr", "down", "dist", "los", "GameClock", "ScoreDiff", "PlayType", "PlayDesc"):
     check(f"{col} is required", col in P.REQUIRED_COLUMNS, True)
 check("Scramble? is optional, not required", "Scramble?" in P.OPTIONAL_COLUMNS, True)
+check("schema bumped for the split cells", P.SCHEMA, 2)
 
 
 if failures:

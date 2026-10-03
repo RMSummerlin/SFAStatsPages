@@ -3,8 +3,9 @@
    Every selector is scoped under .pt-root.pt-pr. See docs/avada-embed-rules.md.
    .pt-pr is this tool's own namespace so it cannot collide with the pace
    (.pt-pc), personnel (.pt-pg), matchup (.pt-mu) or box score tool if two ever
-   share a page. Table idiom follows the pace tool; the matchups tab follows the
-   matchup tool's track-and-figures row. */
+   share a page. Table idiom follows the pace tool on all three tabs; the
+   matchups tab is the same grid with one row per offense and the defense it
+   faces. */
 /* Scoping stops our styles leaking out; it does not stop the theme's leaking in.
    Declare font and color on every table element explicitly or Avada's th/td
    rules win by specificity. */
@@ -100,8 +101,12 @@
   letter-spacing:.05em;color:var(--muted)}
 .pt-root.pt-pr .pt-grid thead th button{width:100%;min-height:44px;font:inherit;color:inherit;padding:3px 4px}
 .pt-root.pt-pr .pt-grid thead th[aria-sort]{color:var(--red)}
-.pt-root.pt-pr .pt-grid thead th[aria-sort]::after{content:' \25BC'}
-.pt-root.pt-pr .pt-grid thead th[aria-sort=ascending]::after{content:' \25B2'}
+/* The arrow sits inside the full-width button. Drawn on the th it followed the
+   button as a second inline box and, on a nowrap header, poked past the
+   table's right edge whenever the sorted column was the last one, which gave
+   the panel a 15px sideways scroll on phones. */
+.pt-root.pt-pr .pt-grid thead th[aria-sort] button::after{content:' \25BC'}
+.pt-root.pt-pr .pt-grid thead th[aria-sort=ascending] button::after{content:' \25B2'}
 .pt-root.pt-pr .pt-rank{width:44px;color:var(--muted);font-size:12px}
 .pt-root.pt-pr .pt-team{text-align:left;font-weight:700;border-right:1px solid var(--b2)}
 /* Striping by class rather than :nth-child: an expanded detail row sits between
@@ -118,6 +123,16 @@
   transition:transform .12s}
 .pt-root.pt-pr .pt-open .pt-teamcell::before{transform:rotate(90deg);color:var(--red)}
 .pt-root.pt-pr .pt-num{display:block;min-height:44px;line-height:44px;padding:0 6px;font-weight:700}
+/* Team cell without the expansion marker: the matchup rows do not open. */
+.pt-root.pt-pr .pt-tm{display:block;min-height:44px;line-height:44px;padding:0 8px;white-space:nowrap}
+/* The matchup grid carries three figure columns and two team columns, so on a
+   phone its figures sit narrower than the team tables' and its headers may
+   wrap to two lines ("Off" over "PROE") rather than push the table wide. */
+.pt-root.pt-pr .pt-mu .pt-rank{width:36px}
+.pt-root.pt-pr .pt-mu td:not(.pt-rank):not(.pt-team),
+.pt-root.pt-pr .pt-mu th:not(.pt-rank):not(.pt-team){min-width:52px}
+.pt-root.pt-pr .pt-mu .pt-num{padding:0 4px}
+.pt-root.pt-pr .pt-mu thead th button{white-space:normal;line-height:1.15;padding:3px 2px}
 .pt-root.pt-pr .pt-thin{color:var(--muted);font-weight:400}
 .pt-root.pt-pr .pt-grid tfoot th,.pt-root.pt-pr .pt-grid tfoot td{position:sticky;bottom:0;z-index:3;
   background:var(--w);border-top:2px solid var(--ink);border-bottom:0;font-size:12px;font-weight:700}
@@ -141,33 +156,6 @@
 .pt-root.pt-pr .pt-chart svg{display:block;width:100%;height:auto;background:var(--w);
   border:1px solid var(--b2)}
 
-/* ---------- matchups ---------- */
-.pt-root.pt-pr .pt-games{padding:8px 12px 12px}
-.pt-root.pt-pr .pt-gm{border:1px solid var(--b2);margin-top:8px;background:var(--w)}
-.pt-root.pt-pr .pt-gmhead{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
-  padding:8px 10px 6px;border-bottom:1px solid var(--b2);background:var(--bg)}
-.pt-root.pt-pr .pt-gmname{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
-.pt-root.pt-pr .pt-gmname .at{font-size:11px;color:var(--muted);letter-spacing:.1em;margin:0 4px}
-.pt-root.pt-pr .pt-gmwhen{font-size:12px;color:var(--muted);white-space:nowrap}
-.pt-root.pt-pr .pt-gmwhen b{color:var(--ink);font-weight:700}
-.pt-root.pt-pr .pt-gmrow{display:flex;align-items:center;min-height:52px;padding:4px 10px;
-  border-bottom:1px solid var(--b2)}
-.pt-root.pt-pr .pt-gmrow:last-child{border-bottom:0}
-.pt-root.pt-pr .pt-gmrow:nth-child(odd){background:var(--stripe)}
-.pt-root.pt-pr .pt-unit{width:84px;flex:0 0 auto}
-.pt-root.pt-pr .pt-unit.r{text-align:right}
-.pt-root.pt-pr .pt-unit .k{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
-.pt-root.pt-pr .pt-unit .n{font-size:15px;font-weight:700;line-height:1.1}
-/* The track. Centre tick is zero; the fill grows from the centre toward the
-   pass side (right, teal) or the run side (left, red). Length is the net lean
-   against LEAN_FULL. The net figure sits on the fill's end. */
-.pt-root.pt-pr .pt-trackwrap{flex:1;min-width:0;padding:0 8px}
-.pt-root.pt-pr .pt-track{position:relative;height:22px;background:var(--bg);border:1px solid var(--b2)}
-.pt-root.pt-pr .pt-track .mid{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink)}
-.pt-root.pt-pr .pt-track .fill{position:absolute;top:3px;bottom:3px}
-.pt-root.pt-pr .pt-track .net{position:absolute;top:0;bottom:0;display:flex;align-items:center;
-  font-size:12px;font-weight:700;padding:0 4px;white-space:nowrap}
-
 /* ---------- status + footer ---------- */
 .pt-root.pt-pr .pt-status{padding:26px 14px;text-align:center;font-size:14px;color:var(--muted)}
 .pt-root.pt-pr .pt-foot{flex:0 0 auto;padding:8px 12px;border-top:1px solid var(--b2);
@@ -182,9 +170,6 @@
   .pt-root.pt-pr .pt-card{flex:1 1 112px}
   .pt-root.pt-pr .pt-charts{display:flex;flex-wrap:wrap;gap:12px}
   .pt-root.pt-pr .pt-charts .pt-chart{flex:1 1 300px;margin-bottom:0}
-  .pt-root.pt-pr .pt-games{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:0}
-  .pt-root.pt-pr .pt-gm{margin-top:8px}
-  .pt-root.pt-pr .pt-unit{width:96px}
 }
 </style>
 
@@ -225,11 +210,13 @@
   var TOOL = 'proe';
 
   var WEEKS = 18;
-  // A net lean of this many points fills the whole half of a matchup track.
-  // Offense plus defense: the two strongest 2025 figures summed to about 15.
-  var LEAN_FULL = 15;
   // The last-four column reads this many games.
   var LAST_N = 4;
+  // Quarter and down narrow the plays behind every figure on the Offense and
+  // Defense tabs. Quarter 5 is overtime. Both are multi-select and empty means
+  // all, the same shape as the pace tool's filters.
+  var QTR_OPTS = [[1,'1'],[2,'2'],[3,'3'],[4,'4'],[5,'OT']];
+  var DOWN_OPTS = [[1,'1st'],[2,'2nd'],[3,'3rd'],[4,'4th']];
 
   var NAMES = {
     ARI:['Arizona Cardinals','Cardinals'], ATL:['Atlanta Falcons','Falcons'],
@@ -265,11 +252,6 @@
     return t === 2 ? n[0] : n[1];
   }
   function fullName(code){ return NAMES[code] ? NAMES[code][0] : code; }
-  // Game cards never get the full name: two of them beside "at" wrap on
-  // anything narrower than a desktop column.
-  function shortName(code){
-    return nameTier() === 0 || !NAMES[code] ? code : NAMES[code][1];
-  }
 
   // Diverging fill centred on zero: teal for pass-heavy, red for run-heavy,
   // depth by value against the largest figure in view. Teal rather than green
@@ -322,7 +304,8 @@
 
   var STATE = {
     seasons: [], mode: 'off', sort: 'proe', asc: false,
-    wkFrom: null, wkTo: null, open: null, week: null, index: null
+    wkFrom: null, wkTo: null, qtrs: [], downs: [], open: null,
+    week: null, muSort: 'net', muAsc: false, index: null
   };
 
   // Season payloads keyed by year, fetched the first time a season is picked.
@@ -348,9 +331,46 @@
     if (STATE.wkTo != null && w > STATE.wkTo) return false;
     return true;
   }
+  function narrowed(){ return STATE.qtrs.length > 0 || STATE.downs.length > 0; }
+  function anyFilter(){ return STATE.wkFrom != null || STATE.wkTo != null || narrowed(); }
+  // The split cells arrived with schema 2 of the season file. A season
+  // published before that carries only the sums, so the quarter and down
+  // chips stay off the bar until every selected season has the split.
+  function splitsAvailable(){
+    var sets = loaded();
+    return sets.length > 0 && sets.every(function(D){ return !!D.twq; });
+  }
   // tw cell: [passO, expO, nO, passD, expD, nD, opponent]. Offense reads
   // offset 0, defense offset 3.
   function side(){ return STATE.mode === 'def' ? 3 : 0; }
+  // The team-week cell the tables, charts and footer read, under the quarter
+  // and down filters. With neither set it is the published sum, untouched.
+  // With either set the offense side is summed from the team's split cells
+  // (twq: [quarter, down, dropbacks, expected, plays]) and the defense side
+  // from the opponent's, so both sides narrow to the same plays. Cached per
+  // render; render() empties the cache.
+  var CELLS = {};
+  function cellOf(D, team, w){
+    var c = D.tw[team] && D.tw[team][w];
+    if (!c) return null;
+    if (!narrowed()) return c;
+    var key = D.season + ':' + team + ':' + w;
+    if (key in CELLS) return CELLS[key];
+    var out = [0, 0, 0, 0, 0, 0, c[6]];
+    sumSplit(D, team, w, out, 0);
+    if (c[6]) sumSplit(D, c[6], w, out, 3);
+    CELLS[key] = out;
+    return out;
+  }
+  function sumSplit(D, team, w, into, at){
+    var list = D.twq && D.twq[team] && D.twq[team][w];
+    if (!list) return;
+    list.forEach(function(x){
+      if (STATE.qtrs.length && STATE.qtrs.indexOf(x[0]) === -1) return;
+      if (STATE.downs.length && STATE.downs.indexOf(x[1]) === -1) return;
+      into[at] += x[2]; into[at + 1] += x[3]; into[at + 2] += x[4];
+    });
+  }
   function proeOf(cells, off){
     var p = 0, e = 0, n = 0;
     cells.forEach(function(c){ p += c[off]; e += c[off + 1]; n += c[off + 2]; });
@@ -361,8 +381,9 @@
   // league drifts from year to year, so without this every team would read a
   // point or so below zero in a run-heavy year. The offset is the league's
   // over-expected rate on the plays in view (the week range for the tables,
-  // the whole season for matchups), and the offense and defense sums are the
-  // same plays, so one offset serves both sides. Cached per render.
+  // the whole season for matchups), narrowed by the quarter and down filters
+  // where those apply, and the offense and defense sums are the same plays, so
+  // one offset serves both sides. Cached per render.
   var OFFSET = {};
   function leagueOffset(D, ranged){
     var key = D.season + ':' + (ranged ? 1 : 0);
@@ -372,7 +393,8 @@
       var cells = D.tw[team] || {};
       Object.keys(cells).forEach(function(w){
         if (ranged && !inRange(Number(w))) return;
-        p += cells[w][0]; e += cells[w][1]; n += cells[w][2];
+        var c = ranged ? cellOf(D, team, w) : cells[w];
+        p += c[0]; e += c[1]; n += c[2];
       });
     });
     OFFSET[key] = n ? (p - e) / n : 0;
@@ -382,11 +404,12 @@
     var m = leagueOffset(D, ranged);
     return [c[0], c[1] + m * c[2], c[2], c[3], c[4] + m * c[5], c[5], c[6]];
   }
-  // A team's played weeks in one season, ascending, inside the week range.
+  // A team's played weeks in one season, ascending, inside the week range,
+  // with at least one play left under the quarter and down filters.
   function playedWeeks(D, team, off){
     var cells = D.tw[team] || {};
     return Object.keys(cells).map(Number)
-      .filter(function(w){ return inRange(w) && cells[w][off + 2] > 0; })
+      .filter(function(w){ return inRange(w) && cellOf(D, team, w)[off + 2] > 0; })
       .sort(function(a, b){ return a - b; });
   }
 
@@ -398,7 +421,7 @@
     allTeams().forEach(function(team){
       var cells = [], games = 0;
       sets.forEach(function(D){
-        playedWeeks(D, team, off).forEach(function(w){ cells.push(centred(D, D.tw[team][w], true)); games++; });
+        playedWeeks(D, team, off).forEach(function(w){ cells.push(centred(D, cellOf(D, team, w), true)); games++; });
       });
       var all = proeOf(cells, off);
       // Last four: the newest selected season's last four played games inside
@@ -406,7 +429,7 @@
       var l4 = { v: null, n: 0 };
       if (N){
         var wk = playedWeeks(N, team, off).slice(-LAST_N);
-        l4 = proeOf(wk.map(function(w){ return centred(N, N.tw[team][w], true); }), off);
+        l4 = proeOf(wk.map(function(w){ return centred(N, cellOf(N, team, w), true); }), off);
         l4.games = wk.length;
       }
       rows.push({ team: team, proe: all.v, plays: all.n, rate: all.rate, exp: all.exp,
@@ -440,51 +463,83 @@
     return vals.length;
   }
 
+  // A sortable column header and a shaded figure cell, shared by the team
+  // tables and the matchup table so the three tabs read identically.
+  function sortHead(label, active, asc, onClick){
+    var th = el('th');
+    var b = el('button', null, label);
+    b.type = 'button';
+    if (active) th.setAttribute('aria-sort', asc ? 'ascending' : 'descending');
+    b.addEventListener('click', onClick);
+    th.appendChild(b);
+    return th;
+  }
+  function numCell(v, label, vals, scale){
+    var cell = el('td');
+    var span = el('span', 'pt-num', fmt(v));
+    if (v != null){
+      cell.style.background = fillFor(v, scale);
+      if (darkFill(v, scale)) cell.style.color = '#fff';
+    } else {
+      span.classList.add('pt-thin');
+    }
+    var rk = rankOf(v, vals);
+    span.title = rk ? (label + ': ' + fmt(v) + ' (rank ' + rk + ' of ' + vals.length + ')')
+                    : label + ': no games';
+    cell.appendChild(span);
+    return cell;
+  }
+  // Largest figure on each column, for the shading, and the sorted values,
+  // for the ranks.
+  function columnScales(rows, columns){
+    var rankVals = {}, scale = {};
+    columns.forEach(function(c){
+      rankVals[c.key] = ranked(rows, c.key);
+      scale[c.key] = rankVals[c.key].reduce(function(m, v){ return Math.max(m, Math.abs(v)); }, 0);
+    });
+    return { rankVals: rankVals, scale: scale };
+  }
+  function byColumn(key, asc, name){
+    return function(a, b){
+      var av = a[key], bv = b[key];
+      if (av == null && bv == null) return a[name] < b[name] ? -1 : 1;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (av === bv) return a[name] < b[name] ? -1 : 1;
+      return asc ? av - bv : bv - av;
+    };
+  }
+
   // ------------------------------------------------------------------ render
 
   function render(){
     hideServerPreload();
     OFFSET = {};
+    CELLS = {};
     if (STATE.mode === 'mu'){ renderMatchups(); return; }
     var rows = aggregate().filter(function(r){ return r.plays > 0; });
     var wrap = $('wrap');
     if (!rows.length){
       wrap.innerHTML = '';
-      wrap.appendChild(el('div', 'pt-status', 'No games in this week range.'));
+      wrap.appendChild(el('div', 'pt-status', narrowed() ? 'No plays match these filters.'
+                                                         : 'No games in this week range.'));
       paintFoot([]);
       return;
     }
     var sortKey = STATE.sort;
-    rows.sort(function(a, b){
-      var av = a[sortKey], bv = b[sortKey];
-      if (av == null && bv == null) return a.team < b.team ? -1 : 1;
-      if (av == null) return 1;
-      if (bv == null) return -1;
-      if (av === bv) return a.team < b.team ? -1 : 1;
-      return STATE.asc ? av - bv : bv - av;
-    });
-    var rankVals = {}, scale = {};
-    COLUMNS.forEach(function(c){
-      rankVals[c.key] = ranked(rows, c.key);
-      scale[c.key] = rankVals[c.key].reduce(function(m, v){ return Math.max(m, Math.abs(v)); }, 0);
-    });
+    rows.sort(byColumn(sortKey, STATE.asc, 'team'));
+    var sc = columnScales(rows, COLUMNS), rankVals = sc.rankVals, scale = sc.scale;
 
     var table = el('table', 'pt-grid');
     var thead = el('thead'), hr = el('tr');
     hr.appendChild(el('th', 'pt-rank', 'Rank'));
     hr.appendChild(el('th', 'pt-team', STATE.mode === 'def' ? 'Defense' : 'Offense'));
     COLUMNS.forEach(function(c){
-      var th = el('th');
-      var b = el('button', null, c.label);
-      b.type = 'button';
-      if (c.key === STATE.sort) th.setAttribute('aria-sort', STATE.asc ? 'ascending' : 'descending');
-      b.addEventListener('click', function(){
+      hr.appendChild(sortHead(c.label, c.key === STATE.sort, STATE.asc, function(){
         if (STATE.sort === c.key) STATE.asc = !STATE.asc;
         else { STATE.sort = c.key; STATE.asc = false; }
         render();
-      });
-      th.appendChild(b);
-      hr.appendChild(th);
+      }));
     });
     thead.appendChild(hr);
     table.appendChild(thead);
@@ -510,20 +565,7 @@
       tr.appendChild(td);
 
       COLUMNS.forEach(function(c){
-        var cell = el('td');
-        var v = r[c.key];
-        var span = el('span', 'pt-num', fmt(v));
-        if (v != null){
-          cell.style.background = fillFor(v, scale[c.key]);
-          if (darkFill(v, scale[c.key])) cell.style.color = '#fff';
-        } else {
-          span.classList.add('pt-thin');
-        }
-        var rk = rankOf(v, rankVals[c.key]);
-        span.title = rk ? (c.label + ': ' + fmt(v) + ' (rank ' + rk + ' of ' + rankVals[c.key].length + ')')
-                        : c.label + ': no games';
-        cell.appendChild(span);
-        tr.appendChild(cell);
+        tr.appendChild(numCell(r[c.key], c.label, rankVals[c.key], scale[c.key]));
       });
       tbody.appendChild(tr);
 
@@ -563,7 +605,7 @@
   function detail(r){
     var box = el('div', 'pt-detin');
     box.appendChild(el('div', 'pt-detname', fullName(r.team) + ' — ' +
-      (STATE.mode === 'def' ? 'Defense' : 'Offense') + ' · ' + seasonLabel()));
+      (STATE.mode === 'def' ? 'Defense' : 'Offense') + ' · ' + seasonLabel() + narrowLabel()));
 
     var cards = el('div', 'pt-cards');
     function card(label, value, note){
@@ -604,14 +646,14 @@
 
   // Week by week for one season: 18 slots whatever has been played, the bye
   // marked, unplayed weeks left empty. Bars grow from the zero line, teal up
-  // for pass-heavy weeks and red down for run-heavy ones.
+  // for pass-heavy weeks and red down for run-heavy ones. Under a quarter or
+  // down filter each bar is that week's plays in the filter.
   function chartWeeks(D, team){
     var off = side();
-    var cells = D.tw[team] || {};
     var bye = D.byes ? D.byes[team] : null;
     var vals = [];
     for (var w = 1; w <= WEEKS; w++){
-      var c = cells[w];
+      var c = cellOf(D, team, w);
       vals.push(c && c[off + 2] > 0 ? proeOf([centred(D, c, true)], off).v : null);
     }
     var present = vals.filter(function(v){ return v != null; });
@@ -640,7 +682,7 @@
       var v = vals[i];
       if (v != null){
         var y = sy(v);
-        var cell = cells[i + 1];
+        var cell = cellOf(D, team, i + 1);
         var g2 = node('g', {});
         g2.appendChild(node('rect', {x: x0 + slot * i + slot * 0.2, y: Math.min(y, zero),
           width: slot * 0.6, height: Math.max(1, Math.abs(zero - y)),
@@ -674,8 +716,9 @@
 
   // ---------------------------------------------------------------- matchups
 
-  // Season-to-date figure for one unit, always current: the whole season as it
-  // stands, whichever week is showing.
+  // Season-to-date figure for one unit, always current and never narrowed:
+  // the whole season as it stands, whichever week is showing. The week range
+  // and the quarter and down filters belong to the Offense and Defense tabs.
   function unitProe(D, team, off){
     var cells = D.tw[team] || {};
     var list = Object.keys(cells).filter(function(w){ return cells[w][off + 2] > 0; })
@@ -686,13 +729,38 @@
   function gamesIn(D, W){
     return D.schedule.filter(function(g){ return g.w === W; });
   }
-  function kickoff(g){
+  // The game behind a row, for the team cells' tooltips: the final score once
+  // played, otherwise who is at whom and when.
+  function gameLine(g){
     if (g.as != null && g.hs != null){
-      return { final: true, text: 'Final ' + g.away + ' ' + g.as + ', ' + g.home + ' ' + g.hs };
+      return 'Final ' + g.away + ' ' + g.as + ', ' + g.home + ' ' + g.hs;
     }
     var d = g.date ? new Date(g.date + 'T12:00:00') : null;
     var when = d && !isNaN(d) ? d.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'}) : '';
-    return { final: false, text: when };
+    return g.away + ' at ' + g.home + (when ? ' · ' + when : '');
+  }
+
+  // One row per offense against the defense it faces that week: 32 rows in a
+  // week with no byes. The matchup figure is the sum: an offense that passes
+  // 4 over expected against a defense whose opponents pass 3 over expected
+  // projects to about 7 over. Sortable on any of the three figures, the sum
+  // first by default, shaded and ranked like the team tables.
+  var MU_COLUMNS = [
+    {key:'o', label:'Off PROE'},
+    {key:'d', label:'Def PROE'},
+    {key:'net', label:'Matchup'}
+  ];
+
+  function matchupRows(D, games){
+    var rows = [];
+    games.forEach(function(g){
+      [[g.away, g.home], [g.home, g.away]].forEach(function(pair){
+        var o = unitProe(D, pair[0], 0), d = unitProe(D, pair[1], 3);
+        rows.push({ off: pair[0], dfn: pair[1], o: o.v, d: d.v,
+                    net: (o.v != null && d.v != null) ? o.v + d.v : null, game: g });
+      });
+    });
+    return rows;
   }
 
   function renderMatchups(){
@@ -712,63 +780,57 @@
       paintFoot([]);
       return;
     }
-    var box = el('div', 'pt-games');
-    games.forEach(function(g){
-      var card = el('div', 'pt-gm');
-      var head = el('div', 'pt-gmhead');
-      var name = el('div', 'pt-gmname');
-      name.appendChild(document.createTextNode(shortName(g.away)));
-      name.appendChild(el('span', 'at', 'at'));
-      name.appendChild(document.createTextNode(shortName(g.home)));
-      head.appendChild(name);
-      var k = kickoff(g);
-      var when = el('div', 'pt-gmwhen');
-      if (k.final) when.appendChild(el('b', null, k.text)); else when.textContent = k.text;
-      head.appendChild(when);
-      card.appendChild(head);
-      card.appendChild(matchRow(D, g.away, g.home));
-      card.appendChild(matchRow(D, g.home, g.away));
-      box.appendChild(card);
-    });
-    wrap.appendChild(box);
-    paintFoot(null);
-  }
-
-  // One offense against the defense it faces. The net lean is the sum: an
-  // offense that passes 4 over expected against a defense whose opponents pass
-  // 3 over expected projects to about 7 over.
-  function matchRow(D, off, dfn){
-    var o = unitProe(D, off, 0), d = unitProe(D, dfn, 3);
-    var row = el('div', 'pt-gmrow');
-    var left = el('div', 'pt-unit');
-    left.appendChild(el('div', 'k', off + ' Offense'));
-    left.appendChild(el('div', 'n', fmt(o.v)));
-    row.appendChild(left);
-
-    var tw = el('div', 'pt-trackwrap');
-    var track = el('div', 'pt-track');
-    track.appendChild(el('span', 'mid'));
-    if (o.v != null && d.v != null){
-      var net = o.v + d.v;
-      var share = Math.min(1, Math.abs(net) / LEAN_FULL) * 50;
-      var fill = el('span', 'fill');
-      fill.style.background = net >= 0 ? PASS_FILL : RUN_FILL;
-      if (net >= 0){ fill.style.left = '50%'; fill.style.width = share + '%'; }
-      else { fill.style.right = '50%'; fill.style.width = share + '%'; }
-      track.appendChild(fill);
-      var lbl = el('span', 'net', fmt(net));
-      if (net >= 0) lbl.style.left = (50 + share) + '%'; else lbl.style.right = (50 + share) + '%';
-      track.appendChild(lbl);
-      track.title = off + ' offense ' + fmt(o.v) + ' plus ' + dfn + ' defense ' + fmt(d.v) + ' = ' + fmt(net);
+    var rows = matchupRows(D, games);
+    var sortKey = STATE.muSort;
+    rows.sort(byColumn(sortKey, STATE.muAsc, 'off'));
+    var sc = columnScales(rows, MU_COLUMNS), rankVals = sc.rankVals, scale = sc.scale;
+    function head(c){
+      return sortHead(c.label, c.key === sortKey, STATE.muAsc, function(){
+        if (STATE.muSort === c.key) STATE.muAsc = !STATE.muAsc;
+        else { STATE.muSort = c.key; STATE.muAsc = false; }
+        render();
+      });
     }
-    tw.appendChild(track);
-    row.appendChild(tw);
 
-    var right = el('div', 'pt-unit r');
-    right.appendChild(el('div', 'k', dfn + ' Defense'));
-    right.appendChild(el('div', 'n', fmt(d.v)));
-    row.appendChild(right);
-    return row;
+    var table = el('table', 'pt-grid pt-mu');
+    var thead = el('thead'), hr = el('tr');
+    hr.appendChild(el('th', 'pt-rank', 'Rank'));
+    hr.appendChild(el('th', 'pt-team', 'Offense'));
+    hr.appendChild(head(MU_COLUMNS[0]));
+    hr.appendChild(el('th', 'pt-team', 'Defense'));
+    hr.appendChild(head(MU_COLUMNS[1]));
+    hr.appendChild(head(MU_COLUMNS[2]));
+    thead.appendChild(hr);
+    table.appendChild(thead);
+
+    var tbody = el('tbody');
+    rows.forEach(function(r, i){
+      var tr = el('tr', (i % 2) ? 'pt-alt' : '');
+      var ownRank = rankOf(r[sortKey], rankVals[sortKey]);
+      tr.appendChild(el('td', 'pt-rank', ownRank == null ? '—' : String(ownRank)));
+      function teamCell(code){
+        var td = el('td', 'pt-team');
+        var span = el('span', 'pt-tm', teamName(code));
+        span.title = gameLine(r.game);
+        td.appendChild(span);
+        return td;
+      }
+      tr.appendChild(teamCell(r.off));
+      tr.appendChild(numCell(r.o, r.off + ' offense', rankVals.o, scale.o));
+      tr.appendChild(teamCell(r.dfn));
+      tr.appendChild(numCell(r.d, r.dfn + ' defense', rankVals.d, scale.d));
+      var net = numCell(r.net, 'Matchup', rankVals.net, scale.net);
+      if (r.net != null){
+        net.firstChild.title = r.off + ' offense ' + fmt(r.o) + ' plus ' + r.dfn + ' defense ' + fmt(r.d) +
+          ' = ' + fmt(r.net) + ' (rank ' + rankOf(r.net, rankVals.net) + ' of ' + rankVals.net.length + ')';
+      }
+      tr.appendChild(net);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+
+    wrap.appendChild(table);
+    paintFoot(null);
   }
 
   // ------------------------------------------------------------------- chrome
@@ -799,6 +861,25 @@
     if (y.length === 1) return String(y[0]);
     var run = y[y.length - 1] - y[0] + 1 === y.length;
     return run ? (y[0] + '–' + y[y.length - 1]) : (y.length + ' seasons');
+  }
+  // Chip text for a multi-select: All, the names of up to two picks, or a count.
+  function pickLabel(vals, opts){
+    if (!vals.length) return 'All';
+    var names = vals.map(function(x){
+      var hit = String(x);
+      opts.forEach(function(o){ if (o[0] === x) hit = o[1]; });
+      return hit;
+    });
+    return names.length <= 2 ? names.join(', ') : names.length + ' selected';
+  }
+  // The quarter and down narrowing, for the expanded detail's title.
+  function narrowLabel(){
+    var bits = [];
+    if (STATE.qtrs.length) bits.push(STATE.qtrs.length > 2 ? STATE.qtrs.length + ' quarters'
+                                                            : 'Quarter ' + pickLabel(STATE.qtrs, QTR_OPTS));
+    if (STATE.downs.length) bits.push(STATE.downs.length > 2 ? STATE.downs.length + ' downs'
+                                                              : pickLabel(STATE.downs, DOWN_OPTS) + ' down');
+    return bits.length ? ' · ' + bits.join(' · ') : '';
   }
   function weekLabel(){
     if (STATE.wkFrom == null && STATE.wkTo == null) return 'All';
@@ -853,11 +934,26 @@
     wb.addEventListener('click', function(){ openWeeks(wb); });
     bar.appendChild(wb);
 
-    if (STATE.wkFrom != null || STATE.wkTo != null){
+    if (splitsAvailable()){
+      [['qtrs', 'Quarter', QTR_OPTS], ['downs', 'Down', DOWN_OPTS]].forEach(function(f){
+        var b = el('button', 'pt-fb');
+        b.type = 'button';
+        b.setAttribute('data-on', STATE[f[0]].length ? '1' : '0');
+        b.appendChild(el('span', 'l', f[1]));
+        b.appendChild(el('span', 'v', pickLabel(STATE[f[0]], f[2])));
+        b.addEventListener('click', function(){ openPick(b, f[0], f[1], f[2]); });
+        bar.appendChild(b);
+      });
+    }
+
+    if (anyFilter()){
       var reset = el('button', 'pt-reset', 'Reset');
       reset.type = 'button';
+      // Season is deliberately not cleared: Reset is for the narrowing
+      // filters, and reloading extra seasons would be a surprising thing for
+      // it to do.
       reset.addEventListener('click', function(){
-        STATE.wkFrom = null; STATE.wkTo = null;
+        STATE.wkFrom = null; STATE.wkTo = null; STATE.qtrs = []; STATE.downs = [];
         closePop(); buildBar(); render();
       });
       bar.appendChild(reset);
@@ -919,6 +1015,42 @@
     }, function(){
       closePop();
       applySeasons(pick);
+    });
+    placePop(anchor);
+  }
+
+  // Quarter and down: multi-select, empty means all. Same popover as the
+  // seasons, with Clear in place of Latest.
+  function openPick(anchor, key, label, opts){
+    var p = $('pop');
+    if (!p.hidden && p.getAttribute('data-for') === key){ closePop(); return; }
+    p.innerHTML = '';
+    p.setAttribute('data-for', key);
+    p.appendChild(el('div', 'h', label));
+    var pick = STATE[key].slice();
+    var box = el('div', 'pt-opts');
+    opts.forEach(function(o){
+      var b = el('button', 'pt-opt', o[1]);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', pick.indexOf(o[0]) > -1 ? 'true' : 'false');
+      b.addEventListener('click', function(){
+        var at = pick.indexOf(o[0]);
+        if (at > -1) pick.splice(at, 1); else pick.push(o[0]);
+        box.querySelectorAll('.pt-opt').forEach(function(n, i){
+          n.setAttribute('aria-pressed', pick.indexOf(opts[i][0]) > -1 ? 'true' : 'false');
+        });
+      });
+      box.appendChild(b);
+    });
+    p.appendChild(box);
+    popFoot(p, 'Clear', function(){
+      STATE[key] = [];
+      closePop(); buildBar(); render();
+    }, function(){
+      pick.sort(function(a, b){ return a - b; });
+      // Every option picked is the same as none, and the chip should say so.
+      STATE[key] = pick.length === opts.length ? [] : pick;
+      closePop(); buildBar(); render();
     });
     placePop(anchor);
   }
@@ -1028,7 +1160,7 @@
     STATE.open = null;
     STATE.week = null;
     var missing = years.filter(function(y){ return !DB[y]; });
-    if (!missing.length){ buildBar(); subtitle(); render(); return; }
+    if (!missing.length){ dropNarrowing(); buildBar(); subtitle(); render(); return; }
     if (anyLoaded()) showStatus('Loading ' + missing.join(', ') + '…');
     buildBar();
     return Promise.all(missing.map(function(y){
@@ -1040,10 +1172,17 @@
       });
     })).then(function(){
       if (!STATE.seasons.length){ showStatus('Could not load that season.'); return; }
+      dropNarrowing();
       buildBar();
       subtitle();
       render();
     });
+  }
+  // A season without the split cells takes the quarter and down chips off the
+  // bar, so a pick made before it was added is cleared rather than left
+  // narrowing the table with nothing on the bar to say so.
+  function dropNarrowing(){
+    if (!splitsAvailable()){ STATE.qtrs = []; STATE.downs = []; }
   }
 
   if (window.ResizeObserver){

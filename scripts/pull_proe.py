@@ -6,7 +6,8 @@ Pass Rate Over Expected tool needs.
 Outputs (all under data/):
   proe_<season>.json          per team-week dropbacks, expected dropbacks and
                               plays, for the offense and for the defense it
-                              faced, plus the schedule and byes
+                              faced, the same offense sums split by quarter
+                              and down, plus the schedule and byes
   proe_index.json             which seasons exist + which is the default
   proe_baseline.json          the league's dropback rate in every situation
                               bucket, counted per completed season
@@ -82,6 +83,14 @@ REQUIRED_COLUMNS = [
 # feature: without it scrambles count as runs and every mobile quarterback's
 # team reads a few points low. The pull still runs, with a warning.
 OPTIONAL_COLUMNS = ["Scramble?", "GameId", "PlayId", "HomeRoad"]
+
+# Bumped whenever the shape of proe_<season>.json changes. The pull compares it
+# with every published season file and rebuilds them all when one is older, so
+# a tool that needs the new shape never meets a half-converted archive.
+#   1  team-week sums only
+#   2  adds "twq": the offense sums split by quarter and down, for the tool's
+#      quarter and down filters
+SCHEMA = 2
 
 WEEKS = 18
 LAST_TWO_MINUTES = 120
@@ -277,7 +286,7 @@ def plays_from_rows(rows, present):
             continue
         scramble = has_scramble and truthy(row.get("Scramble?"))
         plays.append({
-            "team": team, "opp": opp, "week": week,
+            "team": team, "opp": opp, "week": week, "qtr": qtr, "down": down,
             "pass": 1 if (ptype == "PASS" or scramble) else 0,
             "key": bucket_key(down, int(dist), int(los), qtr, clock, margin),
         })
@@ -296,8 +305,19 @@ def bucket_counts(plays):
 
 
 def team_weeks(plays, baseline):
-    """{team: {week: [passO, expO, nO, passD, expD, nD, opponent]}} and tier use."""
+    """({team: {week: [passO, expO, nO, passD, expD, nD, opponent]}},
+        {team: {week: [[qtr, down, pass, exp, plays], ...]}},
+        tier use).
+
+    The second table is the offense sums of the first split by quarter and
+    down, which is what the tool's quarter and down filters sum in the browser.
+    Only the offense side is split: a defense's plays in a week are exactly the
+    plays of the offense it faced, so the tool reads the opponent's split cells
+    through the opponent code the first table already carries. Quarter 5 is
+    overtime. Cells sort by quarter then down, so the file is stable run to run.
+    """
     tw = defaultdict(lambda: defaultdict(lambda: [0, 0.0, 0, 0, 0.0, 0, None]))
+    twq = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: [0, 0.0, 0])))
     tiers = Counter()
     for p in plays:
         e, tier = baseline.expect(p["key"])
@@ -312,13 +332,25 @@ def team_weeks(plays, baseline):
         d[4] += e
         d[5] += 1
         d[6] = p["team"]
+        q = twq[p["team"]][p["week"]][(p["qtr"], p["down"])]
+        q[0] += p["pass"]
+        q[1] += e
+        q[2] += 1
     out = {}
+    out_q = {}
     for team in sorted(tw):
         out[team] = {}
+        out_q[team] = {}
         for week in sorted(tw[team]):
             v = tw[team][week]
             out[team][str(week)] = [v[0], round(v[1], 2), v[2], v[3], round(v[4], 2), v[5], v[6]]
-    return out, tiers
+            split = twq[team].get(week)
+            if split:
+                out_q[team][str(week)] = [
+                    [qd[0], qd[1], c[0], round(c[1], 2), c[2]]
+                    for qd, c in sorted(split.items())
+                ]
+    return out, out_q, tiers
 
 
 def proe_of(cells, side):
@@ -395,7 +427,7 @@ def byes_from(schedule, teams):
 
 def build_season(season, plays, dropped, baseline, schedule, today):
     teams = sorted({p["team"] for p in plays} | {p["opp"] for p in plays})
-    tw, tiers = team_weeks(plays, baseline)
+    tw, twq, tiers = team_weeks(plays, baseline)
     latest = max(p["week"] for p in plays)
     cw = pm.current_week(schedule, today) if schedule else min(latest + 1, WEEKS)
     sched = [{
@@ -403,7 +435,7 @@ def build_season(season, plays, dropped, baseline, schedule, today):
         "away": g["away"], "home": g["home"], "as": g["as"], "hs": g["hs"],
     } for g in (schedule or [])]
     payload = {
-        "schema": 1,
+        "schema": SCHEMA,
         "season": season,
         "tool": TOOL,
         "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
@@ -420,6 +452,7 @@ def build_season(season, plays, dropped, baseline, schedule, today):
         "schedule": sched,
         "byes": byes_from(sched, teams),
         "tw": tw,
+        "twq": twq,
     }
     return payload, summarise(tw, teams)
 
@@ -497,6 +530,21 @@ def season_plays(season, args):
     return plays, dropped, None
 
 
+def published_schemas():
+    """{season: schema} for every proe_<season>.json already on disk. A file
+    that cannot be read counts as schema 0, so it gets rebuilt."""
+    out = {}
+    for path in DATA_DIR.glob("proe_*.json"):
+        stem = path.stem.rsplit("_", 1)[1]
+        if not stem.isdigit():
+            continue
+        try:
+            out[int(stem)] = int(json.loads(path.read_text(encoding="utf-8")).get("schema", 0))
+        except (json.JSONDecodeError, OSError, ValueError, AttributeError):
+            out[int(stem)] = 0
+    return out
+
+
 def load_baseline_file():
     path = DATA_DIR / "proe_baseline.json"
     if not path.exists():
@@ -545,6 +593,12 @@ def main():
         need_all = args.all or stored is None or stored_seasons != completed
         if need_all and not args.all and stored is not None:
             print(f"baseline covers {stored_seasons}, config says {completed}: rebuilding every season")
+        # A published season in an older shape is rebuilt along with the rest,
+        # so the archive never mixes shapes. Happens once per schema bump.
+        stale = sorted(s for s, v in published_schemas().items() if v != SCHEMA)
+        if stale and not need_all:
+            print(f"published schema is behind for {stale}: rebuilding every season")
+            need_all = True
         seasons = configured if need_all else [current]
         pooled_from = completed
 

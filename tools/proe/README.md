@@ -1,11 +1,12 @@
 # NFL Pass Rate Over Expected
 
 Three tabs. **Offense** and **Defense** rank the 32 teams on pass rate over
-expected (PROE) and on their last four games, with a season multi-select and
-a week range. Every team row expands to its week-by-week PROE across all 18
-weeks, bye marked, unplayed weeks empty, one chart per selected season.
-**Matchups** lists the week's games with each offense's PROE beside the
-defense it faces and the sum drawn as a lean on a centred track.
+expected (PROE) and on their last four games, with a season multi-select, a
+week range, and quarter and down multi-selects. Every team row expands to its
+week-by-week PROE across all 18 weeks, bye marked, unplayed weeks empty, one
+chart per selected season. **Matchups** is one table for the week, a row for
+every offense against the defense it faces, sortable on either side's PROE or
+on their sum.
 
 There is no explanatory copy inside the tool on purpose: definitions belong in
 the article around it. Data decisions, the bucket definitions and the
@@ -26,7 +27,7 @@ Base URL `https://rmsummerlin.github.io/SFAStatsPages/data/`
 | File | When |
 |---|---|
 | `proe_index.json` | on load: which seasons exist, which is the default |
-| `proe_<season>.json` | on demand, as seasons are selected; per team-week dropbacks, expected dropbacks and plays for the offense and for the defense it faced, plus the schedule, byes and the current week |
+| `proe_<season>.json` | on demand, as seasons are selected; per team-week dropbacks, expected dropbacks and plays for the offense and for the defense it faced, the same offense sums split by quarter and down, plus the schedule, byes and the current week |
 
 Both are written by `scripts/pull_proe.py`. Every figure in the tool is
 computed in the browser from the team-week sums, which is what lets the week
@@ -52,15 +53,31 @@ Every figure is centred so the league averages zero within each season: the
 season's league over-expected rate on the plays in view is subtracted before
 anything is summed or pooled. See `docs/proe-data.md`.
 
+## Quarter and down
+
+Both chips are multi-selects; empty means all, and picking every option reads
+as All. They narrow the plays behind every figure on the Offense and Defense
+tabs: the table, Last 4, the expanded cards and the week-by-week chart. The
+league centring is recomputed on the narrowed plays, so the NFL Average row
+still reads 0.0. With no quarter or down picked the tool reads the published
+team-week sums exactly as before; with either picked it sums the split cells
+(`twq` in the season file) for the offense, and the opponent's split cells for
+the defense, so both sides narrow to the same plays. The chips only appear
+once every selected season carries the split, which seasons published before
+schema 2 do not.
+
 ## Matchups
 
-Each game card has two rows, one per offense. The track is centred on zero and
-fills toward the pass side (teal, right) or the run side (red, left) by the sum
-of the offense's PROE and the defense's PROE against, against a full-track
-value of 15 points. Figures are always the season to date, whichever week the
-stepper shows. The stepper stops at the current week, which flips the day
-after Monday night, same as the matchup tool. Played games show the final
-score.
+One table for the week: a row for every offense against the defense it faces,
+so a week with no byes has 32 rows. Columns are the offense and its PROE, the
+defense and its PROE against, and **Matchup**, the sum: an offense at +4
+against a defense whose opponents sit at +3 projects to about +7. The table
+opens sorted on Matchup, highest first, and any of the three figure columns
+sorts; shading and ranks work as on the team tables. The team cells' tooltip
+carries the game, with the final score once played. Figures are always the
+season to date, whichever week the stepper shows, and the quarter, down and
+week filters do not apply here. The stepper stops at the current week, which
+flips the day after Monday night, same as the matchup tool.
 
 ## Embedding
 
@@ -87,8 +104,16 @@ or two when other teams play, because the league mean moved.
 three games in both columns.
 
 **A past week on the Matchups tab shows today's numbers.** By design. Figures
-are season to date and never frozen per week; only the schedule and the
-scores belong to the week shown.
+are season to date and never frozen per week; only the schedule belongs to
+the week shown.
+
+**No Quarter or Down chip on the bar.** Every selected season has to carry the
+split cells (schema 2 of the season file). The pull rebuilds every season the
+first time it runs after the schema bump, so this clears itself on the next
+scheduled run.
+
+**Picking all four quarters and overtime, or all four downs, says All.** It is
+the same set of plays, and the chip says so rather than counting.
 
 **Several seasons selected, one row per team.** Seasons pool into one figure,
 like the pace tool. The expansion shows one chart per season, newest first.
