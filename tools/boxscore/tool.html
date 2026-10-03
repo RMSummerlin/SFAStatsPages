@@ -165,12 +165,15 @@
 .pt-root.pt-bx .pt-box th,.pt-root.pt-bx .pt-box td{padding:5px 6px;border-bottom:1px solid var(--b2);text-align:center;color:var(--ink);font:inherit}
 /* On the live site's phone layout the theme drew a heavy box round every cell
    of the right-hand figure column. The reset above is class-scoped, and a
-   theme rule written against an id (#wrapper, #main) or with !important beats
-   it, so the cell edges are pinned here: no side or top border, no outline,
-   no inset shadow, and only the row rule underneath. */
-.pt-root.pt-bx .pt-box th,.pt-root.pt-bx .pt-box td{border-top:0 !important;border-left:0 !important;
-  border-right:0 !important;outline:0 !important;box-shadow:none !important}
-.pt-root.pt-bx .pt-box tbody th,.pt-root.pt-bx .pt-box tbody td{border-bottom:1px solid var(--b2) !important}
+   theme rule written with !important beats it, so the cell edges are pinned
+   here: no side or top border, no outline, no inset shadow, and only the row
+   rule underneath. [data-init] is the attribute the script sets on the root;
+   it is here only to lift these rules above anything a theme writes without
+   an id. */
+.pt-root.pt-bx[data-init] .pt-box tr>th,.pt-root.pt-bx[data-init] .pt-box tr>td{border-top:0 !important;
+  border-left:0 !important;border-right:0 !important;outline:0 !important;box-shadow:none !important}
+.pt-root.pt-bx[data-init] .pt-box tbody tr>th,.pt-root.pt-bx[data-init] .pt-box tbody tr>td{
+  border-bottom:1px solid var(--b2) !important}
 .pt-root.pt-bx .pt-box tbody tr{height:44px}
 .pt-root.pt-bx .pt-box tbody tr:nth-child(even){background:var(--stripe)}
 .pt-root.pt-bx .pt-box th.gh{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink);text-align:left;padding-top:10px;border-bottom:2px solid var(--ink)}
@@ -942,6 +945,22 @@
     });
   }
 
+  // On a phone the stylesheet caps the panel at 85svh.
+  // Some browsers (Brave among them) let a viewport-height unit track the URL
+  // bar as it hides and shows, so the panel grew and shrank under the thumb on
+  // every scroll. On a phone the cap is fixed in pixels from the viewport
+  // instead, and refreshed only when the viewport WIDTH changes (a rotation),
+  // never on a height-only change, which is exactly what the URL bar produces.
+  var capWidth = null;
+  function capHeight(){
+    var w = window.innerWidth || document.documentElement.clientWidth || 0;
+    if (w === capWidth) return;
+    capWidth = w;
+    var h = window.innerHeight || document.documentElement.clientHeight || 0;
+    ROOT.style.maxHeight = (w <= 640 && h) ? Math.round(h * 0.85) + 'px' : '';
+  }
+  capHeight();
+  window.addEventListener('resize', capHeight);
   if (window.ResizeObserver){
     var lastTier = null;
     new ResizeObserver(function(){

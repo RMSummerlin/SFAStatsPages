@@ -86,6 +86,11 @@ For any tool with a long scrollable list, the root should be a bounded flex-colu
 
 This keeps filters/headers pinned to the panel (not the Avada site header), gives the tool its own scrollbar, and lets the page continue scrolling normally below the tool.
 
+Two things the live site taught, both already in every tool and worth copying into a new one:
+
+- **Fix the phone cap in pixels from the script.** Some browsers (Brave among them) let `vh`, and even `svh`, track the URL bar as it hides and shows, so a panel capped at `85svh` grows and shrinks under the thumb on every scroll. Each tool sets `ROOT.style.maxHeight` in pixels from `window.innerHeight` when the viewport is 640px or narrower, and refreshes it only when the viewport *width* changes (a rotation), never on a height-only change. See `capHeight()` in any `tools/*/tool.html`.
+- **Pin every edge a table draws.** On the phone layout the theme drew a box round every cell of the last figure column, and the class-scoped reset at the top of the fragment loses to a theme rule written with `!important`. Each table declares its own borders with `!important` under a `.pt-root.pt-xx[data-init] .pt-grid tr>td` selector (`data-init` is the attribute the script sets on the root, used only to outrank theme rules that have no id), sets `border-top`, `border-left`, `border-right`, `outline` and `box-shadow` to nothing, and re-asserts the few edges it wants (header rule, team divider, footer rule).
+
 ## Brand font
 
 Interstate Condensed, self-hosted at:
