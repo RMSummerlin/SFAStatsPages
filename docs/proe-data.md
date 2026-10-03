@@ -176,8 +176,19 @@ midseason the two tables agree to the decimal on most teams.
 dropbacks, expected dropbacks and plays for the offense, the same three for
 the defense it faced, and the opponent. Everything in the tool is a sum of
 those: the season figure, the week range, the last four games, the per-week
-chart and the pooled multi-season view. No play-level data ships, because no
-filter in this tool needs it.
+chart and the pooled multi-season view.
+
+For the quarter and down filters the file also carries `twq`: the offense's
+three numbers per team and week split by quarter (5 is overtime) and down, as
+`[quarter, down, dropbacks, expected, plays]` cells. Only the offense is
+split, because a defense's plays in a week are exactly the plays of the
+offense it faced, so the tool reads the opponent's cells through the opponent
+code the team-week already carries. The split cells add back to the team-week
+counts exactly; expected dropbacks are rounded per cell, so under a filter
+that happens to keep every cell the figure can sit a hundredth of a point
+from the unfiltered one, which is why the tool reads the plain sums whenever
+no quarter or down is picked. `schema` is 2 with the split; the pull rebuilds
+every season once when it finds an older file. No play-level data ships.
 
 Also in the file: the schedule with scores (from the nflverse `games.csv`
 cache the matchup tool already keeps), each team's bye week derived from the
@@ -195,11 +206,17 @@ count for the footer.
   shading is diverging on value, teal above zero and red below, and the
   footer row is the play-weighted league figure, 0.0 on PROE by construction.
 - **Matchups add the two sides.** An offense at +4 against a defense whose
-  opponents sit at +3 projects to about +7. That is the lean the track draws,
-  against a full-track value of 15 points, with both inputs printed at the
-  ends. Figures are always season to date; past weeks are not snapshotted,
-  because the point of the tab is to pair this week's games with what the
-  two units are now.
+  opponents sit at +3 projects to about +7. The tab is one table for the
+  week, a row per offense against the defense it faces, sorted on that sum
+  by default and sortable on either input, so a 32-row week ranks every unit
+  pairing at once. Figures are always season to date and never narrowed by
+  quarter or down; past weeks are not snapshotted, because the point of the
+  tab is to pair this week's games with what the two units are now.
+- **Quarter and down narrow everything on the team tabs,** and the league
+  centring is recomputed on the narrowed plays, so the NFL Average row reads
+  0.0 under any filter. A fourth-quarter figure therefore says how a team
+  calls the fourth quarter relative to how the league calls it, not relative
+  to the league's whole game.
 - **Pooled seasons** sum the team-week cells across the chosen years, as the
   pace tool does. The expansion shows one 18-week chart per season rather
   than one blended line, because the chart's job is to show the shape of a
