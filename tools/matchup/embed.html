@@ -135,6 +135,10 @@
 .pt-root.pt-mu .pt-tend td.lab{color:var(--ink);font-size:14px;font-weight:400;white-space:normal;text-align:left}
 .pt-root.pt-mu .pt-tend td.thin{color:var(--muted);font-weight:400}
 .pt-root.pt-mu .pt-tend tr.hd th{border-bottom:2px solid var(--ink)}
+.pt-root.pt-mu[data-init] .pt-tend tr>th,.pt-root.pt-mu[data-init] .pt-tend tr>td{
+  border-top:0 !important;border-left:0 !important;border-right:0 !important;
+  outline:0 !important;box-shadow:none !important;border-bottom:1px solid var(--b2) !important}
+.pt-root.pt-mu[data-init] .pt-tend tr.hd>th{border-bottom:2px solid var(--ink) !important}
 
 .pt-root.pt-mu .pt-sorts{display:flex;gap:4px;margin-bottom:10px;justify-content:center}
 .pt-root.pt-mu .pt-sort{min-height:36px;padding:0 12px;border:1px solid var(--g1);border-radius:999px;font-size:11px;font-weight:600;
@@ -907,6 +911,16 @@
     });
   }
 
+  var capWidth = null;
+  function capHeight(){
+    var w = window.innerWidth || document.documentElement.clientWidth || 0;
+    if (w === capWidth) return;
+    capWidth = w;
+    var h = window.innerHeight || document.documentElement.clientHeight || 0;
+    ROOT.style.maxHeight = (w <= 640 && h) ? Math.round(h * 0.85) + 'px' : '';
+  }
+  capHeight();
+  window.addEventListener('resize', capHeight);
   if (window.ResizeObserver){
     var lastTier = null;
     new ResizeObserver(function(){
