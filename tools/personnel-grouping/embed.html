@@ -14,10 +14,6 @@
   border:1px solid var(--b1); line-height:1.25;
   position:relative;
   display:flex; flex-direction:column;
-  max-height:1000px;
-  max-height:clamp(1000px,120vh,1320px);
-  max-height:clamp(1000px,120svh,1320px);
-  overflow:hidden;
   font-variant-numeric:tabular-nums;
 }
 .pt-root.pt-pg input,.pt-root.pt-pg select,.pt-root.pt-pg button,.pt-root.pt-pg textarea{
@@ -99,12 +95,12 @@
 .pt-root.pt-pg .pt-tipr i{font-style:normal;color:var(--g2);font-size:11px;text-align:right;min-width:52px}
 .pt-root.pt-pg .pt-tipn{margin-top:7px;font-size:11px;color:var(--g2);line-height:1.35}
 
-.pt-root.pt-pg .pt-body{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
+.pt-root.pt-pg .pt-body{flex:0 0 auto;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .pt-root.pt-pg .pt-grid{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
 .pt-root.pt-pg .pt-grid caption{text-align:left;padding:8px 12px;font-size:12px;color:var(--muted);caption-side:top}
 .pt-root.pt-pg .pt-grid th,.pt-root.pt-pg .pt-grid td{padding:0;text-align:center;white-space:nowrap;
   border-bottom:1px solid var(--b2)}
-.pt-root.pt-pg .pt-grid thead th{position:sticky;top:0;z-index:3;background:var(--w);
+.pt-root.pt-pg .pt-grid thead th{background:var(--w);
   border-bottom:2px solid var(--ink);padding:6px 4px;font-size:11px;font-weight:700;
   text-transform:uppercase;letter-spacing:.03em;vertical-align:bottom}
 .pt-root.pt-pg .pt-grid thead th button{width:100%;font:inherit;padding:3px 0}
@@ -133,7 +129,7 @@
 .pt-root.pt-pg .pt-plays{min-width:58px;font-weight:700;font-size:13px;padding:0 8px !important;
   border-left:2px solid var(--ink)}
 .pt-root.pt-pg .pt-hascell{cursor:pointer}
-.pt-root.pt-pg .pt-grid tfoot th,.pt-root.pt-pg .pt-grid tfoot td{position:sticky;bottom:0;z-index:3;background:var(--w);
+.pt-root.pt-pg .pt-grid tfoot th,.pt-root.pt-pg .pt-grid tfoot td{background:var(--w);
   border-top:2px solid var(--ink);font-weight:700;padding:6px 4px;font-size:12px}
 .pt-root.pt-pg .pt-grid tfoot .pt-rank,.pt-root.pt-pg .pt-grid tfoot .pt-team{z-index:4}
 .pt-root.pt-pg[data-init] .pt-grid tr>th,.pt-root.pt-pg[data-init] .pt-grid tr>td{
@@ -290,17 +286,6 @@
     if (window.matchMedia) return !window.matchMedia('(min-width: 641px)').matches;
     return ROOT.clientWidth > 0 && ROOT.clientWidth < 641;
   }
-
-  var capWidth = null;
-  function capHeight(){
-    var w = window.innerWidth || document.documentElement.clientWidth || 0;
-    if (w === capWidth) return;
-    capWidth = w;
-    var h = window.innerHeight || document.documentElement.clientHeight || 0;
-    ROOT.style.maxHeight = (w <= 640 && h) ? Math.max(1000, Math.min(1320, Math.round(h * 1.2))) + 'px' : '';
-  }
-  capHeight();
-  window.addEventListener('resize', capHeight);
 
   var RAMP = [[247,248,250],[246,224,221],[238,180,172],[224,122,112],[204,0,0],[122,0,0]];
   function code2(c){ return (c < 10 ? '0' : '') + c; }

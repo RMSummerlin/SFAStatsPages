@@ -117,9 +117,9 @@ def lint(path: Path):
         if "min-height:44px" not in css.replace(" ", ""):
             warns.append("no 44px minimum tap target found — check touch targets")
         flat = css.replace(" ", "")
-        if "max-height:85svh" not in flat and "max-height:clamp(" not in flat:
-            warns.append("root is not a bounded panel (85svh or a clamp) — "
-                         "long lists will scroll the page")
+        if "max-height:85svh" in flat or "max-height:clamp(" in flat:
+            warns.append("root is a bounded panel (85svh or a clamp) — tools show at "
+                         "full height and let the page scroll")
         if "min-width:641px" not in css.replace(" ", ""):
             warns.append("no min-width:641px enhancement — is this really mobile-first?")
         small = sorted({m for m in re.findall(r"font-size\s*:\s*([\d.]+)px", css)

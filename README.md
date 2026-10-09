@@ -144,7 +144,7 @@ string literal changed. `--check` reports a stale `embed.html` without writing o
 - Scope every CSS selector under `.pt-root` — never bare `*`, `body`, `header`, `input`, etc. Give each tool its own root class too (e.g. `.pt-root.pt-pgf`) so two tools can share a page.
 - No semantic landmark elements (`<header>`, `<footer>`, `<nav>`, `<main>`, `<section>`) — use prefixed divs like `.pt-header`.
 - No `position: fixed` for in-flow UI (only for intentional full-screen modals).
-- Long scrollable lists get their own bounded scroll panel, not page-level scroll.
+- No height cap on the root: a tool shows at full height and the page scrolls. Wide tables pan sideways; modal sheets are `position: fixed`.
 - Brand font: Interstate Condensed (self-hosted).
 - Brand colors: black `#000`, header band `#222529`, Sharp red `#cc0000`, backgrounds `#f4f5f7` / `#fff` / `#f9fafb`, table stripe `#f6f6f6`, text `#111`, muted text `#4e5154`, grays `#7f8c9a` / `#b0bec5` (shapes and figures 24px and up, never small text), borders `#cdd5de` / `#dde2e8` (control edges use `#7f8c9a`).
 - Type floor 11px; text under 24px is `#111` or `#4e5154`. Team colours are a fill / text / fallback triple; see the type and contrast section of `docs/avada-embed-rules.md`.

@@ -14,14 +14,7 @@
   border:1px solid var(--b1); line-height:1.25;
   position:relative;
   display:flex; flex-direction:column;
-  max-height:1000px;
-  max-height:clamp(1000px,120vh,1320px);
-  max-height:clamp(1000px,120svh,1320px);
-  overflow:hidden;
   font-variant-numeric:tabular-nums;
-}
-@media (max-width:640px){
-  .pt-root.pt-pr{max-height:85vh;max-height:85svh}
 }
 .pt-root.pt-pr input,.pt-root.pt-pr select,.pt-root.pt-pr button,.pt-root.pt-pr textarea{
   font:inherit;color:inherit;letter-spacing:inherit;text-transform:none}
@@ -72,11 +65,11 @@
   text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--g1)}
 .pt-root.pt-pr .pt-popfoot .go{background:var(--ink);color:var(--w);border-color:var(--ink)}
 
-.pt-root.pt-pr .pt-wrap{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
+.pt-root.pt-pr .pt-wrap{flex:0 0 auto;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .pt-root.pt-pr .pt-grid{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
 .pt-root.pt-pr .pt-grid th,.pt-root.pt-pr .pt-grid td{padding:0;text-align:center;white-space:nowrap;
   border-bottom:1px solid var(--b2)}
-.pt-root.pt-pr .pt-grid thead th{position:sticky;top:0;z-index:3;background:var(--w);
+.pt-root.pt-pr .pt-grid thead th{background:var(--w);
   border-bottom:2px solid var(--ink);font-size:11px;font-weight:700;text-transform:uppercase;
   letter-spacing:.05em;color:var(--muted)}
 .pt-root.pt-pr .pt-grid thead th button{width:100%;min-height:44px;font:inherit;color:inherit;padding:3px 4px}
@@ -104,7 +97,7 @@
 .pt-root.pt-pr .pt-mu .pt-num{padding:0 4px}
 .pt-root.pt-pr .pt-mu thead th button{white-space:normal;line-height:1.15;padding:3px 2px}
 .pt-root.pt-pr .pt-thin{color:var(--muted);font-weight:400}
-.pt-root.pt-pr .pt-grid tfoot th,.pt-root.pt-pr .pt-grid tfoot td{position:sticky;bottom:0;z-index:3;
+.pt-root.pt-pr .pt-grid tfoot th,.pt-root.pt-pr .pt-grid tfoot td{
   background:var(--w);border-top:2px solid var(--ink);border-bottom:0;font-size:12px;font-weight:700}
 .pt-root.pt-pr[data-init] .pt-grid tr>th,.pt-root.pt-pr[data-init] .pt-grid tr>td{
   border-top:0 !important;border-left:0 !important;border-right:0 !important;
@@ -1058,16 +1051,6 @@
     if (!splitsAvailable()){ STATE.qtrs = []; STATE.downs = []; }
   }
 
-  var capWidth = null;
-  function capHeight(){
-    var w = window.innerWidth || document.documentElement.clientWidth || 0;
-    if (w === capWidth) return;
-    capWidth = w;
-    var h = window.innerHeight || document.documentElement.clientHeight || 0;
-    ROOT.style.maxHeight = (w <= 640 && h) ? Math.round(h * 0.85) + 'px' : '';
-  }
-  capHeight();
-  window.addEventListener('resize', capHeight);
   if (window.ResizeObserver){
     var lastTier = null;
     new ResizeObserver(function(){

@@ -17,6 +17,9 @@
    under 24px: the brand's #7f8c9a is 3.4:1 and fails under every caption. --g1
    keeps the swatch borders and the disabled stepper arrow. Nothing in this
    tool is set below 11px. */
+/* No height cap and no overflow on the root: the tool shows at its full
+   height and the page scrolls, so the site has one scrollbar rather than one
+   inside the tool and one outside it. See docs/avada-embed-rules.md. */
 .pt-root.pt-mu{
   --red:#cc0000; --ink:#111; --muted:#4e5154; --g1:#7f8c9a; --g2:#b0bec5;
   --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --stripe:#f6f6f6;
@@ -27,17 +30,8 @@
   border:1px solid var(--b1); line-height:1.25;
   position:relative;
   display:flex; flex-direction:column;
-  max-height:1000px;
-  max-height:clamp(1000px,120vh,1320px);
-  max-height:clamp(1000px,120svh,1320px);
-  overflow:hidden;
   font-variant-numeric:tabular-nums;
   -webkit-font-smoothing:antialiased;
-}
-/* The desktop clamp floor is taller than a phone. Without this override the
-   footer and the bottom sheet sit below the fold on a 700px viewport. */
-@media (max-width:640px){
-  .pt-root.pt-mu{max-height:85vh;max-height:85svh}
 }
 .pt-root.pt-mu input,.pt-root.pt-mu select,.pt-root.pt-mu button,.pt-root.pt-mu textarea{
   font:inherit;color:inherit;letter-spacing:inherit;text-transform:none}
@@ -72,7 +66,10 @@
 .pt-root.pt-mu .pt-pick .t{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap}
 
 /* ---------- card ---------- */
-.pt-root.pt-mu .pt-wrap{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
+/* overflow-x only: the body is never taller than its content, so there is
+   nothing to scroll vertically, but a wide table still pans sideways on a
+   phone. */
+.pt-root.pt-mu .pt-wrap{flex:0 0 auto;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .pt-root.pt-mu .pt-card{padding:12px 12px 10px}
 /* Team header: both teams and their overall ranks, centred on the "at". Each
    team block carries a 5px rule in the team's FILL colour above the name: the
@@ -148,8 +145,13 @@
 .pt-root.pt-mu .pt-track .fill.fd{left:50%}
 
 /* ---------- bottom sheet (battle detail, game picker) ---------- */
-.pt-root.pt-mu .pt-scrim{position:absolute;left:0;top:0;right:0;bottom:0;z-index:39;background:rgba(17,17,17,.35)}
-.pt-root.pt-mu .pt-sheet{position:absolute;left:0;right:0;bottom:0;z-index:40;max-height:84%;
+.pt-root.pt-mu .pt-scrim{position:fixed;left:0;top:0;right:0;bottom:0;z-index:9999;background:rgba(17,17,17,.35)}
+/* The sheet and its scrim are fixed to the viewport, the one use of
+   position:fixed the embed rules allow (an intentional modal). Anchored to
+   the root instead, the sheet would sit at the bottom of a tool that is now
+   as tall as its content, well below the picker that opened it. The z-index
+   clears the theme's own fixed header. */
+.pt-root.pt-mu .pt-sheet{position:fixed;left:0;right:0;bottom:0;z-index:10000;max-height:84vh;max-height:84svh;
   display:flex;flex-direction:column;background:var(--w);border-top:3px solid var(--red);
   box-shadow:0 -6px 20px rgba(0,0,0,.18)}
 .pt-root.pt-mu .pt-shead{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 12px;
@@ -242,7 +244,7 @@
   .pt-root.pt-mu .pt-ptitle{font-size:15px}
   .pt-root.pt-mu .pt-row .l{width:84px}
   .pt-root.pt-mu .pt-cols .l{width:84px}
-  .pt-root.pt-mu .pt-sheet{left:8%;right:8%;max-height:86%}
+  .pt-root.pt-mu .pt-sheet{max-width:900px;margin:0 auto;max-height:86vh;max-height:86svh}
   .pt-root.pt-mu .pt-gl .nm{width:150px}
   .pt-root.pt-mu .pt-glkey{margin-left:201px}
 }
@@ -692,25 +694,9 @@
 
   // ---- bottom sheet ----------------------------------------------------------
 
-  // Opening the sheet must not throw the page around. Focusing the close button
-  // the moment the sheet opened, while it was still only its header, made the
-  // browser scroll the page to the bottom of the tool (the sheet is anchored
-  // there, up to 1320px below the picker on a desktop); the rows then grew the
-  // sheet upward and pushed that header off the top of the screen. So focus
-  // waits until the caller has filled the sheet, and skips the browser's
-  // scroll. The page moves only if the finished sheet's header is out of sight
-  // or too low to show any rows, and then only far enough to bring the sheet in.
-  function revealSheet(){
-    var s = $('sheet');
-    if (s.hidden) return;
-    var r = s.getBoundingClientRect();
-    var vh = window.innerHeight || document.documentElement.clientHeight;
-    if (r.top >= 0 && r.top <= vh - 160) return;
-    // Above the screen: bring the header to the top edge. Below it: bring the
-    // bottom up to the bottom edge, but never lift the header past the top.
-    window.scrollBy(0, r.top < 0 ? r.top : Math.max(0, Math.min(r.bottom - vh, r.top)));
-  }
-
+  // The sheet is fixed to the viewport, so opening it never moves the page.
+  // Focus still waits a tick, until the caller has filled the sheet, and skips
+  // the browser's own scroll-into-view.
   function openSheet(title, sub){
     var s = $('sheet');
     s.innerHTML = '';
@@ -728,9 +714,7 @@
     s.hidden = false;
     $('scrim').hidden = false;
     setTimeout(function(){
-      if (!x.isConnected) return;
-      revealSheet();
-      x.focus({ preventScroll:true });
+      if (x.isConnected) x.focus({ preventScroll:true });
     }, 0);
     return body;
   }
@@ -1054,22 +1038,6 @@
     });
   }
 
-  // On a phone the stylesheet caps the panel at 85svh.
-  // Some browsers (Brave among them) let a viewport-height unit track the URL
-  // bar as it hides and shows, so the panel grew and shrank under the thumb on
-  // every scroll. On a phone the cap is fixed in pixels from the viewport
-  // instead, and refreshed only when the viewport WIDTH changes (a rotation),
-  // never on a height-only change, which is exactly what the URL bar produces.
-  var capWidth = null;
-  function capHeight(){
-    var w = window.innerWidth || document.documentElement.clientWidth || 0;
-    if (w === capWidth) return;
-    capWidth = w;
-    var h = window.innerHeight || document.documentElement.clientHeight || 0;
-    ROOT.style.maxHeight = (w <= 640 && h) ? Math.round(h * 0.85) + 'px' : '';
-  }
-  capHeight();
-  window.addEventListener('resize', capHeight);
   if (window.ResizeObserver){
     var lastTier = null;
     new ResizeObserver(function(){

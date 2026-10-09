@@ -55,9 +55,9 @@ the stripper has a bug.
 
 It fails on document-level tags, semantic landmark elements, unscoped CSS selectors,
 missing `font-family: inherit`, a missing brand font, browser storage APIs and anything
-that looks like a credential. It warns on `position: fixed`, missing 44px tap targets, an
-unbounded root panel, no `min-width: 641px` enhancement, off-brand colors and a fragment
-that never hides the shortcode's preload table. Full detail in `docs/avada-embed-rules.md`.
+that looks like a credential. It warns on `position: fixed`, missing 44px tap targets, a
+height-capped root panel, no `min-width: 641px` enhancement, off-brand colors and a
+fragment that never hides the shortcode's preload table. Full detail in `docs/avada-embed-rules.md`.
 
 - [ ] `lint_embed.py` passes with no failures, and every warning is understood
 - [ ] Mobile layout designed and verified first, before desktop enhancement at `min-width: 641px`

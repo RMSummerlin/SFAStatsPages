@@ -20,6 +20,9 @@
   font:inherit;color:inherit;background:none;border:0;text-align:inherit;
   text-transform:none;letter-spacing:normal;text-shadow:none;box-shadow:none;
   vertical-align:middle;width:auto;height:auto}
+/* No height cap and no overflow on the root: the tool shows at its full
+   height and the page scrolls, so the site has one scrollbar rather than one
+   inside the tool and one outside it. See docs/avada-embed-rules.md. */
 .pt-root.pt-pg{
   --red:#cc0000; --ink:#111; --muted:#4e5154; --g1:#7f8c9a; --g2:#b0bec5;
   --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --w:#fff; --head:#222529;
@@ -29,10 +32,6 @@
   border:1px solid var(--b1); line-height:1.25;
   position:relative;
   display:flex; flex-direction:column;
-  max-height:1000px;
-  max-height:clamp(1000px,120vh,1320px);
-  max-height:clamp(1000px,120svh,1320px);
-  overflow:hidden;
   font-variant-numeric:tabular-nums;
 }
 .pt-root.pt-pg input,.pt-root.pt-pg select,.pt-root.pt-pg button,.pt-root.pt-pg textarea{
@@ -121,12 +120,17 @@
 .pt-root.pt-pg .pt-tipn{margin-top:7px;font-size:11px;color:var(--g2);line-height:1.35}
 
 /* ---------- table ---------- */
-.pt-root.pt-pg .pt-body{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
+/* overflow-x only: the body is never taller than its content, so there is
+   nothing to scroll vertically, but a wide table still pans sideways on a
+   phone. */
+.pt-root.pt-pg .pt-body{flex:0 0 auto;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .pt-root.pt-pg .pt-grid{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
 .pt-root.pt-pg .pt-grid caption{text-align:left;padding:8px 12px;font-size:12px;color:var(--muted);caption-side:top}
 .pt-root.pt-pg .pt-grid th,.pt-root.pt-pg .pt-grid td{padding:0;text-align:center;white-space:nowrap;
   border-bottom:1px solid var(--b2)}
-.pt-root.pt-pg .pt-grid thead th{position:sticky;top:0;z-index:3;background:var(--w);
+/* Column heads and the league row are not sticky: with the page doing the
+   scrolling they would pin to the viewport, under the site's fixed header. */
+.pt-root.pt-pg .pt-grid thead th{background:var(--w);
   border-bottom:2px solid var(--ink);padding:6px 4px;font-size:11px;font-weight:700;
   text-transform:uppercase;letter-spacing:.03em;vertical-align:bottom}
 .pt-root.pt-pg .pt-grid thead th button{width:100%;font:inherit;padding:3px 0}
@@ -157,7 +161,7 @@
 .pt-root.pt-pg .pt-plays{min-width:58px;font-weight:700;font-size:13px;padding:0 8px !important;
   border-left:2px solid var(--ink)}
 .pt-root.pt-pg .pt-hascell{cursor:pointer}
-.pt-root.pt-pg .pt-grid tfoot th,.pt-root.pt-pg .pt-grid tfoot td{position:sticky;bottom:0;z-index:3;background:var(--w);
+.pt-root.pt-pg .pt-grid tfoot th,.pt-root.pt-pg .pt-grid tfoot td{background:var(--w);
   border-top:2px solid var(--ink);font-weight:700;padding:6px 4px;font-size:12px}
 .pt-root.pt-pg .pt-grid tfoot .pt-rank,.pt-root.pt-pg .pt-grid tfoot .pt-team{z-index:4}
 /* On the live site's phone layout the theme drew a box round every cell of
@@ -331,22 +335,6 @@
     return ROOT.clientWidth > 0 && ROOT.clientWidth < 641;
   }
 
-  // The stylesheet caps the panel at clamp(1000px, 120vh, 1320px).
-  // Some browsers (Brave among them) let a viewport-height unit track the URL
-  // bar as it hides and shows, so the panel grew and shrank under the thumb on
-  // every scroll. On a phone the cap is fixed in pixels from the viewport
-  // instead, and refreshed only when the viewport WIDTH changes (a rotation),
-  // never on a height-only change, which is exactly what the URL bar produces.
-  var capWidth = null;
-  function capHeight(){
-    var w = window.innerWidth || document.documentElement.clientWidth || 0;
-    if (w === capWidth) return;
-    capWidth = w;
-    var h = window.innerHeight || document.documentElement.clientHeight || 0;
-    ROOT.style.maxHeight = (w <= 640 && h) ? Math.max(1000, Math.min(1320, Math.round(h * 1.2))) + 'px' : '';
-  }
-  capHeight();
-  window.addEventListener('resize', capHeight);
 
   /* ---------- colour ---------- */
   var RAMP = [[247,248,250],[246,224,221],[238,180,172],[224,122,112],[204,0,0],[122,0,0]];
