@@ -39,8 +39,10 @@ and `data/offseason_changes_<season>.json` (see the docs).
   as the reader navigates, with `replaceState`, so it never adds history entries.
   A hash pointing past the current week is ignored.
 * Copy for the article around the tool lives in `docs/matchup-talking-points.md`.
-* The bottom sheet is `position:absolute` inside the root and scrolls
-  internally. No `position:fixed`.
+* The bottom sheet and its scrim are `position:fixed`, anchored to the viewport
+  and capped at `84svh`; the sheet's list scrolls internally. This is the one
+  modal the embed rules allow `position:fixed` for. The root itself has no
+  height cap, so the page scrolls the tool.
 * On a phone one side of the ball shows at a time behind a toggle; at 641px and
   up both panels sit side by side and the toggle is hidden.
 

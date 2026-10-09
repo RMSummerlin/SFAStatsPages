@@ -91,13 +91,9 @@ rather than given a bar reading 0%. Codes are zero-padded, so 0 RB / 2 TE reads 
 
 ## Height
 
-Uses the house pattern, with fallbacks for browsers without `svh`:
-
-```css
-max-height: 1000px;
-max-height: clamp(1000px, 120vh, 1320px);
-max-height: clamp(1000px, 120svh, 1320px);
-```
+No cap. The tool shows at its full height and the page scrolls; the table body is
+`overflow-x: auto` only, so it pans sideways on a phone. See the height section of
+`docs/avada-embed-rules.md`.
 
 ## Which file to paste
 

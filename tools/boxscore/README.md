@@ -46,8 +46,10 @@ schedule (shared with the matchup tool).
 * The season select is a native `<select>`, single choice: box scores are one
   game at a time, so there is nothing to pool across seasons the way the pace
   tool does.
-* The bottom sheet is `position:absolute` inside the root and scrolls
-  internally. No `position:fixed`.
+* The bottom sheet and its scrim are `position:fixed`, anchored to the viewport
+  and capped at `84svh`; the sheet's list scrolls internally. This is the one
+  modal the embed rules allow `position:fixed` for. The root itself has no
+  height cap, so the page scrolls the tool.
 * At 641px and up the four tables sit two across; on a phone they stack.
 * The box score cells pin their borders with `!important`: on the live site's
   phone layout a theme rule drew a heavy box round every cell of the right
