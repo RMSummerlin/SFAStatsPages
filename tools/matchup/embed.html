@@ -178,7 +178,8 @@
   .pt-root.pt-mu .pt-ptitle{font-size:15px}
   .pt-root.pt-mu .pt-row .l{width:84px}
   .pt-root.pt-mu .pt-cols .l{width:84px}
-  .pt-root.pt-mu .pt-sheet{max-width:900px;margin:0 auto;max-height:86vh;max-height:86svh}
+  .pt-root.pt-mu .pt-sheet{max-width:900px;margin:0 auto;top:50%;bottom:auto;transform:translateY(-50%);
+    border-bottom:3px solid var(--red);box-shadow:0 10px 36px rgba(0,0,0,.28);max-height:86vh;max-height:86svh}
   .pt-root.pt-mu .pt-gl .nm{width:150px}
   .pt-root.pt-mu .pt-glkey{margin-left:201px}
 }
@@ -628,7 +629,6 @@
         sec.appendChild(pairsTable(det.pairs, uo, ud, off, dfn, C));
         body.appendChild(sec);
       }
-      revealSheet();
     }).catch(function(err){
       body.innerHTML = '';
       body.appendChild(el('div', 'pt-status', 'Could not load that week\u2019s detail.'));
