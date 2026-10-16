@@ -177,7 +177,10 @@ check("kneel-only week is not a team week", "3" in ptw.get("DEN", {}), False)
 s20 = R.player_summary(players, ptw, 20)
 check("RB opportunities inside 20", s20[RB]["opp"], 2)
 check("RB carry share: 2 of the team's 3 red zone carries", s20[RB]["car_share"], 2 / 3)
-check("RB target share is blank with no targets", s20[RB]["tg_share"], 0.0)
+check("RB target share is 0 with no targets", s20[RB]["tg_share"], 0.0)
+check("RB touchdown share: none of the team's one", s20[RB]["td_share"], 0.0)
+check("two-way player's touchdown share", s20[DB]["td_share"], 1.0)
+check("two-way player's target share: 1 of 2", s20[DB]["tg_share"], 0.5)
 check("RB games", s20[RB]["games"], 2)
 s5 = R.player_summary(players, ptw, 5)
 check("inside the 5: RB fumble carry only", (s5[RB]["car"], s5[RB]["car_share"]), (1, 1.0))
@@ -185,6 +188,26 @@ check("inside the 5: QB nothing", s5[QB]["opp"], 0)
 s_w4 = R.player_summary(players, ptw, 20, weeks={4})
 check("week range: no red zone usage in week 4", s_w4[RB]["opp"], 0)
 check("week range: games still count", s_w4[RB]["games"], 1)
+
+# Shares are read against every game the team played, not the player's
+# games, and a player who changed teams is read against each team for the
+# weeks he was on it. Here the back carried twice for A in week 1 and once
+# for B in week 3; A played weeks 1 and 2, B weeks 2, 3 and 4. Weeks 1 and 2
+# count for A, 3 and 4 for B, so B's week 2 is not in his denominator.
+Z = [0, 0, 0, 0, 0]
+traded = {"x": {"n": "Moved Back", "p": "RB", "t": "B", "g": [1, 3],
+               "w": {"1": ["A", [0, 0, 0, 2, 0], Z, Z], "3": ["B", [0, 0, 0, 1, 0], Z, Z]}}}
+team_cells = {"A": {"1": ["Z", [0, 4, 4, 0, 1], Z, Z], "2": ["Z", [0, 4, 4, 0, 1], Z, Z]},
+              "B": {"2": ["Z", [0, 10, 10, 0, 1], Z, Z], "3": ["Z", [0, 2, 2, 0, 1], Z, Z],
+                    "4": ["Z", [0, 2, 2, 0, 1], Z, Z]}}
+moved = R.player_summary(traded, team_cells, 20)["x"]
+check("traded back: 3 of 12 carries", moved["car_share"], 0.25)
+check("traded back: 0 of 4 touchdowns", moved["td_share"], 0.0)
+check("team_at before his first week is his first team", R.team_at(traded["x"], 0), "A")
+check("team_at between moves", R.team_at(traded["x"], 2), "A")
+check("team_at after the move", R.team_at(traded["x"], 9), "B")
+only_wk4 = R.player_summary(traded, team_cells, 20, weeks={4})["x"]
+check("weeks filter: no carries, but a denominator", (only_wk4["car"], only_wk4["car_share"]), (0, 0.0))
 
 # ------------------------------------------------------------------- teams
 

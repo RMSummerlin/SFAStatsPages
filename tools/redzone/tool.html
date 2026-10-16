@@ -20,7 +20,7 @@
    11px. No height cap and no overflow on the root: the tool shows at its
    full height and the page scrolls. */
 .pt-root.pt-rz{
-  --red:#cc0000; --ink:#111; --muted:#4e5154; --g1:#7f8c9a; --g2:#b0bec5;
+  --red:#cc0000; --ink:#111; --band:#222529; --muted:#4e5154; --g1:#7f8c9a; --g2:#b0bec5;
   --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --stripe:#f6f6f6; --w:#fff;
   font-family:'Interstate Condensed','Interstate','Roboto Condensed','Arial Narrow',
     'Helvetica Neue',Arial,sans-serif;
@@ -220,6 +220,56 @@
   .pt-root.pt-rz .pt-board{flex:1 1 0;min-width:0}
   .pt-root.pt-rz .pt-board+.pt-board{border-left:1px solid var(--b2)}
 }
+
+/* ---------- visual redesign (design side, October 2026) ---------- */
+/* Appended after the base rules so it wins on the same selectors. Four
+   house-rule adjustments to the handed-over file: the masthead is the site's
+   header band (#222529) rather than pure black, which vibrates against the
+   red rule; the team badge is 11px, the type floor; the pills keep the 44px
+   tap target; the hover and sorted-head tints are the brand red at low
+   alpha rather than two off-palette hexes. */
+.pt-root.pt-rz{border:1px solid var(--b1);box-shadow:0 10px 30px rgba(17,17,17,.07)}
+.pt-root.pt-rz .pt-head{background:var(--band);color:#fff;padding:18px 14px 0;border-bottom:0;position:relative}
+.pt-root.pt-rz .pt-head::before{content:'';position:absolute;left:0;right:0;top:0;height:4px;background:var(--red)}
+.pt-root.pt-rz .pt-title{color:#fff;font-size:24px;letter-spacing:.02em}
+.pt-root.pt-rz .pt-sub{color:var(--g2)}
+.pt-root.pt-rz .pt-sub b{color:#fff}
+/* The tab row sits on the band with a faint tick rule along its top edge. */
+.pt-root.pt-rz .pt-modes{border:0;margin-top:14px;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.16) 0 1px,transparent 1px 10%) top left/100% 7px no-repeat}
+.pt-root.pt-rz .pt-mode{color:var(--g2);min-height:48px}
+.pt-root.pt-rz .pt-mode+.pt-mode{border-left:0}
+.pt-root.pt-rz .pt-mode:hover{color:#fff}
+.pt-root.pt-rz .pt-mode[aria-pressed="true"]{background:transparent;color:#fff;box-shadow:inset 0 -4px 0 var(--red)}
+.pt-root.pt-rz .pt-segb[aria-pressed="true"]{background:var(--red);color:#fff}
+.pt-root.pt-rz .pt-opt[aria-pressed="true"]{background:var(--red);border-color:var(--red)}
+.pt-root.pt-rz .pt-popfoot .go{background:var(--red);border-color:var(--red)}
+.pt-root.pt-rz .pt-fb:hover,.pt-root.pt-rz .pt-pill:hover{border-color:var(--ink)}
+.pt-root.pt-rz .pt-pills{padding-top:0}
+.pt-root.pt-rz .pt-pill{border-radius:22px}
+.pt-root.pt-rz .pt-grid tbody tr:not(.pt-det):hover td{background:rgba(204,0,0,.05)}
+.pt-root.pt-rz .pt-grid thead th[aria-sort]{background:rgba(204,0,0,.07)}
+/* The sorted column carries a bar behind its figure, scaled to the column's
+   largest value; the share columns carry a teal tint by value. */
+.pt-root.pt-rz .pt-num.pt-bar{color:var(--ink);
+  background:linear-gradient(90deg,rgba(204,0,0,.18) 0 calc(var(--f)*100%),transparent 0) no-repeat}
+.pt-root.pt-rz .pt-rk{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+  border-radius:50%;font-weight:700}
+.pt-root.pt-rz .pt-rk.pt-top1{background:var(--red);color:#fff}
+.pt-root.pt-rz .pt-rk.pt-top2,.pt-root.pt-rz .pt-rk.pt-top3{background:var(--ink);color:#fff}
+.pt-root.pt-rz .pt-who .m{display:flex;align-items:center;gap:5px}
+.pt-root.pt-rz .pt-tm{display:inline-block;padding:1px 4px;font-size:11px;font-weight:700;
+  letter-spacing:.04em;line-height:1.35;border-radius:2px}
+.pt-root.pt-rz .pt-grid tfoot th,.pt-root.pt-rz .pt-grid tfoot td{background:var(--bg)}
+.pt-root.pt-rz .pt-tline{background:var(--bg2);padding:12px 14px}
+.pt-root.pt-rz .pt-tline .pt-tname{display:flex;align-items:center;gap:8px;font-size:19px;margin-bottom:4px}
+.pt-root.pt-rz .pt-tline .pt-tm{font-size:12px;padding:2px 6px}
+.pt-root.pt-rz .pt-detin{background:var(--bg)}
+.pt-root.pt-rz .pt-card{border:0;border-top:3px solid var(--ink);padding:8px 10px}
+.pt-root.pt-rz .pt-card:nth-child(-n+2){border-top-color:var(--red)}
+.pt-root.pt-rz .pt-card .n{font-size:24px;line-height:1.15}
+.pt-root.pt-rz .pt-bhead{font-size:16px;border-bottom:3px solid var(--red)}
+.pt-root.pt-rz .pt-more:hover{background:var(--bg)}
 </style>
 
 <div class="pt-root pt-rz">
@@ -350,26 +400,83 @@
 
   // ------------------------------------------------------------ aggregation
 
-  // One player's figures inside the zone over the weeks in range. Shares read
-  // the team the player was on that week, so a player traded in midseason
-  // keeps a true share on both sides of the move. The last-four window is the
-  // player's last four games with a target or a carry anywhere on the field,
-  // and weeks without red zone usage inside it count as zero.
+  // Team totals inside the zone over every week in range, cached per render
+  // (render() empties the cache; the Leaders boards empty it per zone).
+  var TT = {};
+  function teamTotals(d, team){
+    if (TT[team]) return TT[team];
+    var use = bands();
+    var t = {tg:0, car:0, td:0, plays:0, db:0, games:0, latest:null, weeks:{}};
+    var cells = d.tw[team] || {};
+    Object.keys(cells).forEach(function(w){
+      var wk = Number(w);
+      if (!inRange(wk)) return;
+      var c = cells[w], x = {tg:0, car:0, td:0, plays:0, db:0};
+      use.forEach(function(b){
+        var y = c[1 + b];
+        x.tg += y[T_TG]; x.car += y[T_CAR]; x.plays += y[T_PLAYS]; x.db += y[T_DB]; x.td += y[T_TD];
+      });
+      t.weeks[wk] = x;
+      t.tg += x.tg; t.car += x.car; t.td += x.td; t.plays += x.plays; t.db += x.db;
+      if (x.plays){ t.games++; if (t.latest == null || wk > t.latest) t.latest = wk; }
+    });
+    TT[team] = t;
+    return t;
+  }
+  // The team a player was on in a given week, from his red zone weeks: the
+  // last one at or before it, else his first. Only matters for a player who
+  // changed teams.
+  function teamAt(p, known, w){
+    var at = null;
+    for (var i = 0; i < known.length; i++){ if (known[i] <= w) at = known[i]; else break; }
+    if (at == null) at = known[0];
+    return p.w[String(at)][0];
+  }
+  // What a player's shares are read against: his team's red zone targets,
+  // carries and touchdowns over EVERY game the team played in range, not
+  // only the games he played, so a back who was on the field for two games
+  // does not read a 60% share of six carries. A player who changed teams is
+  // read against each team for the weeks he was on it.
+  function denominators(d, p){
+    var known = Object.keys(p.w).map(Number).sort(function(a, b){ return a - b; });
+    var teams = {};
+    known.forEach(function(w){ teams[p.w[String(w)][0]] = 1; });
+    var list = Object.keys(teams);
+    var out = {tg:0, car:0, td:0, opp:0};
+    if (list.length <= 1){
+      var t = teamTotals(d, list[0] || p.t);
+      out.tg = t.tg; out.car = t.car; out.td = t.td;
+    } else {
+      list.forEach(function(team){
+        var tt = teamTotals(d, team);
+        Object.keys(tt.weeks).forEach(function(w){
+          if (teamAt(p, known, Number(w)) !== team) return;
+          var x = tt.weeks[w];
+          out.tg += x.tg; out.car += x.car; out.td += x.td;
+        });
+      });
+    }
+    out.opp = out.tg + out.car;
+    return out;
+  }
+  // One player's figures inside the zone over the weeks in range. The
+  // last-four window is the player's last four games with a target or a
+  // carry anywhere on the field, and weeks without red zone usage inside it
+  // count as zero.
   function playerRow(d, pid, p){
     var use = bands();
-    var tg = 0, rc = 0, car = 0, td = 0, ttg = 0, tcar = 0, teams = {};
+    var tg = 0, rc = 0, car = 0, td = 0, teams = {};
     var weekOpp = {};
     Object.keys(p.w).forEach(function(w){
       var wk = Number(w);
       if (!inRange(wk)) return;
-      var c = p.w[w], t = d.tw[c[0]] && d.tw[c[0]][w];
+      var c = p.w[w];
       teams[c[0]] = 1;
       var o = 0;
       use.forEach(function(b){
         var x = c[1 + b];
         tg += x[TG]; rc += x[RC]; car += x[CAR]; td += x[RTD] + x[CTD];
         o += x[TG] + x[CAR];
-        if (t){ ttg += t[1 + b][T_TG]; tcar += t[1 + b][T_CAR]; }
       });
       weekOpp[wk] = o;
     });
@@ -378,12 +485,14 @@
     var l4 = 0;
     last.forEach(function(w){ l4 += weekOpp[w] || 0; });
     var opp = tg + car;
+    var den = denominators(d, p);
     return {
-      id: pid, name: p.n, pos: p.p, team: p.t, teams: teams,
+      id: pid, name: p.n, pos: p.p, team: p.t, teams: teams, den: den,
       g: games.length, tg: tg, rc: rc, car: car, opp: opp, td: td,
       tdr: opp ? td / opp : null,
-      tgs: ttg ? tg / ttg : null, cars: tcar ? car / tcar : null,
-      opps: (ttg + tcar) ? opp / (ttg + tcar) : null,
+      tds: den.td ? td / den.td : null,
+      tgs: den.tg ? tg / den.tg : null, cars: den.car ? car / den.car : null,
+      opps: den.opp ? opp / den.opp : null,
       opg: games.length ? opp / games.length : null,
       l4: last.length ? l4 : null, l4g: last.length,
       weekOpp: weekOpp
@@ -405,24 +514,6 @@
     return rows;
   }
 
-  // Team totals inside the zone over the weeks in range, for the Teams view's
-  // header line and the share denominators.
-  function teamLine(d, team){
-    var use = bands(), tg = 0, car = 0, plays = 0, db = 0, td = 0, games = 0, latest = null;
-    var cells = d.tw[team] || {};
-    Object.keys(cells).forEach(function(w){
-      var wk = Number(w);
-      if (!inRange(wk)) return;
-      var c = cells[w], any = 0;
-      use.forEach(function(b){
-        var x = c[1 + b];
-        tg += x[T_TG]; car += x[T_CAR]; plays += x[T_PLAYS]; db += x[T_DB]; td += x[T_TD];
-        any += x[T_PLAYS];
-      });
-      if (any){ games++; if (latest == null || wk > latest) latest = wk; }
-    });
-    return { tg: tg, car: car, plays: plays, db: db, td: td, games: games, latest: latest };
-  }
 
   // ------------------------------------------------------------------ format
 
@@ -474,12 +565,76 @@
     cell.appendChild(span);
     return cell;
   }
+  // Team colours, the box score and matchup tools' triples: [fill, text,
+  // fallback]. The badge paints the TEXT value behind white letters, because
+  // it is the brand colour darkened in-hue until it clears 4.5:1 on the page
+  // background, so white on it clears it too; the raw fill would fail for a
+  // third of the league (Titans light blue, Bengals orange). The fill is used
+  // only for the rule over a team's detail, which carries no text. The Steelers
+  // and Saints golds are light enough that ink reads better than white.
+  var COLORS = {
+    ARI:['#97233F','#97233F'], ATL:['#A71930','#A71930'], BAL:['#241773','#241773'],
+    BUF:['#00338D','#00338D'], CAR:['#0085CA','#0076B4'], CHI:['#0B162A','#C83803'],
+    CIN:['#FB4F14','#D03804'], CLE:['#FF3C00','#D43200'], DAL:['#041E42','#041E42'],
+    DEN:['#002244','#002244'], DET:['#0076B6','#0076B6'], GB:['#FFB612','#203731'],
+    HOU:['#03202F','#A6192E'], IND:['#002C5F','#002C5F'], JAX:['#006778','#006778'],
+    KC:['#E31837','#DD1736'], LAC:['#0080C6','#0076B7'], LAR:['#003594','#003594'],
+    LV:['#A5ACAF','#697276'], MIA:['#008E97','#007D85'], MIN:['#4F2683','#4F2683'],
+    NE:['#002244','#C60C30'], NO:['#D3BC8D','#886C34'], NYG:['#0B2265','#0B2265'],
+    NYJ:['#125740','#125740'], PHI:['#004C54','#004C54'], PIT:['#FFB612','#966800'],
+    SEA:['#002244','#002244'], SF:['#AA0000','#AA0000'], TB:['#D50A0A','#D50A0A'],
+    TEN:['#0C2340','#0C2340'], WAS:['#5A1414','#5A1414']
+  };
+  function teamFill(code){ return COLORS[code] ? COLORS[code][0] : '#111'; }
+  function badge(code){
+    var b = el('span', 'pt-tm', code);
+    b.style.background = COLORS[code] ? COLORS[code][1] : '#4e5154';
+    b.style.color = '#fff';
+    return b;
+  }
+  // Rank in a circle: red for first, ink for second and third, plain after.
+  function rankCell(n){
+    var td = el('td', 'pt-rank');
+    var s = el('span', 'pt-rk', n == null ? '—' : String(n));
+    if (n != null && n <= 3) s.classList.add('pt-top' + n);
+    td.appendChild(s);
+    return td;
+  }
+  // The columns that carry a teal tint by value, all shares of the team's
+  // red zone work. Half the team's work reads as the full tint.
+  var HEAT = {tgs:1, cars:1, tds:1, opps:1};
+  function colMax(rows, cols){
+    var m = {};
+    cols.forEach(function(c){
+      var v = 0;
+      rows.forEach(function(r){ if (r[c.key] != null && r[c.key] > v) v = r[c.key]; });
+      m[c.key] = v;
+    });
+    return m;
+  }
+  // A bar behind the sorted column's figure, scaled to the column's largest
+  // value; a tint behind a share. Both ride the span numCell made.
+  function deco(cell, key, v, maxes, sortKey){
+    var sp = cell.firstChild;
+    if (v == null || !v) return cell;
+    if (key === sortKey && maxes[key]){
+      sp.classList.add('pt-bar');
+      sp.style.setProperty('--f', Math.min(1, v / maxes[key]).toFixed(3));
+    } else if (HEAT[key]){
+      sp.style.background = 'rgba(13,110,95,' + (0.04 + 0.3 * Math.min(1, v / 0.5)).toFixed(3) + ')';
+    }
+    return cell;
+  }
   function whoCell(r, onClick, open, sub){
     var td = el('td', 'pt-name');
     var btn = el('button', 'pt-who');
     btn.type = 'button';
     btn.appendChild(el('span', 'n', r.name));
-    btn.appendChild(el('span', 'm', sub));
+    // "KC · RB" becomes a badge and the position; anything else stays text.
+    var m = el('span', 'm');
+    if (sub.indexOf(r.team + ' · ') === 0){ m.appendChild(badge(r.team)); sub = sub.slice(r.team.length + 3); }
+    m.appendChild(document.createTextNode(sub));
+    btn.appendChild(m);
     btn.title = r.name + ' · ' + fullName(r.team) + ' · ' + r.pos;
     if (onClick){
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -500,9 +655,9 @@
     {key:'car',  label:'Car',    title:'Red zone carries, scrambles included'},
     {key:'opp',  label:'Opp',    title:'Opportunities: targets plus carries'},
     {key:'td',   label:'TD',     title:'Touchdowns on those opportunities'},
-    {key:'tdr',  label:'TD %',   title:'Touchdowns per opportunity', fmt: pct},
-    {key:'tgs',  label:'Tgt %',  title:"Share of the team's red zone targets in the player's games", fmt: pct},
-    {key:'cars', label:'Car %',  title:"Share of the team's red zone carries in the player's games", fmt: pct},
+    {key:'tds',  label:'TD %',   title:"Share of the team's red zone touchdowns", fmt: pct},
+    {key:'tgs',  label:'Tgt %',  title:"Share of the team's red zone targets, over every game the team played", fmt: pct},
+    {key:'cars', label:'Car %',  title:"Share of the team's red zone carries, over every game the team played", fmt: pct},
     {key:'opg',  label:'Opp/G',  title:'Opportunities per game played', fmt: r1},
     {key:'l4',   label:'Last 4', title:"Opportunities in the player's last four games"}
   ];
@@ -521,6 +676,7 @@
 
   function render(){
     hideServerPreload();
+    TT = {};
     var d = D();
     if (!d) return;
     $('tline').hidden = true;
@@ -546,6 +702,7 @@
     var sortKey = STATE.sort;
     rows.sort(byColumn(sortKey, STATE.asc));
     var rankVals = ranked(rows, sortKey);
+    var maxes = colMax(rows, COLUMNS);
     var total = rows.length;
     // The open row always shows, even past the cap, so a deep link lands.
     var shown = (STATE.all || total <= CAP) ? rows : rows.slice(0, CAP);
@@ -574,14 +731,14 @@
       if (STATE.open === r.id) cls += (cls ? ' ' : '') + 'pt-open';
       if (cls) tr.className = cls;
       var ownRank = rankOf(r[sortKey], rankVals);
-      tr.appendChild(el('td', 'pt-rank', ownRank == null ? '—' : String(ownRank)));
+      tr.appendChild(rankCell(ownRank));
       tr.appendChild(whoCell(r, function(){
         STATE.open = (STATE.open === r.id) ? null : r.id;
         render();
       }, STATE.open === r.id, r.team + ' · ' + r.pos));
       COLUMNS.forEach(function(c){
         var f = c.fmt || n0;
-        tr.appendChild(numCell(f(r[c.key]), c.title));
+        tr.appendChild(deco(numCell(f(r[c.key]), c.title), c.key, r[c.key], maxes, sortKey));
       });
       tbody.appendChild(tr);
       if (STATE.open === r.id){
@@ -606,7 +763,6 @@
     COLUMNS.forEach(function(c){
       var v = '';
       if (c.key in sum) v = String(sum[c.key]);
-      else if (c.key === 'tdr') v = pct(sum.opp ? sum.td / sum.opp : null);
       fr.appendChild(el('td', null, v));
     });
     tfoot.appendChild(fr);
@@ -649,11 +805,11 @@
       cards.appendChild(c);
     }
     card('Opportunities', String(r.opp), r.g + (r.g === 1 ? ' game' : ' games') + ' · ' + r1(r.opg) + ' per game');
-    card('Touchdowns', String(r.td), 'on ' + pct(r.tdr) + ' of opportunities');
-    card('Target share', pct(r.tgs), r.tg + ' of the team’s targets');
-    card('Carry share', pct(r.cars), r.car + ' of the team’s carries');
+    card('Touchdowns', String(r.td), pct(r.tds) + ' of the team’s ' + r.den.td + ' · ' + pct(r.tdr) + ' per opportunity');
+    card('Target share', pct(r.tgs), r.tg + ' of the team’s ' + r.den.tg + ' targets');
+    card('Carry share', pct(r.cars), r.car + ' of the team’s ' + r.den.car + ' carries');
     // The combined share is the one that matters for a back who does both.
-    card('Opportunity share', pct(r.opps), 'targets and carries together');
+    card('Opportunity share', pct(r.opps), r.opp + ' of the team’s ' + r.den.opp + ' targets and carries');
     card('Last ' + LAST_N, n0(r.l4), r.l4g + (r.l4g === 1 ? ' game' : ' games'));
     box.appendChild(cards);
 
@@ -777,7 +933,7 @@
     // something rather than on a picker.
     var best = null, most = -1;
     d.teams.forEach(function(t){
-      var n = teamLine(d, t).plays;
+      var n = teamTotals(d, t).plays;
       if (n > most){ most = n; best = t; }
     });
     return best;
@@ -787,11 +943,15 @@
     if (!STATE.team || d.teams.indexOf(STATE.team) === -1) STATE.team = pickDefaultTeam(d);
     buildBar();
     var team = STATE.team;
-    var line = teamLine(d, team);
+    var line = teamTotals(d, team);
     var tl = $('tline');
     tl.innerHTML = '';
     tl.hidden = false;
-    tl.appendChild(el('span', 'pt-tname', fullName(team) + ' · ' + zoneLabel()));
+    var tn = el('span', 'pt-tname');
+    tn.appendChild(badge(team));
+    tn.appendChild(document.createTextNode(fullName(team) + ' · ' + zoneLabel()));
+    tl.appendChild(tn);
+    tl.style.boxShadow = 'inset 0 4px 0 ' + teamFill(team);
     var st = el('span', 'pt-tstats');
     function stat(v, label, sep){
       if (sep) st.appendChild(document.createTextNode(' · '));
@@ -831,6 +991,7 @@
     var sortKey = STATE.tsort;
     rows.sort(byColumn(sortKey, STATE.tasc));
     var rankVals = ranked(rows, sortKey);
+    var maxes = colMax(rows, COLUMNS.concat([{key:'wo'}, {key:'wtd'}]));
 
     var cols = TEAM_COLUMNS.concat(latest != null ? [
       {key:'wo', label:'Opp', title:'Opportunities in week ' + latest, group:'Week ' + latest},
@@ -864,14 +1025,14 @@
       if (STATE.open === r.id) cls += (cls ? ' ' : '') + 'pt-open';
       if (cls) tr.className = cls;
       var ownRank = rankOf(r[sortKey], rankVals);
-      tr.appendChild(el('td', 'pt-rank', ownRank == null ? '—' : String(ownRank)));
+      tr.appendChild(rankCell(ownRank));
       tr.appendChild(whoCell(r, function(){
         STATE.open = (STATE.open === r.id) ? null : r.id;
         render();
       }, STATE.open === r.id, r.pos + (Object.keys(r.teams).length > 1 ? ' · now ' + r.team : '')));
       cols.forEach(function(c){
         var f = c.fmt || n0;
-        tr.appendChild(numCell(f(r[c.key]), c.title));
+        tr.appendChild(deco(numCell(f(r[c.key]), c.title), c.key, r[c.key], maxes, sortKey));
       });
       tbody.appendChild(tr);
       if (STATE.open === r.id){
@@ -893,8 +1054,7 @@
     cols.forEach(function(c){
       var v = '';
       if (c.key in sum) v = n0(sum[c.key]);
-      else if (c.key === 'tdr') v = pct(sum.opp ? sum.td / sum.opp : null);
-      else if (c.key === 'tgs' || c.key === 'cars') v = '100%';
+      else if (c.key === 'tds' || c.key === 'tgs' || c.key === 'cars') v = '100%';
       fr.appendChild(el('td', null, v));
     });
     tfoot.appendChild(fr);
@@ -925,6 +1085,7 @@
     var any = false;
     BOARDS.forEach(function(b){
       STATE.zone = b.zone;
+      TT = {};
       var rows = playerRows(d, {min: 1}).filter(function(r){ return r[b.key] > 0; });
       rows.sort(byColumn(b.key, false));
       rows = rows.slice(0, BOARD_N);
@@ -946,7 +1107,7 @@
       var vals = ranked(rows, b.key);
       rows.forEach(function(r, i){
         var tr = el('tr', (i % 2) ? 'pt-alt' : '');
-        tr.appendChild(el('td', 'pt-rank', String(rankOf(r[b.key], vals))));
+        tr.appendChild(rankCell(rankOf(r[b.key], vals)));
         // Tapping a leader opens his row on the Players tab at this zone.
         tr.appendChild(whoCell(r, function(){
           STATE.zone = b.zone; STATE.mode = 'players'; STATE.open = r.id;
@@ -954,7 +1115,8 @@
           if (STATE.pos && STATE.pos !== r.pos) STATE.pos = null;
           setMode('players'); buildBar(); buildPills(); render();
         }, false, r.team + ' · ' + r.pos));
-        tr.appendChild(numCell(String(r[b.key])));
+        var bm = {}; bm[b.key] = rows[0][b.key];
+        tr.appendChild(deco(numCell(String(r[b.key])), b.key, r[b.key], bm, b.key));
         tr.appendChild(numCell(String(r.td)));
         tr.appendChild(numCell(pct(b.key === 'tg' ? r.tgs : b.key === 'car' ? r.cars : r.opps),
           b.key === 'opp' ? 'Share of the team’s targets and carries' : 'Share of the team’s ' + (b.key === 'tg' ? 'targets' : 'carries')));
@@ -971,6 +1133,7 @@
       boards.appendChild(box);
     });
     STATE.zone = keepZone;
+    TT = {};
     var wrap = $('wrap');
     wrap.innerHTML = '';
     if (!any){ showStatus(emptyNote()); paintFoot(d, []); return; }

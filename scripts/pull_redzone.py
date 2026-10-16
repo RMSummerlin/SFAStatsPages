@@ -517,29 +517,54 @@ def bands_from(zone):
     return [i for i, edge in enumerate(BANDS) if edge <= zone]
 
 
+def team_at(pl, w):
+    """The team a player was on in week `w`, from his red zone weeks: the
+    last one at or before it, else his first. Only matters for a player who
+    changed teams."""
+    known = sorted(int(k) for k in pl["w"])
+    at = None
+    for k in known:
+        if k <= w:
+            at = k
+        else:
+            break
+    if at is None:
+        at = known[0]
+    return pl["w"][str(at)][0]
+
+
 def player_summary(players, teams, zone=RED_ZONE, weeks=None):
-    """Season totals per player inside `zone`, with the share columns read
-    against the team each player was on that week."""
+    """Season totals per player inside `zone`. The share columns are read
+    against the team's red zone targets, carries and touchdowns over EVERY
+    game the team played (in `weeks`, if given), not only the games the
+    player played, so a back who was on the field for two games does not
+    read a 60% share of six carries. A player who changed teams is read
+    against each team for the weeks he was on it."""
     use = bands_from(zone)
     out = {}
     for pid, pl in players.items():
         tg = rc = rtd = car = ctd = 0
-        team_tg = team_car = 0
         for w, c in pl["w"].items():
             if weeks is not None and int(w) not in weeks:
                 continue
             for b in use:
                 tg += c[1 + b][0]; rc += c[1 + b][1]; rtd += c[1 + b][2]
                 car += c[1 + b][3]; ctd += c[1 + b][4]
-            t = teams.get(c[0], {}).get(w)
-            if t:
+        team_tg = team_car = team_td = 0
+        for team in sorted({c[0] for c in pl["w"].values()}):
+            for w, t in teams.get(team, {}).items():
+                if weeks is not None and int(w) not in weeks:
+                    continue
+                if team_at(pl, int(w)) != team:
+                    continue
                 for b in use:
-                    team_tg += t[1 + b][0]; team_car += t[1 + b][1]
+                    team_tg += t[1 + b][0]; team_car += t[1 + b][1]; team_td += t[1 + b][4]
         games = [g for g in pl["g"] if weeks is None or g in weeks]
         out[pid] = {
             "name": pl["n"], "pos": pl["p"], "team": pl["t"], "games": len(games),
             "tg": tg, "rc": rc, "car": car, "opp": tg + car, "td": rtd + ctd,
             "td_rate": (rtd + ctd) / (tg + car) if tg + car else None,
+            "td_share": (rtd + ctd) / team_td if team_td else None,
             "tg_share": tg / team_tg if team_tg else None,
             "car_share": car / team_car if team_car else None,
         }
@@ -588,23 +613,22 @@ def player_preload(season, players, teams, names, latest):
             f'<tr><td>{i}</td><th scope="row">{esc(r["name"])}</th>'
             f'<td>{esc(names.get(r["team"], r["team"]))}</td><td>{r["pos"]}</td><td>{r["games"]}</td>'
             f'<td>{r["tg"]}</td><td>{r["rc"]}</td><td>{r["car"]}</td><td>{r["opp"]}</td>'
-            f'<td>{r["td"]}</td><td>{pct(r["td_rate"])}</td>'
+            f'<td>{r["td"]}</td><td>{pct(r["td_share"])}</td>'
             f'<td>{pct(r["tg_share"])}</td><td>{pct(r["car_share"])}</td></tr>'
         )
     main = (
         f'<table class="pt-pre"><caption>NFL Red Zone Targets and Carries by Player, '
         f'{season}{through}. Targets, receptions, carries and touchdowns on offensive '
         "snaps inside the opponent's 20-yard line, regular season, kneels and spikes "
-        "excluded. Opportunities are targets plus carries. TD rate is touchdowns per "
-        "opportunity. Target share and carry share are the player's share of his team's "
-        "red zone targets and red zone carries in the games he played. Games counts "
-        "every game with a target or a carry anywhere on the field. Top 50 by "
-        "opportunities.</caption>"
+        "excluded. Opportunities are targets plus carries. TD share, target share and "
+        "carry share are the player's share of his team's red zone touchdowns, targets "
+        "and carries over every game the team played. Games counts every game with a "
+        "target or a carry anywhere on the field. Top 50 by opportunities.</caption>"
         '<thead><tr><th scope="col">Rank</th><th scope="col">Player</th>'
         '<th scope="col">Team</th><th scope="col">Pos</th><th scope="col">Games</th>'
         '<th scope="col">Red Zone Targets</th><th scope="col">Receptions</th>'
         '<th scope="col">Red Zone Carries</th><th scope="col">Opportunities</th>'
-        '<th scope="col">TDs</th><th scope="col">TD Rate</th>'
+        '<th scope="col">TDs</th><th scope="col">TD Share</th>'
         '<th scope="col">Target Share</th><th scope="col">Carry Share</th></tr></thead>'
         "<tbody>" + "".join(rows) + "</tbody></table>"
     )
@@ -621,7 +645,8 @@ def player_preload(season, players, teams, names, latest):
     goal = (
         f'<table class="pt-pre"><caption>Most Carries Inside the 5-Yard Line, {season}'
         f'{through}. Goal line carries and the touchdowns they produced, with each '
-        "player's share of his team's carries inside the 5. Top 20.</caption>"
+        "player's share of his team's carries inside the 5 over every game the team "
+        "played. Top 20.</caption>"
         '<thead><tr><th scope="col">Rank</th><th scope="col">Player</th>'
         '<th scope="col">Team</th><th scope="col">Pos</th>'
         '<th scope="col">Carries Inside the 5</th><th scope="col">TDs</th>'

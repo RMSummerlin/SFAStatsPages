@@ -49,9 +49,9 @@ share columns included, is read inside the zone showing.
 | Carry | a `PlayType` RUSH row with a `RusherID`. Scrambles (`Scramble?`) are carries for the quarterback, so a QB's row holds designed runs and scrambles together |
 | Opportunity | target plus carry. The word is deliberate: not every target is caught, so "touches" would overstate it |
 | Touchdown | `PlayResult` TD on the target's or the rusher's row |
-| TD rate | touchdowns per opportunity |
-| Target share, carry share | the player's targets (carries) over his team's red zone targets (carries) **in the weeks he played**, read against the team he was on that week. A player traded in midseason keeps a true share on both sides of the move |
-| Opportunity share | targets plus carries over the team's targets plus carries. The one that matters for a back who does both; in the detail card, not the table |
+| TD % | the player's touchdowns over his team's red zone touchdowns. A share, not a rate: touchdowns per opportunity is in the detail card only |
+| Target share, carry share | the player's targets (carries) over his team's red zone targets (carries) over **every game the team played** in the weeks picked, not only the games he played, so a back who was on the field for two games does not read a 60% share of six carries. A player who changed teams is read against each team for the weeks he was on it, with the move placed at his first red zone week with the new team |
+| Opportunity share | targets plus carries over the team's targets plus carries, on the same denominator. The one that matters for a back who does both; in the detail card, not the table |
 | Games (G) | weeks with a target or a carry **anywhere on the field**, not just the red zone. Most players go a week without a red zone opportunity and still played |
 | Opp/G | opportunities over games |
 | Last 4 | opportunities inside the zone in the player's last four games (by the games definition above). A game without red zone work counts as zero, a game not played does not count |
@@ -156,8 +156,8 @@ changes.
 ## Preload tables
 
 `redzone_preload.html` is the top 50 players by opportunities inside the 20
-with games, targets, receptions, carries, opportunities, touchdowns, TD rate
-and both shares, followed by the top 20 by carries inside the 5. Full team
+with games, targets, receptions, carries, opportunities, touchdowns, TD
+share and both shares, followed by the top 20 by carries inside the 5. Full team
 names, so the long-tail "chargers red zone targets" searches land on real
 words. `redzone_team_preload.html` is the 32-team offense table and the
 32-team defense table, each ranked by TD %. All captions carry "through
@@ -168,6 +168,14 @@ Week N". The tools hide them once painted.
 **A player's target share is 0% with targets on the table.** He has carries
 only inside the zone showing; the share is of targets. The detail card's
 opportunity share combines both.
+
+**TD % is not touchdowns per opportunity.** It is the player's share of his
+team's red zone touchdowns inside the zone showing. The per-opportunity rate
+is in the detail card.
+
+**A back who played two games shows a 15% carry share, not 60%.** Shares are
+read against every game the team played in the weeks picked. Pick only his
+weeks to read him against the games he played.
 
 **Games (G) is 5 for a player with one red zone week.** G counts every game
 with a target or a carry anywhere on the field.
