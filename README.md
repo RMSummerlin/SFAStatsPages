@@ -47,6 +47,8 @@ SFAStatsPages/
 │   ├── matchup-data.md             ← data decisions and backtest behind the matchup tool
 │   ├── boxscore-data.md            ← data decisions and stat definitions behind the box score tool
 │   ├── proe-data.md                ← data decisions and validation behind the pass rate over expected tool
+│   ├── redzone-data.md             ← data decisions behind the two red zone tools (player usage, team efficiency)
+│   ├── redzone-talking-points.md   ← page copy notes for the two red zone articles
 │   ├── matchup-talking-points.md   ← page copy and method explanations for the matchup article
 │   └── metric-definitions.md       ← the wording every tool shares for success rate, EPA and explosives
 ├── data/                           ← served via Pages: generated JSON and preload tables,
@@ -60,6 +62,7 @@ SFAStatsPages/
 │   ├── pull_matchup.py             ← pull + transform (auto-run by the workflow)
 │   ├── pull_boxscore.py            ← pull + transform (auto-run by the workflow)
 │   ├── pull_proe.py                ← pull + transform (auto-run by the workflow)
+│   ├── pull_redzone.py             ← pull + transform, writes both red zone tools' files (auto-run by the workflow)
 │   ├── offseason_changes.py        ← drafts data/offseason_changes_<season>.json once a year (never on the schedule)
 │   ├── derive_success_rule.py      ← re-derives the sheet's success flag from an export (never on the schedule)
 │   ├── test_pace.py                ← regression tests (auto-run by the workflow)
@@ -70,6 +73,7 @@ SFAStatsPages/
 │   ├── test_matchup.py             ← regression tests (auto-run by the workflow)
 │   ├── test_boxscore.py            ← regression tests (auto-run by the workflow)
 │   ├── test_proe.py                ← regression tests (auto-run by the workflow)
+│   ├── test_redzone.py             ← regression tests (auto-run by the workflow)
 │   ├── lint_embed.py               ← checks a fragment against the embed rules
 │   ├── build_embed.py              ← strips the dev notes to produce embed.html
 │   └── preloads.py                 ← folds each tool's preload table into preloads.json
@@ -80,7 +84,9 @@ SFAStatsPages/
 │   ├── pace/                       ← tool.html + embed.html + README.md
 │   ├── matchup/                    ← tool.html + embed.html + README.md
 │   ├── boxscore/                   ← tool.html + embed.html + README.md
-│   └── proe/                       ← tool.html + embed.html + README.md
+│   ├── proe/                       ← tool.html + embed.html + README.md
+│   ├── redzone/                    ← tool.html + embed.html + README.md (red zone targets and carries by player)
+│   └── redzone-team/               ← tool.html + embed.html + README.md (red zone offense and defense stats)
 ├── wordpress/
 │   ├── sfa-preloads.php            ← Code Snippets body: shortcodes for the crawlable tables
 │   └── README.md                   ← install, caching and refresh schedule
@@ -177,6 +183,7 @@ python scripts/pull_pace.py
 python scripts/pull_matchup.py
 python scripts/pull_boxscore.py
 python scripts/pull_proe.py
+python scripts/pull_redzone.py               # writes both red zone tools' files
 
 # --- or from a downloaded CSV export, without touching the sheet ---
 python scripts/pull_personnel_grouping.py --csv ~/Downloads/export.csv --season 2025
@@ -186,6 +193,7 @@ python scripts/pull_matchup.py --csv cur.csv --prior-csv prev.csv --season 2026 
 python scripts/pull_boxscore.py --csv cur.csv --season 2026 --schedule data/schedule_2026.json
 python scripts/pull_proe.py --csv cur.csv --season 2026 --out /tmp/proe   # against data/proe_baseline.json if present
 python scripts/pull_proe.py --csv-dir exports/ --out /tmp/proe            # <dir>/<season>.csv, rebuilds the baseline too
+python scripts/pull_redzone.py --csv cur.csv --season 2026 --out /tmp/rz   # player and team files, no network at all
 
 # every season in config.py rather than just the current one
 python scripts/pull_pace.py --all
@@ -198,6 +206,7 @@ python scripts/test_empty_season.py
 python scripts/test_matchup.py
 python scripts/test_boxscore.py
 python scripts/test_proe.py
+python scripts/test_redzone.py
 
 # --- embeds ---
 python scripts/build_embed.py            # regenerate every embed.html from its tool.html

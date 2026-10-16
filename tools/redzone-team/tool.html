@@ -1,0 +1,918 @@
+<style>
+/* NFL Red Zone Stats: offense and defense efficiency
+   Every selector is scoped under .pt-root.pt-rt. See docs/avada-embed-rules.md.
+   .pt-rt is this tool's own namespace so it cannot collide with the player
+   red zone tool (.pt-rz), PROE (.pt-pr), pace (.pt-pc), personnel (.pt-pg),
+   matchup (.pt-mu) or box score tool if two ever share a page. Table idiom
+   follows the PROE tool: one grid, sortable heads, an expandable detail row,
+   the page scrolls and a wide table pans sideways. */
+/* Scoping stops our styles leaking out; it does not stop the theme's leaking in.
+   Declare font and color on every table element explicitly or Avada's th/td
+   rules win by specificity. */
+.pt-root.pt-rt *{box-sizing:border-box;margin:0;padding:0;font-family:inherit;color:inherit}
+.pt-root.pt-rt table,.pt-root.pt-rt thead,.pt-root.pt-rt tbody,.pt-root.pt-rt tfoot,
+.pt-root.pt-rt tr,.pt-root.pt-rt th,.pt-root.pt-rt td,.pt-root.pt-rt caption{
+  font:inherit;color:inherit;background:none;border:0;text-align:inherit;
+  text-transform:none;letter-spacing:normal;text-shadow:none;box-shadow:none;
+  vertical-align:middle;width:auto;height:auto}
+/* Greys. --muted (#4e5154, 8.6:1 on white) is the only grey allowed on text
+   under 24px. --g1 keeps control edges. Nothing in this tool is set below
+   11px. No height cap and no overflow on the root: the tool shows at its
+   full height and the page scrolls. */
+.pt-root.pt-rt{
+  --red:#cc0000; --ink:#111; --muted:#4e5154; --g1:#7f8c9a; --g2:#b0bec5;
+  --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --stripe:#f6f6f6; --w:#fff;
+  font-family:'Interstate Condensed','Interstate','Roboto Condensed','Arial Narrow',
+    'Helvetica Neue',Arial,sans-serif;
+  color:var(--ink); background:var(--w);
+  border:1px solid var(--b1); line-height:1.25;
+  position:relative;
+  display:flex; flex-direction:column;
+  font-variant-numeric:tabular-nums;
+}
+.pt-root.pt-rt input,.pt-root.pt-rt select,.pt-root.pt-rt button,.pt-root.pt-rt textarea{
+  font:inherit;color:inherit;letter-spacing:inherit;text-transform:none}
+.pt-root.pt-rt button{background:none;border:0;cursor:pointer}
+.pt-root.pt-rt :focus-visible{outline:2px solid var(--red);outline-offset:1px}
+.pt-root.pt-rt [hidden]{display:none !important}
+
+/* ---------- header ---------- */
+.pt-root.pt-rt .pt-head{flex:0 0 auto;padding:12px 12px 10px;border-bottom:2px solid var(--ink)}
+.pt-root.pt-rt .pt-title{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.01em}
+.pt-root.pt-rt .pt-sub{margin-top:3px;font-size:13px;color:var(--muted)}
+.pt-root.pt-rt .pt-sub b{color:var(--ink);font-weight:700}
+.pt-root.pt-rt .pt-modes{display:flex;margin-top:10px;border:1px solid var(--g1)}
+.pt-root.pt-rt .pt-mode{flex:1;min-height:44px;padding:0 10px;font-size:13px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.pt-root.pt-rt .pt-mode+.pt-mode{border-left:1px solid var(--g1)}
+.pt-root.pt-rt .pt-mode[aria-pressed="true"]{background:var(--ink);color:var(--w)}
+
+/* ---------- filter bar ---------- */
+.pt-root.pt-rt .pt-bar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;
+  padding:8px 12px;border-bottom:1px solid var(--b2);background:var(--bg2)}
+.pt-root.pt-rt .pt-fb{min-height:44px;padding:4px 10px;border:1px solid var(--g1);background:var(--w);
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;text-align:left}
+.pt-root.pt-rt .pt-fb[data-on="1"]{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+.pt-root.pt-rt .pt-fb .l{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--muted)}
+.pt-root.pt-rt .pt-fb .v{font-size:13px;font-weight:700;white-space:nowrap}
+.pt-root.pt-rt .pt-reset{margin-left:auto;min-height:44px;padding:0 12px;font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--red)}
+
+/* ---------- popover ---------- */
+.pt-root.pt-rt .pt-pop{position:absolute;z-index:40;min-width:170px;max-width:min(360px,92%);
+  background:var(--w);border:1px solid var(--ink);padding:8px;
+  box-shadow:0 6px 20px rgba(0,0,0,.16)}
+.pt-root.pt-rt .pt-pop .h{font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--muted);margin-bottom:6px}
+.pt-root.pt-rt .pt-opts{display:flex;flex-wrap:wrap;gap:4px}
+.pt-root.pt-rt .pt-opt{min-height:38px;min-width:44px;padding:0 10px;border:1px solid var(--g1);
+  font-size:13px;font-weight:700;background:var(--w)}
+.pt-root.pt-rt .pt-opt[aria-pressed="true"]{background:var(--ink);color:var(--w);border-color:var(--ink)}
+.pt-root.pt-rt .pt-opt[data-in="1"]{background:var(--bg);border-color:var(--ink)}
+.pt-root.pt-rt .pt-pophint{font-size:12px;color:var(--muted);margin-top:6px}
+.pt-root.pt-rt .pt-popfoot{display:flex;gap:6px;margin-top:8px;padding-top:8px;
+  border-top:1px solid var(--b2)}
+.pt-root.pt-rt .pt-popfoot button{flex:1;min-height:40px;font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--g1)}
+.pt-root.pt-rt .pt-popfoot .go{background:var(--ink);color:var(--w);border-color:var(--ink)}
+
+/* ---------- table ---------- */
+/* overflow-x only: the body is never taller than its content, so there is
+   nothing to scroll vertically, but a wide table still pans sideways on a
+   phone. The team column is pinned on the left while it pans. */
+.pt-root.pt-rt .pt-wrap{flex:0 0 auto;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.pt-root.pt-rt .pt-grid{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
+.pt-root.pt-rt .pt-grid th,.pt-root.pt-rt .pt-grid td{padding:0;text-align:center;white-space:nowrap;
+  border-bottom:1px solid var(--b2);background:var(--w)}
+.pt-root.pt-rt .pt-grid thead th{border-bottom:2px solid var(--ink);font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.pt-root.pt-rt .pt-grid thead th button{width:100%;min-height:44px;font:inherit;color:inherit;padding:3px 4px;
+  white-space:normal;line-height:1.15}
+.pt-root.pt-rt .pt-grid thead th[aria-sort]{color:var(--red)}
+.pt-root.pt-rt .pt-grid thead th[aria-sort] button::after{content:' \25BC'}
+.pt-root.pt-rt .pt-grid thead th[aria-sort=ascending] button::after{content:' \25B2'}
+.pt-root.pt-rt .pt-rank{width:36px;min-width:36px;color:var(--muted);font-size:12px}
+.pt-root.pt-rt .pt-team{text-align:left;font-weight:700;border-right:1px solid var(--b2);
+  position:sticky;left:0;z-index:2;min-width:64px}
+.pt-root.pt-rt .pt-grid thead th.pt-team{z-index:3}
+/* Striping by class rather than :nth-child: an expanded detail row sits between
+   two team rows and would flip the parity of everything below. */
+.pt-root.pt-rt .pt-alt td{background:var(--bg2)}
+.pt-root.pt-rt .pt-open td{background:var(--bg)}
+.pt-root.pt-rt .pt-grid td:not(.pt-rank):not(.pt-team),
+.pt-root.pt-rt .pt-grid th:not(.pt-rank):not(.pt-team){min-width:58px}
+.pt-root.pt-rt .pt-teamcell{display:flex;align-items:center;gap:6px;min-height:44px;
+  width:100%;padding:0 8px;font:inherit;color:inherit;text-align:left}
+.pt-root.pt-rt .pt-teamcell::before{content:'\25B8';font-size:11px;color:var(--g2);
+  transition:transform .12s}
+.pt-root.pt-rt .pt-open .pt-teamcell::before{transform:rotate(90deg);color:var(--red)}
+/* A figure over its rank. 15px over 11px fits the 44px row with the rank
+   in muted grey, so the number stays the thing you read first. */
+.pt-root.pt-rt .pt-num{display:flex;flex-direction:column;justify-content:center;min-height:44px;
+  padding:3px 6px;font-weight:700;line-height:1.1}
+.pt-root.pt-rt .pt-num .rk{font-size:11px;font-weight:400;color:var(--muted)}
+.pt-root.pt-rt .pt-num .rk.top{color:var(--red);font-weight:700}
+.pt-root.pt-rt .pt-thin{color:var(--muted);font-weight:400}
+.pt-root.pt-rt .pt-grid tfoot th,.pt-root.pt-rt .pt-grid tfoot td{
+  border-top:2px solid var(--ink);border-bottom:0;font-size:12px;font-weight:700}
+/* Every edge the grid draws is pinned here against theme rules written with
+   !important; see the PROE tool for the history. */
+.pt-root.pt-rt[data-init] .pt-grid tr>th,.pt-root.pt-rt[data-init] .pt-grid tr>td{
+  border-top:0 !important;border-left:0 !important;border-right:0 !important;
+  outline:0 !important;box-shadow:none !important;border-bottom:1px solid var(--b2) !important}
+.pt-root.pt-rt[data-init] .pt-grid tr>.pt-team{border-right:1px solid var(--b2) !important}
+.pt-root.pt-rt[data-init] .pt-grid thead tr>th{border-bottom:2px solid var(--ink) !important}
+.pt-root.pt-rt[data-init] .pt-grid tfoot tr>th,.pt-root.pt-rt[data-init] .pt-grid tfoot tr>td{
+  border-top:2px solid var(--ink) !important;border-bottom:0 !important}
+.pt-root.pt-rt[data-init] .pt-grid tr.pt-det>td{border-bottom:2px solid var(--ink) !important}
+
+/* ---------- expanded detail ---------- */
+/* The detail cell spans the whole table, which on a phone is wider than the
+   screen. The inner box is sized to the visible width by the script and
+   pinned on the left, so it stays in view while the table pans. */
+.pt-root.pt-rt .pt-det td{padding:0;background:var(--bg2);white-space:normal;position:static}
+.pt-root.pt-rt .pt-detin{padding:12px;position:sticky;left:0;max-width:100%}
+.pt-root.pt-rt .pt-detname{font-size:14px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.04em;margin-bottom:8px}
+.pt-root.pt-rt .pt-cards{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.pt-root.pt-rt .pt-card{flex:1 1 88px;border:1px solid var(--b2);background:var(--w);padding:6px 8px}
+.pt-root.pt-rt .pt-card .k{font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--muted)}
+.pt-root.pt-rt .pt-card .n{font-size:17px;font-weight:700}
+.pt-root.pt-rt .pt-card .r{font-size:11px;color:var(--muted)}
+.pt-root.pt-rt .pt-chart{margin-bottom:0}
+.pt-root.pt-rt .pt-ctitle{font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
+.pt-root.pt-rt .pt-chart svg{display:block;width:100%;max-width:560px;height:auto;background:var(--w);
+  border:1px solid var(--b2)}
+.pt-root.pt-rt .pt-legend{font-size:12px;color:var(--muted);margin-top:4px}
+.pt-root.pt-rt .pt-legend i{display:inline-block;width:10px;height:10px;margin:0 4px 0 8px;vertical-align:-1px}
+
+/* ---------- status + footer ---------- */
+.pt-root.pt-rt .pt-status{padding:26px 14px;text-align:center;font-size:14px;color:var(--muted)}
+.pt-root.pt-rt .pt-foot{flex:0 0 auto;padding:8px 12px;border-top:1px solid var(--b2);
+  background:var(--bg2);font-size:12px;color:var(--muted)}
+.pt-root.pt-rt .pt-foot b{color:var(--ink);font-weight:700}
+
+/* ---------- desktop enhancement ---------- */
+@media (min-width:641px){
+  .pt-root.pt-rt .pt-title{font-size:25px}
+  .pt-root.pt-rt .pt-grid{font-size:15px}
+  .pt-root.pt-rt .pt-grid td:not(.pt-rank):not(.pt-team),
+  .pt-root.pt-rt .pt-grid th:not(.pt-rank):not(.pt-team){min-width:64px}
+  .pt-root.pt-rt .pt-card{flex:1 1 112px}
+}
+</style>
+
+<div class="pt-root pt-rt">
+  <div class="pt-head">
+    <div class="pt-title">NFL Red Zone Stats</div>
+    <div class="pt-sub" data-role="sub">Loading…</div>
+    <div class="pt-modes" role="group" aria-label="View">
+      <button type="button" class="pt-mode" data-mode="off" aria-pressed="true">Offense</button>
+      <button type="button" class="pt-mode" data-mode="def" aria-pressed="false">Defense</button>
+    </div>
+  </div>
+
+  <div class="pt-bar" data-role="bar"></div>
+  <div class="pt-pop" data-role="pop" hidden></div>
+
+  <div class="pt-wrap" data-role="wrap"></div>
+
+  <div class="pt-foot" data-role="foot"></div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var ROOT = document.currentScript && document.currentScript.previousElementSibling;
+  if (!ROOT || !ROOT.classList.contains('pt-rt')) {
+    var all = document.querySelectorAll('.pt-root.pt-rt');
+    ROOT = all[all.length - 1];
+  }
+  if (!ROOT || ROOT.getAttribute('data-init') === '1') return;
+  ROOT.setAttribute('data-init', '1');
+
+  var BASE = 'https://rmsummerlin.github.io/SFAStatsPages/data/';
+  // Must match the key in data/preloads.json and the shortcode's tool name in
+  // wordpress/sfa-preloads.php.
+  var TOOL = 'redzone_team';
+
+  var WEEKS = 18;
+  var LAST_N = 4;
+  // Team-week cell layout, see scripts/pull_redzone.py:
+  // [opponent, trips, TD trips, FG trips, points, plays, dropbacks, EPA,
+  //  successes, giveaways, goal-to-go trips, goal-to-go TDs, inside-10 trips,
+  //  inside-10 TDs]. A defense's week is the offense cell of the team it
+  //  faced, found through the opponent code.
+  var C = {opp:0, trips:1, td:2, fg:3, pts:4, plays:5, db:6, epa:7, succ:8, to:9,
+           g2g:10, g2gtd:11, i10:12, i10td:13};
+
+  var NAMES = {
+    ARI:['Arizona Cardinals','Cardinals'], ATL:['Atlanta Falcons','Falcons'],
+    BAL:['Baltimore Ravens','Ravens'], BUF:['Buffalo Bills','Bills'],
+    CAR:['Carolina Panthers','Panthers'], CHI:['Chicago Bears','Bears'],
+    CIN:['Cincinnati Bengals','Bengals'], CLE:['Cleveland Browns','Browns'],
+    DAL:['Dallas Cowboys','Cowboys'], DEN:['Denver Broncos','Broncos'],
+    DET:['Detroit Lions','Lions'], GB:['Green Bay Packers','Packers'],
+    HOU:['Houston Texans','Texans'], IND:['Indianapolis Colts','Colts'],
+    JAX:['Jacksonville Jaguars','Jaguars'], KC:['Kansas City Chiefs','Chiefs'],
+    LAC:['Los Angeles Chargers','Chargers'], LAR:['Los Angeles Rams','Rams'],
+    LV:['Las Vegas Raiders','Raiders'], MIA:['Miami Dolphins','Dolphins'],
+    MIN:['Minnesota Vikings','Vikings'], NE:['New England Patriots','Patriots'],
+    NO:['New Orleans Saints','Saints'], NYG:['New York Giants','Giants'],
+    NYJ:['New York Jets','Jets'], PHI:['Philadelphia Eagles','Eagles'],
+    PIT:['Pittsburgh Steelers','Steelers'], SEA:['Seattle Seahawks','Seahawks'],
+    SF:['San Francisco 49ers','49ers'], TB:['Tampa Bay Buccaneers','Buccaneers'],
+    TEN:['Tennessee Titans','Titans'], WAS:['Washington Commanders','Commanders']
+  };
+  // 0 = abbreviation, 1 = nickname, 2 = full name. Measured from the container
+  // rather than the viewport: the tool can sit in a narrow column on a wide
+  // screen. The table is wide, so the full name only appears on a big one.
+  function nameTier(){
+    var w = ROOT.clientWidth || 0;
+    if (w >= 900) return 2;
+    if (w >= 641) return 1;
+    return 0;
+  }
+  function teamName(code){
+    var t = nameTier(), n = NAMES[code];
+    if (!n || t === 0) return code;
+    return t === 2 ? n[0] : n[1];
+  }
+  function fullName(code){ return NAMES[code] ? NAMES[code][0] : code; }
+
+  var $ = function(role){ return ROOT.querySelector('[data-role="' + role + '"]'); };
+  var el = function(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  };
+
+  /* The server-rendered preload table sits outside this fragment (it comes
+     from the shortcode). Hide it once the live tool has painted. If the data
+     fetch fails, render() never runs and the table stays visible as the
+     fallback. Same function as the other tools, apart from the key. */
+  var SEO_HIDDEN = false;
+  function hideServerPreload(){
+    if (SEO_HIDDEN) return;
+    SEO_HIDDEN = true;
+    var n = document.querySelectorAll('[data-sfa-preload="' + TOOL + '"]');
+    for (var i = 0; i < n.length; i++) n[i].style.display = 'none';
+  }
+
+  function showStatus(text){
+    var wrap = $('wrap');
+    wrap.innerHTML = '';
+    wrap.appendChild(el('div', 'pt-status', text));
+  }
+
+  var STATE = {
+    index: null, season: null, mode: 'off', sort: 'tdp', asc: null,
+    wkFrom: null, wkTo: null, open: null
+  };
+  var DB = {};
+  function D(){ return STATE.season != null ? DB[STATE.season] : null; }
+  function inRange(w){
+    if (STATE.wkFrom != null && w < STATE.wkFrom) return false;
+    if (STATE.wkTo != null && w > STATE.wkTo) return false;
+    return true;
+  }
+  function anyFilter(){ return STATE.wkFrom != null || STATE.wkTo != null; }
+
+  // The cells a team's side reads: its own offense weeks, or the offense
+  // weeks of everyone it faced. Built once per season file.
+  var SIDES = {};
+  function sideCells(d, team){
+    var key = d.season + ':' + STATE.mode;
+    if (!SIDES[key]){
+      var off = {}, def = {};
+      d.teams.forEach(function(t){ off[t] = {}; def[t] = {}; });
+      Object.keys(d.tw).forEach(function(t){
+        Object.keys(d.tw[t]).forEach(function(w){
+          var c = d.tw[t][w];
+          off[t][w] = c;
+          if (def[c[C.opp]]) def[c[C.opp]][w] = c;
+        });
+      });
+      SIDES[d.season + ':off'] = off;
+      SIDES[d.season + ':def'] = def;
+    }
+    return SIDES[key][team] || {};
+  }
+
+  // ------------------------------------------------------------ aggregation
+
+  function sum(cells){
+    var s = {trips:0, td:0, fg:0, pts:0, plays:0, db:0, epa:0, succ:0, to:0, g2g:0, g2gtd:0, i10:0, i10td:0, g:0};
+    cells.forEach(function(c){
+      s.trips += c[C.trips]; s.td += c[C.td]; s.fg += c[C.fg]; s.pts += c[C.pts];
+      s.plays += c[C.plays]; s.db += c[C.db]; s.epa += c[C.epa]; s.succ += c[C.succ];
+      s.to += c[C.to]; s.g2g += c[C.g2g]; s.g2gtd += c[C.g2gtd]; s.i10 += c[C.i10]; s.i10td += c[C.i10td];
+      s.g++;
+    });
+    return s;
+  }
+  function figures(s){
+    var n = s.trips, p = s.plays;
+    return {
+      g: s.g, trips: n, tpg: s.g ? n / s.g : null,
+      tdp: n ? s.td / n : null, scp: n ? (s.td + s.fg) / n : null, ppt: n ? s.pts / n : null,
+      plt: n ? p / n : null, epa: p ? s.epa / p : null, sr: p ? s.succ / p : null,
+      pr: p ? s.db / p : null, g2g: s.g2g ? s.g2gtd / s.g2g : null, i10: s.i10 ? s.i10td / s.i10 : null,
+      to: s.to, raw: s
+    };
+  }
+  // Played weeks in range, ascending.
+  function weeksOf(cells){
+    return Object.keys(cells).map(Number).filter(inRange).sort(function(a, b){ return a - b; });
+  }
+  function teamRow(d, team){
+    var cells = sideCells(d, team);
+    var wk = weeksOf(cells);
+    var r = figures(sum(wk.map(function(w){ return cells[String(w)]; })));
+    var last = wk.slice(-LAST_N);
+    var l4 = figures(sum(last.map(function(w){ return cells[String(w)]; })));
+    r.l4 = l4.tdp; r.l4n = l4.trips; r.l4g = last.length;
+    r.team = team;
+    return r;
+  }
+  function allRows(d){
+    return d.teams.map(function(t){ return teamRow(d, t); }).filter(function(r){ return r.g > 0; });
+  }
+
+  // ------------------------------------------------------------------ format
+
+  function pct(v){ return v == null ? '—' : Math.round(100 * v) + '%'; }
+  function r1(v){ return v == null ? '—' : v.toFixed(1); }
+  function r2(v){ return v == null ? '—' : v.toFixed(2); }
+  function epa(v){ return v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(2); }
+  function n0(v){ return v == null ? '—' : String(v); }
+
+  // One entry per figure column. `hi` says which way is better for the
+  // offense: true is more, false is less, null is a tendency with no better
+  // side. The defense flips the first two; the rank badge is always best
+  // first on the side in view, and the sort opens best first too.
+  var COLUMNS = [
+    {key:'g',     label:'G',          title:'Games with a red zone trip', hi:null, fmt:n0},
+    {key:'trips', label:'Trips',      title:'Red zone trips: drives with a snap inside the 20', hi:true, fmt:n0},
+    {key:'tpg',   label:'Trips /G',   title:'Trips per game', hi:true, fmt:r1},
+    {key:'tdp',   label:'TD %',       title:'Share of trips that ended in a touchdown', hi:true, fmt:pct},
+    {key:'scp',   label:'Score %',    title:'Share of trips that ended in a touchdown or a field goal', hi:true, fmt:pct},
+    {key:'ppt',   label:'Pts /Trip',  title:'Points per trip: 6 plus the try for a touchdown, 3 for a field goal', hi:true, fmt:r2},
+    {key:'plt',   label:'Plays /Trip', title:'Red zone snaps per trip', hi:null, fmt:r1},
+    {key:'epa',   label:'EPA /Play',  title:'Expected points added per red zone snap', hi:true, fmt:epa},
+    {key:'sr',    label:'Succ %',     title:'Success rate on red zone snaps', hi:true, fmt:pct},
+    {key:'pr',    label:'Pass %',     title:'Dropbacks over red zone snaps, sacks and scrambles included', hi:null, fmt:pct},
+    {key:'g2g',   label:'G2G TD %',   title:'Touchdown rate on trips with a goal-to-go snap', hi:true, fmt:pct},
+    {key:'i10',   label:'In-10 TD %', title:'Touchdown rate on trips with a snap inside the 10', hi:true, fmt:pct},
+    {key:'to',    label:'TO',         title:'Turnovers on red zone snaps', hi:false, fmt:n0},
+    {key:'l4',    label:'Last 4 TD %', title:'Touchdown rate over the last four games', hi:true, fmt:pct}
+  ];
+  function betterHigh(c){
+    if (c.hi == null) return true;
+    return STATE.mode === 'def' ? !c.hi : c.hi;
+  }
+  // Rank 1 is the best figure on the side in view, whichever way the table
+  // is sorted. Ties share a rank.
+  function rankVals(rows, c){
+    var vals = rows.filter(function(r){ return r[c.key] != null; }).map(function(r){ return r[c.key]; });
+    var high = betterHigh(c);
+    vals.sort(function(a, b){ return high ? b - a : a - b; });
+    return vals;
+  }
+  function rankOf(v, vals, high){
+    if (v == null) return null;
+    for (var i = 0; i < vals.length; i++){
+      if (high ? vals[i] <= v + 1e-9 : vals[i] >= v - 1e-9) return i + 1;
+    }
+    return vals.length;
+  }
+  function byColumn(c, asc){
+    return function(a, b){
+      var av = a[c.key], bv = b[c.key];
+      if (av == null && bv == null) return a.team < b.team ? -1 : 1;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (av === bv){
+        if (a.trips !== b.trips) return b.trips - a.trips;
+        return a.team < b.team ? -1 : 1;
+      }
+      return asc ? av - bv : bv - av;
+    };
+  }
+  function sortHead(c, active, asc, onClick){
+    var th = el('th');
+    var b = el('button', null, c.label);
+    b.type = 'button';
+    b.title = c.title;
+    if (active) th.setAttribute('aria-sort', asc ? 'ascending' : 'descending');
+    b.addEventListener('click', onClick);
+    th.appendChild(b);
+    return th;
+  }
+  function numCell(c, v, rank, n){
+    var cell = el('td');
+    var box = el('span', 'pt-num');
+    var txt = el('span', null, c.fmt(v));
+    if (v == null) txt.classList.add('pt-thin');
+    box.appendChild(txt);
+    if (rank != null){
+      var rk = el('span', 'rk' + (rank <= 3 ? ' top' : ''), String(rank));
+      box.appendChild(rk);
+      box.title = c.title + ': ' + c.fmt(v) + ' (rank ' + rank + ' of ' + n + ')';
+    } else {
+      box.title = c.title;
+    }
+    cell.appendChild(box);
+    return cell;
+  }
+
+  // ------------------------------------------------------------------ render
+
+  function sideLabel(){ return STATE.mode === 'def' ? 'Defense' : 'Offense'; }
+
+  function render(){
+    hideServerPreload();
+    var d = D();
+    if (!d) return;
+    var rows = allRows(d);
+    var wrap = $('wrap');
+    if (!rows.length){
+      showStatus(anyFilter() ? 'No games in this week range.' : 'No red zone trips yet this season.');
+      paintFoot(d, []);
+      writeHash();
+      return;
+    }
+    var sortCol = COLUMNS.filter(function(c){ return c.key === STATE.sort; })[0] || COLUMNS[3];
+    // Null means "best first" for the column, which flips with the side.
+    var asc = STATE.asc == null ? !betterHigh(sortCol) : STATE.asc;
+    rows.sort(byColumn(sortCol, asc));
+    var ranks = {};
+    COLUMNS.forEach(function(c){ ranks[c.key] = rankVals(rows, c); });
+
+    var table = el('table', 'pt-grid');
+    var thead = el('thead'), hr = el('tr');
+    hr.appendChild(el('th', 'pt-rank', 'Rk'));
+    hr.appendChild(el('th', 'pt-team', sideLabel()));
+    COLUMNS.forEach(function(c){
+      hr.appendChild(sortHead(c, c.key === sortCol.key, asc, function(){
+        if (STATE.sort === c.key) STATE.asc = !asc;
+        else { STATE.sort = c.key; STATE.asc = null; }
+        render();
+      }));
+    });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+
+    var tbody = el('tbody');
+    rows.forEach(function(r, i){
+      var tr = el('tr');
+      var cls = (i % 2) ? 'pt-alt' : '';
+      if (STATE.open === r.team) cls += (cls ? ' ' : '') + 'pt-open';
+      if (cls) tr.className = cls;
+      var own = rankOf(r[sortCol.key], ranks[sortCol.key], betterHigh(sortCol));
+      tr.appendChild(el('td', 'pt-rank', own == null ? '—' : String(own)));
+
+      var td = el('td', 'pt-team');
+      var btn = el('button', 'pt-teamcell', teamName(r.team));
+      btn.type = 'button';
+      btn.title = fullName(r.team);
+      btn.setAttribute('aria-expanded', STATE.open === r.team ? 'true' : 'false');
+      btn.addEventListener('click', function(){
+        STATE.open = (STATE.open === r.team) ? null : r.team;
+        render();
+      });
+      td.appendChild(btn);
+      tr.appendChild(td);
+
+      COLUMNS.forEach(function(c){
+        var rk = c.hi == null ? null : rankOf(r[c.key], ranks[c.key], betterHigh(c));
+        tr.appendChild(numCell(c, r[c.key], rk, ranks[c.key].length));
+      });
+      tbody.appendChild(tr);
+
+      if (STATE.open === r.team){
+        var dtr = el('tr', 'pt-det');
+        var dtd = el('td');
+        dtd.colSpan = COLUMNS.length + 2;
+        dtd.appendChild(detail(d, r));
+        dtr.appendChild(dtd);
+        tbody.appendChild(dtr);
+      }
+    });
+    table.appendChild(tbody);
+
+    // League row: every trip in view pooled, so it reads as the league rate
+    // rather than the mean of 32 team rates.
+    var tfoot = el('tfoot'), fr = el('tr');
+    fr.appendChild(el('th', 'pt-rank', ''));
+    fr.appendChild(el('th', 'pt-team', 'NFL'));
+    var pooled = {trips:0, td:0, fg:0, pts:0, plays:0, db:0, epa:0, succ:0, to:0, g2g:0, g2gtd:0, i10:0, i10td:0, g:0};
+    var l4t = 0, l4n = 0;
+    rows.forEach(function(r){
+      Object.keys(pooled).forEach(function(k){ pooled[k] += r.raw[k]; });
+      if (r.l4 != null){ l4t += r.l4 * r.l4n; l4n += r.l4n; }
+    });
+    var lg = figures(pooled);
+    lg.g = null; lg.tpg = rows.length ? pooled.trips / pooled.g : null; lg.to = null;
+    lg.l4 = l4n ? l4t / l4n : null;
+    COLUMNS.forEach(function(c){
+      var v = lg[c.key];
+      fr.appendChild(el('td', null, v == null ? '' : c.fmt(v)));
+    });
+    tfoot.appendChild(fr);
+    table.appendChild(tfoot);
+
+    wrap.innerHTML = '';
+    wrap.appendChild(table);
+    fitDetails();
+    paintFoot(d, rows);
+    writeHash();
+  }
+
+  // Size each open detail box to the visible width of the panning wrap, so
+  // on a phone it stays on screen rather than running the table's width.
+  function fitDetails(){
+    var w = $('wrap').clientWidth;
+    if (!w) return;
+    var boxes = ROOT.querySelectorAll('.pt-detin');
+    for (var i = 0; i < boxes.length; i++) boxes[i].style.width = w + 'px';
+  }
+
+  // ------------------------------------------------------------------ detail
+
+  function detail(d, r){
+    var box = el('div', 'pt-detin');
+    box.appendChild(el('div', 'pt-detname', fullName(r.team) + ' — ' + sideLabel() + ' · ' + d.season +
+      (anyFilter() ? ' · ' + weekLabel() : '')));
+    var cards = el('div', 'pt-cards');
+    function card(label, value, note){
+      var c = el('div', 'pt-card');
+      c.appendChild(el('div', 'k', label));
+      c.appendChild(el('div', 'n', value));
+      c.appendChild(el('div', 'r', note || ''));
+      cards.appendChild(c);
+    }
+    var s = r.raw;
+    card('Trips', String(s.trips), s.g + (s.g === 1 ? ' game' : ' games') + ' · ' + r1(r.tpg) + ' per game');
+    card('Touchdowns', String(s.td), 'on ' + pct(r.tdp) + ' of trips');
+    card('Field goals', String(s.fg), 'scored on ' + pct(r.scp) + ' of trips');
+    card('Points', String(s.pts), r2(r.ppt) + ' per trip');
+    card('Empty trips', String(s.trips - s.td - s.fg), s.to + (s.to === 1 ? ' turnover' : ' turnovers'));
+    card('Last ' + LAST_N, pct(r.l4), r.l4n + (r.l4n === 1 ? ' trip' : ' trips') + ' in ' + r.l4g + (r.l4g === 1 ? ' game' : ' games'));
+    box.appendChild(cards);
+    box.appendChild(chartWeeks(d, r.team));
+    return box;
+  }
+
+  function svg(w, h){
+    var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    s.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    s.setAttribute('role', 'img');
+    return s;
+  }
+  function node(tag, attrs, text){
+    var n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (var k in attrs) if (attrs.hasOwnProperty(k)) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  var TD_FILL = '#cc0000', FG_FILL = '#7f8c9a', EMPTY_FILL = '#dde2e8';
+
+  // Week by week: one bar per week, trips tall, touchdown trips in red at
+  // the bottom, field goals in grey above them, empty trips in the light
+  // grey. Weeks outside the range are blank.
+  function chartWeeks(d, team){
+    var cells = sideCells(d, team);
+    var vals = [], top = 1;
+    for (var w = 1; w <= WEEKS; w++){
+      var c = cells[String(w)];
+      var v = (c && inRange(w)) ? {td: c[C.td], fg: c[C.fg], n: c[C.trips], opp: c[C.opp], pts: c[C.pts]} : null;
+      if (v) top = Math.max(top, v.n);
+      vals.push(v);
+    }
+    var W = 420, H = 170;
+    var s = svg(W, H);
+    var x0 = 26, x1 = W - 6, y0 = 22, y1 = H - 30;
+    var slot = (x1 - x0) / WEEKS;
+    var sy = function(v){ return y1 - v / top * (y1 - y0); };
+    [top, 0].forEach(function(g){
+      s.appendChild(node('line', {x1:x0, x2:x1, y1:sy(g), y2:sy(g),
+        stroke: g === 0 ? '#111' : '#dde2e8', 'stroke-width':1}));
+      s.appendChild(node('text', {x:x0 - 4, y:sy(g) + 4, 'text-anchor':'end',
+        'font-size':11, fill:'#4e5154'}, String(g)));
+    });
+    for (var i = 0; i < WEEKS; i++){
+      var cx = x0 + slot * i + slot / 2;
+      var v = vals[i];
+      if (v){
+        var g2 = node('g', {});
+        var bx = x0 + slot * i + slot * 0.2, bw = slot * 0.6;
+        var a = sy(v.td), b = sy(v.td + v.fg), c2 = sy(v.n);
+        if (v.td) g2.appendChild(node('rect', {x:bx, y:a, width:bw, height:Math.max(1, y1 - a), fill:TD_FILL}));
+        if (v.fg) g2.appendChild(node('rect', {x:bx, y:b, width:bw, height:Math.max(1, a - b), fill:FG_FILL}));
+        if (v.n - v.td - v.fg > 0) g2.appendChild(node('rect', {x:bx, y:c2, width:bw, height:Math.max(1, b - c2), fill:EMPTY_FILL}));
+        g2.appendChild(node('text', {x:cx, y:c2 - 4, 'text-anchor':'middle',
+          'font-size':11, 'font-weight':700, fill:'#111'}, v.td + '/' + v.n));
+        var who = STATE.mode === 'def' ? v.opp + ' offense' : 'vs ' + v.opp;
+        g2.appendChild(node('title', {}, 'Week ' + (i + 1) + ' ' + who + ': ' + v.n +
+          (v.n === 1 ? ' trip, ' : ' trips, ') + v.td + ' TD, ' + v.fg + ' FG, ' + v.pts + ' points'));
+        s.appendChild(g2);
+      }
+      s.appendChild(node('text', {x:cx, y:H - 8, 'text-anchor':'middle',
+        'font-size':11, fill:'#4e5154'}, String(i + 1)));
+    }
+    s.appendChild(node('title', {}, fullName(team) + ' ' + d.season + ' red zone trips by week, ' + sideLabel().toLowerCase()));
+    var box = el('div', 'pt-chart');
+    box.appendChild(el('div', 'pt-ctitle', d.season + ' trips by week · touchdowns over trips'));
+    box.appendChild(s);
+    var lg = el('div', 'pt-legend');
+    function key(color, label){
+      var i = el('i'); i.style.background = color; lg.appendChild(i);
+      lg.appendChild(document.createTextNode(label));
+    }
+    key(TD_FILL, 'touchdown'); key(FG_FILL, 'field goal'); key(EMPTY_FILL, 'no points');
+    box.appendChild(lg);
+    return box;
+  }
+
+  // ------------------------------------------------------------------- chrome
+
+  function paintFoot(d, rows){
+    var f = $('foot');
+    f.innerHTML = '';
+    var trips = rows.reduce(function(s, r){ return s + r.trips; }, 0);
+    f.appendChild(el('b', null, trips.toLocaleString()));
+    f.appendChild(document.createTextNode(' red zone trips in view · through week ' + d.latest_played_week +
+      ' · a trip is a drive with a pass or rush snap inside the opponent’s 20, kneel-outs excluded; regular season'));
+  }
+  function weekLabel(){
+    if (STATE.wkFrom == null && STATE.wkTo == null) return 'All';
+    var a = STATE.wkFrom == null ? 1 : STATE.wkFrom;
+    var b = STATE.wkTo == null ? WEEKS : STATE.wkTo;
+    return a === b ? 'Week ' + a : 'Weeks ' + a + '–' + b;
+  }
+  function chip(label, value, on, onClick){
+    var b = el('button', 'pt-fb');
+    b.type = 'button';
+    b.setAttribute('data-on', on ? '1' : '0');
+    b.appendChild(el('span', 'l', label));
+    b.appendChild(el('span', 'v', value));
+    b.addEventListener('click', function(){ onClick(b); });
+    return b;
+  }
+  function buildBar(){
+    var bar = $('bar');
+    bar.innerHTML = '';
+    var multi = STATE.index && (STATE.index.seasons || []).length > 1;
+    if (multi){
+      bar.appendChild(chip('Season', String(STATE.season), STATE.season !== STATE.index.default, openSeasons));
+    }
+    bar.appendChild(chip('Weeks', weekLabel(), anyFilter(), openWeeks));
+    if (anyFilter()){
+      var reset = el('button', 'pt-reset', 'Reset');
+      reset.type = 'button';
+      reset.addEventListener('click', function(){
+        STATE.wkFrom = null; STATE.wkTo = null;
+        closePop(); buildBar(); render();
+      });
+      bar.appendChild(reset);
+    }
+  }
+
+  function closePop(){ var p = $('pop'); p.hidden = true; p.innerHTML = ''; }
+  function placePop(anchor){
+    var p = $('pop');
+    var rb = ROOT.getBoundingClientRect(), ab = anchor.getBoundingClientRect();
+    p.hidden = false;
+    var left = ab.left - rb.left;
+    var maxLeft = ROOT.clientWidth - p.offsetWidth - 8;
+    p.style.left = Math.max(8, Math.min(left, maxLeft)) + 'px';
+    p.style.top = (ab.bottom - rb.top + 4) + 'px';
+  }
+  function popFoot(p, clearLabel, onClear, onApply){
+    var foot = el('div', 'pt-popfoot');
+    var clear = el('button', null, clearLabel);
+    clear.type = 'button';
+    clear.addEventListener('click', onClear);
+    var go = el('button', 'go', 'Apply');
+    go.type = 'button';
+    go.addEventListener('click', onApply);
+    foot.appendChild(clear);
+    foot.appendChild(go);
+    p.appendChild(foot);
+  }
+  function openPop(anchor, key, title){
+    var p = $('pop');
+    if (!p.hidden && p.getAttribute('data-for') === key){ closePop(); return null; }
+    p.innerHTML = '';
+    p.setAttribute('data-for', key);
+    p.appendChild(el('div', 'h', title));
+    return p;
+  }
+  function openSeasons(anchor){
+    var p = openPop(anchor, 'seasons', 'Season');
+    if (!p) return;
+    var box = el('div', 'pt-opts');
+    (STATE.index.seasons || []).slice().sort(function(a, b){ return b - a; }).forEach(function(y){
+      var b = el('button', 'pt-opt', String(y));
+      b.type = 'button';
+      b.setAttribute('aria-pressed', STATE.season === y ? 'true' : 'false');
+      b.addEventListener('click', function(){ closePop(); applySeason(y); });
+      box.appendChild(b);
+    });
+    p.appendChild(box);
+    placePop(anchor);
+  }
+  // Weeks: a range. Tap one week for a single week, tap two for the span
+  // between them.
+  function openWeeks(anchor){
+    var p = openPop(anchor, 'weeks', 'Weeks');
+    if (!p) return;
+    var from = STATE.wkFrom, to = STATE.wkTo, taps = 0;
+    var box = el('div', 'pt-opts');
+    var chips = [];
+    function paint(){
+      chips.forEach(function(b, i){
+        var w = i + 1;
+        var end = (w === from) || (w === to);
+        var inside = from != null && to != null && w > from && w < to;
+        b.setAttribute('aria-pressed', end ? 'true' : 'false');
+        b.setAttribute('data-in', inside ? '1' : '0');
+      });
+    }
+    for (var w = 1; w <= WEEKS; w++){
+      (function(w){
+        var b = el('button', 'pt-opt', String(w));
+        b.type = 'button';
+        b.addEventListener('click', function(){
+          if (taps % 2 === 0){ from = w; to = w; }
+          else { if (w < from){ to = from; from = w; } else { to = w; } }
+          taps++;
+          paint();
+        });
+        chips.push(b);
+        box.appendChild(b);
+      })(w);
+    }
+    paint();
+    p.appendChild(box);
+    p.appendChild(el('div', 'pt-pophint', 'Tap a first and a last week.'));
+    popFoot(p, 'All', function(){
+      STATE.wkFrom = null; STATE.wkTo = null;
+      closePop(); buildBar(); render();
+    }, function(){
+      if (from === 1 && to === WEEKS){ from = null; to = null; }
+      STATE.wkFrom = from; STATE.wkTo = to;
+      closePop(); buildBar(); render();
+    });
+    placePop(anchor);
+  }
+
+  ROOT.addEventListener('click', function(e){
+    var p = $('pop');
+    if (p.hidden) return;
+    if (p.contains(e.target)) return;
+    if (e.target.closest && e.target.closest('.pt-fb')) return;
+    closePop();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') closePop();
+  });
+
+  function setMode(m){
+    ROOT.querySelectorAll('.pt-mode').forEach(function(o){
+      o.setAttribute('aria-pressed', o.getAttribute('data-mode') === m ? 'true' : 'false');
+    });
+  }
+  ROOT.querySelectorAll('.pt-mode').forEach(function(b){
+    b.addEventListener('click', function(){
+      var m = b.getAttribute('data-mode');
+      if (STATE.mode === m) return;
+      STATE.mode = m;
+      STATE.open = null;
+      STATE.asc = null;
+      setMode(m);
+      closePop();
+      buildBar();
+      render();
+    });
+  });
+
+  // -------------------------------------------------------------------- hash
+
+  // #defense, #w3-7, #2025, #kc to open a team's row; tokens combine with a
+  // slash, #defense/kc. Same idiom as the player tool.
+  function parseHash(){
+    var h = (location.hash || '').replace(/^#/, '');
+    if (!h) return null;
+    var out = {};
+    h.split('/').forEach(function(t){
+      var m;
+      if (!t) return;
+      if (t === 'defense' || t === 'def') out.mode = 'def';
+      else if (t === 'offense' || t === 'off') out.mode = 'off';
+      else if ((m = /^w(\d{1,2})(?:-(\d{1,2}))?$/.exec(t))) { out.wkFrom = Number(m[1]); out.wkTo = Number(m[2] || m[1]); }
+      else if (/^(19|20)\d\d$/.test(t)) out.season = Number(t);
+      else if (NAMES[t.toUpperCase()]) out.team = t.toUpperCase();
+    });
+    return out;
+  }
+  function applyHash(h){
+    if (!h) return;
+    if (h.mode){ STATE.mode = h.mode; setMode(h.mode); }
+    if (h.team) STATE.open = h.team;
+    if (h.wkFrom && h.wkFrom >= 1 && h.wkFrom <= WEEKS){
+      STATE.wkFrom = Math.min(h.wkFrom, h.wkTo); STATE.wkTo = Math.min(WEEKS, Math.max(h.wkFrom, h.wkTo));
+      if (STATE.wkFrom === 1 && STATE.wkTo === WEEKS){ STATE.wkFrom = null; STATE.wkTo = null; }
+    }
+  }
+  function writeHash(){
+    if (!window.history || !history.replaceState) return;
+    var t = [];
+    if (STATE.index && STATE.season !== STATE.index.default) t.push(String(STATE.season));
+    if (STATE.mode === 'def') t.push('defense');
+    if (STATE.wkFrom != null || STATE.wkTo != null){
+      var a = STATE.wkFrom == null ? 1 : STATE.wkFrom, b = STATE.wkTo == null ? WEEKS : STATE.wkTo;
+      t.push('w' + (a === b ? a : a + '-' + b));
+    }
+    if (STATE.open) t.push(STATE.open.toLowerCase());
+    try {
+      if (t.length) history.replaceState(null, '', '#' + t.join('/'));
+      else if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+    } catch (e) {}
+  }
+
+  // --------------------------------------------------------------------- load
+
+  function get(url){
+    return fetch(url, {cache:'no-cache'}).then(function(r){
+      if (!r.ok) throw new Error(url + ' returned ' + r.status);
+      return r.json();
+    });
+  }
+  function subtitle(){
+    var d = D(), when = '';
+    if (d && d.generated_utc){
+      var t = new Date(d.generated_utc.replace(' ', 'T') + 'Z');
+      if (!isNaN(t)) when = ' · updated ' + t.toLocaleDateString(undefined, {month:'short', day:'numeric'});
+    }
+    var sub = $('sub');
+    sub.innerHTML = '';
+    sub.appendChild(el('b', null, d ? d.season + ' through week ' + d.latest_played_week : '—'));
+    sub.appendChild(document.createTextNode(when));
+  }
+  function applySeason(y){
+    STATE.season = y;
+    if (!DB[y]){
+      showStatus('Loading ' + y + '…');
+      buildBar();
+      return get(BASE + 'redzone_team_' + y + '.json').then(function(blob){
+        DB[y] = blob;
+        buildBar(); subtitle(); render();
+      }).catch(function(err){
+        showStatus('Could not load ' + y + '.');
+        if (window.console) console.error('[redzone_team] could not load ' + y, err);
+      });
+    }
+    buildBar(); subtitle(); render();
+  }
+
+  if (window.ResizeObserver){
+    var lastTier = null;
+    new ResizeObserver(function(){
+      if (!D()) return;
+      var tier = nameTier();
+      fitDetails();
+      if (tier === lastTier) return;
+      lastTier = tier;
+      render();
+    }).observe(ROOT);
+  }
+
+  get(BASE + 'redzone_team_index.json').then(function(ix){
+    STATE.index = ix;
+    if (!ix.seasons || !ix.seasons.length){
+      showStatus('No seasons published yet.');
+      return;
+    }
+    var h = parseHash();
+    applyHash(h);
+    var y = (h && h.season && ix.seasons.indexOf(h.season) > -1) ? h.season
+          : (ix.default || Math.max.apply(null, ix.seasons));
+    return applySeason(y);
+  }).catch(function(err){
+    // render() never runs, so hideServerPreload() is never called and the
+    // shortcode table stays on the page as the fallback.
+    $('sub').textContent = 'Live data unavailable — showing season totals.';
+    showStatus('Couldn’t load the live data. The table below is still accurate for the ' +
+      'full season. Reload the page to try the interactive version again.');
+    if (window.console) console.error('[redzone_team]', err);
+  });
+})();
+</script>
