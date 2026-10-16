@@ -37,3 +37,5 @@ previewed on the same page without their styles colliding.
 | `matchup/` | One game at a time: offense vs defense ranks in five battles with the edge drawn between them, a week stepper, a slate picker and a detail sheet |
 | `boxscore/` | One played game at a time: the scoreline, seven diverging bars showing which team was better in each category, and an offensive box score in four groups with season averages |
 | `proe/` | Pass rate over expected: offense and defense tables with a last-four column, a week range and pooled seasons, an 18-week chart per team, and a matchups tab pairing each offense with the defense it faces |
+| `redzone/` | Red zone targets, carries and touchdowns by player with an inside-20 / 10 / 5 toggle, position pills, shares of the team's red zone work, a Teams tab for one offense's usage and a Leaders tab of pre-sorted boards |
+| `redzone-team/` | Red zone offense and defense efficiency: trips, TD %, scoring %, points per trip, EPA and success inside the 20, goal-to-go and inside-10 TD %, with a rank badge under every figure and a trips-by-week chart |

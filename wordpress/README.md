@@ -20,6 +20,8 @@ It registers one shortcode per tool:
 | `[sharp_football_pace]` | Offensive pace |
 | `[sharp_football_matchup]` | Weekly matchups — every game of the current week, two rows per game |
 | `[sharp_football_boxscore]` | Box scores — every game of the latest played week, two rows per game |
+| `[sharp_football_redzone]` | Red zone targets and carries — top 50 players by opportunities, then the top 20 by carries inside the 5 |
+| `[sharp_football_redzone_team]` | Red zone team stats — every offense, then every defense |
 
 Put the shortcode in an Avada **Text Block**, not a Code Block. Code Blocks output
 their contents raw and never run `do_shortcode`.
