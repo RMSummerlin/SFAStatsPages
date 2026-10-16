@@ -4,7 +4,7 @@ Team red zone efficiency, offense and defense. Two tabs, one table each:
 games, trips, trips per game, TD %, scoring %, points per trip, plays per
 trip, EPA per play, success rate, pass rate, goal-to-go TD %, inside-10 TD %,
 turnovers and TD % over the last four games, with a season pick and a week
-range. Every figure carries a rank badge, best first on the side in view
+multi-select (tap each week to include it). Every figure carries a rank badge, best first on the side in view
 (a low TD % allowed ranks 1 on the defense tab). Any column sorts; the
 table opens on TD %, best first. Every team row expands to cards and a
 week-by-week chart of trips with touchdowns in red, field goals in grey and
@@ -52,7 +52,7 @@ offense cell of the team it faced, read through the opponent code.
 
 ## Deep links
 
-`#defense` for the defense tab, `#w3-7` for a week range, `#2025` for a
+`#defense` for the defense tab, `#w3-7` or `#w1-3,6,9` for the weeks picked, `#2025` for a
 season, `#kc` to open a team's row; tokens combine with a slash
 (`#defense/w2-5/min`). The tool rewrites the hash as the reader changes
 things.

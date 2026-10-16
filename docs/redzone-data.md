@@ -124,7 +124,7 @@ or two drives each, no touchdowns among them). Touchdown trips agree on all
 
 ## Season files
 
-Both files recompute in the browser from weekly cells, so the week range,
+Both files recompute in the browser from weekly cells, so the week pick,
 the zone toggle and the position filter never need a round trip.
 
 `redzone_<season>.json`:

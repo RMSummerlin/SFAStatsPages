@@ -257,7 +257,7 @@ Five tools shipped:
   and an offensive box score with season averages. Data decisions in
   [`docs/boxscore-data.md`](docs/boxscore-data.md).
 - **`tools/proe/`** — pass rate over expected for every offense and defense, with a
-  last-four column, a week range, pooled seasons, an 18-week chart per team and a
+  last-four column, a week multi-select, pooled seasons, an 18-week chart per team and a
   matchups tab. Bucket definitions and the check against nflfastR in
   [`docs/proe-data.md`](docs/proe-data.md).
 
