@@ -87,10 +87,10 @@
 .pt-root.pt-rt .pt-grid thead th{border-bottom:2px solid var(--ink);font-size:11px;font-weight:700;
   text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
 .pt-root.pt-rt .pt-grid thead th button{width:100%;min-height:44px;font:inherit;color:inherit;padding:3px 4px;
-  white-space:normal;line-height:1.15}
+  white-space:normal;line-height:1.15;text-transform:uppercase}
 .pt-root.pt-rt .pt-grid thead th[aria-sort]{color:var(--red)}
-.pt-root.pt-rt .pt-grid thead th[aria-sort] button::after{content:' \25BC'}
-.pt-root.pt-rt .pt-grid thead th[aria-sort=ascending] button::after{content:' \25B2'}
+.pt-root.pt-rt .pt-grid thead th[aria-sort] button::after{content:'\00a0\25BC'}
+.pt-root.pt-rt .pt-grid thead th[aria-sort=ascending] button::after{content:'\00a0\25B2'}
 .pt-root.pt-rt .pt-rank{width:36px;min-width:36px;color:var(--muted);font-size:12px}
 .pt-root.pt-rt .pt-team{text-align:left;font-weight:700;border-right:1px solid var(--b2);
   position:sticky;left:0;z-index:2;min-width:64px}
@@ -155,11 +155,17 @@
 .pt-root.pt-rt .pt-foot b{color:var(--ink);font-weight:700}
 
 /* ---------- desktop enhancement ---------- */
+/* The figure floor is lower here than on a phone, not higher: 14 figure
+   columns at 64px plus the team column outgrew an 1100px content column and
+   the whole table panned sideways on a desktop. At 52px the widest figure
+   (+0.55 with its rank) still fits and a long head wraps to two lines, so
+   the table fits the column instead; the script shortens the team name if
+   it still does not (see nameTier). */
 @media (min-width:641px){
   .pt-root.pt-rt .pt-title{font-size:25px}
   .pt-root.pt-rt .pt-grid{font-size:15px}
   .pt-root.pt-rt .pt-grid td:not(.pt-rank):not(.pt-team),
-  .pt-root.pt-rt .pt-grid th:not(.pt-rank):not(.pt-team){min-width:64px}
+  .pt-root.pt-rt .pt-grid th:not(.pt-rank):not(.pt-team){min-width:52px}
   .pt-root.pt-rt .pt-card{flex:1 1 112px}
 }
 
@@ -270,11 +276,16 @@
   // 0 = abbreviation, 1 = nickname, 2 = full name. Measured from the container
   // rather than the viewport: the tool can sit in a narrow column on a wide
   // screen. The table is wide, so the full name only appears on a big one.
+  // The width alone is not the last word: a desktop should not pan sideways,
+  // so after a paint that still overflows, render() lowers TIER_CAP and paints
+  // again with a shorter name, down to the badge alone. The cap is lifted
+  // whenever the container changes width.
+  var TIER_CAP = 2;
+  var PAINTED_TIER = null;  // the tier the table on screen was painted with
   function nameTier(){
     var w = ROOT.clientWidth || 0;
-    if (w >= 900) return 2;
-    if (w >= 641) return 1;
-    return 0;
+    var t = w >= 900 ? 2 : (w >= 641 ? 1 : 0);
+    return Math.min(t, TIER_CAP);
   }
   function teamName(code){
     var t = nameTier(), n = NAMES[code];
@@ -394,21 +405,24 @@
   // offense: true is more, false is less, null is a tendency with no better
   // side. The defense flips the first two; the rank badge is always best
   // first on the side in view, and the sort opens best first too.
+  // A head wraps to two lines in a tight column; the no-break space keeps
+  // the % on the line of the word it belongs to ("SCORE %", "LAST 4" over
+  // "TD %") rather than alone on a line of its own.
   var COLUMNS = [
     {key:'g',     label:'G',          title:'Games with a red zone trip', hi:null, fmt:n0},
     {key:'trips', label:'Trips',      title:'Red zone trips: drives with a snap inside the 20', hi:true, fmt:n0},
     {key:'tpg',   label:'Trips /G',   title:'Trips per game', hi:true, fmt:r1},
-    {key:'tdp',   label:'TD %',       title:'Share of trips that ended in a touchdown', hi:true, fmt:pct},
-    {key:'scp',   label:'Score %',    title:'Share of trips that ended in a touchdown or a field goal', hi:true, fmt:pct},
+    {key:'tdp',   label:'TD\u00a0%',       title:'Share of trips that ended in a touchdown', hi:true, fmt:pct},
+    {key:'scp',   label:'Score\u00a0%',    title:'Share of trips that ended in a touchdown or a field goal', hi:true, fmt:pct},
     {key:'ppt',   label:'Pts /Trip',  title:'Points per trip: 6 plus the try for a touchdown, 3 for a field goal', hi:true, fmt:r2},
     {key:'plt',   label:'Plays /Trip', title:'Red zone snaps per trip', hi:null, fmt:r1},
     {key:'epa',   label:'EPA /Play',  title:'Expected points added per red zone snap', hi:true, fmt:epa},
-    {key:'sr',    label:'Succ %',     title:'Success rate on red zone snaps', hi:true, fmt:pct},
-    {key:'pr',    label:'Pass %',     title:'Dropbacks over red zone snaps, sacks and scrambles included', hi:null, fmt:pct},
-    {key:'g2g',   label:'G2G TD %',   title:'Touchdown rate on trips with a goal-to-go snap', hi:true, fmt:pct},
-    {key:'i10',   label:'In-10 TD %', title:'Touchdown rate on trips with a snap inside the 10', hi:true, fmt:pct},
+    {key:'sr',    label:'Succ\u00a0%',     title:'Success rate on red zone snaps', hi:true, fmt:pct},
+    {key:'pr',    label:'Pass\u00a0%',     title:'Dropbacks over red zone snaps, sacks and scrambles included', hi:null, fmt:pct},
+    {key:'g2g',   label:'G2G TD\u00a0%',   title:'Touchdown rate on trips with a goal-to-go snap', hi:true, fmt:pct},
+    {key:'i10',   label:'In-10 TD\u00a0%', title:'Touchdown rate on trips with a snap inside the 10', hi:true, fmt:pct},
     {key:'to',    label:'TO',         title:'Turnovers on red zone snaps', hi:false, fmt:n0},
-    {key:'l4',    label:'Last 4 TD %', title:'Touchdown rate over the last four games', hi:true, fmt:pct}
+    {key:'l4',    label:'Last 4 TD\u00a0%', title:'Touchdown rate over the last four games', hi:true, fmt:pct}
   ];
   function betterHigh(c){
     if (c.hi == null) return true;
@@ -625,6 +639,12 @@
 
     wrap.innerHTML = '';
     wrap.appendChild(table);
+    // A desktop column that still pans gets a shorter team name instead.
+    if (wrap.scrollWidth > wrap.clientWidth && nameTier() > 0){
+      TIER_CAP = nameTier() - 1;
+      return render();
+    }
+    PAINTED_TIER = nameTier();
     fitDetails();
     paintFoot(d, rows);
     writeHash();
@@ -980,11 +1000,11 @@
     var d = D(), when = '';
     if (d && d.generated_utc){
       var t = new Date(d.generated_utc.replace(' ', 'T') + 'Z');
-      if (!isNaN(t)) when = ' · updated ' + t.toLocaleDateString(undefined, {month:'short', day:'numeric'});
+      if (!isNaN(t)) when = ' · Updated ' + t.toLocaleDateString(undefined, {month:'short', day:'numeric'});
     }
     var sub = $('sub');
     sub.innerHTML = '';
-    sub.appendChild(el('b', null, d ? d.season + ' through week ' + d.latest_played_week : '—'));
+    sub.appendChild(el('b', null, d ? d.season + ' Through Week ' + d.latest_played_week : '—'));
     sub.appendChild(document.createTextNode(when));
   }
   function applySeason(y){
@@ -1004,14 +1024,16 @@
   }
 
   if (window.ResizeObserver){
-    var lastTier = null;
+    var lastW = null;
     new ResizeObserver(function(){
       if (!D()) return;
-      var tier = nameTier();
       fitDetails();
-      if (tier === lastTier) return;
-      lastTier = tier;
-      render();
+      var w = ROOT.clientWidth;
+      if (w === lastW) return;
+      lastW = w;
+      TIER_CAP = 2;
+      var wrap = $('wrap');
+      if (nameTier() !== PAINTED_TIER || wrap.scrollWidth > wrap.clientWidth) render();
     }).observe(ROOT);
   }
 
