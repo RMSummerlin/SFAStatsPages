@@ -57,6 +57,15 @@
 .pt-root.pt-rz .pt-fb .l{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
   color:var(--muted)}
 .pt-root.pt-rz .pt-fb .v{font-size:13px;font-weight:700;white-space:nowrap}
+/* The team pick on the Teams tab is a native select laid invisibly over its
+   chip, so it reads like the other chips but opens the browser's own
+   dropdown: one team at a time, which a popover of buttons did not convey. */
+.pt-root.pt-rz .pt-fbsel{position:relative;padding-right:26px}
+.pt-root.pt-rz .pt-fbsel::after{content:'\25BE';position:absolute;right:9px;top:50%;
+  transform:translateY(-50%);font-size:14px;color:var(--muted)}
+.pt-root.pt-rz .pt-fbsel select{position:absolute;left:0;top:0;width:100%;height:100%;margin:0;padding:0;
+  border:0;opacity:0;cursor:pointer;font:inherit;-webkit-appearance:none;appearance:none}
+.pt-root.pt-rz .pt-fbsel:focus-within{outline:2px solid var(--red);outline-offset:1px}
 /* The zone toggle is the one control that changes what every figure means,
    so it is a segmented switch rather than a chip, ink on the live choice. */
 .pt-root.pt-rz .pt-seg{display:flex;border:1px solid var(--g1);background:var(--w)}
@@ -395,8 +404,7 @@
     return true;
   }
   function anyFilter(){
-    return STATE.weeks != null || STATE.team != null ||
-           STATE.min !== 1 || STATE.zone !== 20 || STATE.pos != null;
+    return STATE.weeks != null || STATE.min !== 1 || STATE.zone !== 20 || STATE.pos != null;
   }
 
   // ------------------------------------------------------------ aggregation
@@ -508,7 +516,6 @@
       if (!opts.anyPos && STATE.pos && p.p !== STATE.pos) return;
       var r = playerRow(d, pid, p);
       if (opts.team && !r.teams[opts.team]) return;
-      if (!opts.team && STATE.team && !r.teams[STATE.team]) return;
       if (r.opp < (opts.min != null ? opts.min : STATE.min)) return;
       rows.push(r);
     });
@@ -670,7 +677,6 @@
   function scopeLabel(){
     var bits = [zoneLabel()];
     if (STATE.pos) bits.push(STATE.pos);
-    if (STATE.team && STATE.mode !== 'teams') bits.push(nickName(STATE.team));
     bits.push(weekLabel() === 'All' ? 'all weeks' : weekLabel().toLowerCase());
     return bits.join(' · ');
   }
@@ -1227,7 +1233,7 @@
       bar.appendChild(seg);
     }
     bar.appendChild(chip('Weeks', weekLabel(), STATE.weeks != null, openWeeks));
-    bar.appendChild(chip('Team', STATE.team ? STATE.team : 'All', STATE.team != null, openTeams));
+    if (STATE.mode === 'teams') bar.appendChild(teamSelect());
     if (STATE.mode === 'players'){
       bar.appendChild(chip('Min opp', String(STATE.min), STATE.min !== 1, openMin));
     }
@@ -1236,11 +1242,38 @@
       reset.type = 'button';
       reset.addEventListener('click', function(){
         STATE.weeks = null; STATE.min = 1; STATE.zone = 20; STATE.pos = null;
-        STATE.team = STATE.mode === 'teams' ? STATE.team : null;
         closePop(); buildBar(); buildPills(); render();
       });
       bar.appendChild(reset);
     }
+  }
+
+  // The Teams tab shows one offense at a time, so its pick is a dropdown
+  // rather than the popover the other chips open: a grid of buttons read as
+  // though several teams could be picked together. The select sits over the
+  // chip at zero opacity; the chip shows the pick and the select takes the tap.
+  function teamSelect(){
+    var d = D();
+    var box = el('div', 'pt-fb pt-fbsel');
+    box.setAttribute('data-on', '0');
+    if (!d) return box;
+    if (!STATE.team || d.teams.indexOf(STATE.team) === -1) STATE.team = pickDefaultTeam(d);
+    box.appendChild(el('span', 'l', 'Team'));
+    box.appendChild(el('span', 'v', fullName(STATE.team)));
+    var sel = el('select');
+    sel.setAttribute('aria-label', 'Team');
+    d.teams.slice().sort(function(a, b){ return fullName(a) < fullName(b) ? -1 : 1; }).forEach(function(t){
+      var o = el('option', null, fullName(t));
+      o.value = t;
+      if (t === STATE.team) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', function(){
+      STATE.team = sel.value; STATE.open = null;
+      closePop(); buildBar(); render();
+    });
+    box.appendChild(sel);
+    return box;
   }
 
   function buildPills(){
@@ -1308,18 +1341,6 @@
     var opts = (STATE.index.seasons || []).slice().sort(function(a, b){ return b - a; })
                  .map(function(y){ return [y, String(y)]; });
     optionList(p, opts, STATE.season, function(y){ closePop(); applySeason(y); });
-    placePop(anchor);
-  }
-  function openTeams(anchor){
-    var p = openPop(anchor, 'teams', 'Team');
-    if (!p) return;
-    var d = D();
-    var opts = (STATE.mode === 'teams' ? [] : [[null, 'All']]).concat(
-      d.teams.map(function(t){ return [t, t]; }));
-    optionList(p, opts, STATE.team, function(t){
-      STATE.team = t; STATE.open = null;
-      closePop(); buildBar(); render();
-    });
     placePop(anchor);
   }
   function openMin(anchor){
@@ -1434,7 +1455,12 @@
     if (h.mode) { STATE.mode = h.mode; setMode(h.mode); }
     if (h.zone) STATE.zone = h.zone;
     if (h.pos) STATE.pos = h.pos;
-    if (h.team) STATE.team = h.team;
+    // A team on its own (#kc) opens that team's page, now that the Players
+    // and Leaders tabs no longer filter by team.
+    if (h.team){
+      STATE.team = h.team;
+      if (!h.mode && !h.player) { STATE.mode = 'teams'; setMode('teams'); }
+    }
     if (h.weeks) STATE.weeks = h.weeks;
     if (h.min && MIN_OPTS.indexOf(h.min) > -1) STATE.min = h.min;
   }
@@ -1458,7 +1484,7 @@
     if (STATE.mode !== 'players') t.push(STATE.mode);
     if (STATE.zone !== 20 && STATE.mode !== 'leaders') t.push('zone' + STATE.zone);
     if (STATE.pos && STATE.mode !== 'teams') t.push(STATE.pos.toLowerCase());
-    if (STATE.team) t.push(STATE.team.toLowerCase());
+    if (STATE.team && STATE.mode === 'teams') t.push(STATE.team.toLowerCase());
     if (STATE.weeks){
       t.push('w' + weekRuns(STATE.weeks).map(function(r){
         return r[0] === r[1] ? String(r[0]) : r[0] + '-' + r[1];

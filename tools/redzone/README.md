@@ -3,11 +3,11 @@
 Player usage inside the 20, 10 or 5. Three tabs. **Players** ranks every
 player with red zone work on targets, receptions, carries, opportunities,
 touchdowns, TD share, target share, carry share, opportunities per game and
-the last four games, with position pills, a season pick, a week multi-select, a
-team filter and a minimum-opportunities filter; the first 50 show until
+the last four games, with position pills, a season pick, a week multi-select
+and a minimum-opportunities filter; the first 50 show until
 "show all" is tapped. Every row expands to cards, a zone split (20 / 10 / 5)
 and a week-by-week chart of targets over carries with a dot per touchdown.
-**Teams** is one offense at a time: a header line with its red zone plays,
+**Teams** is one offense at a time, picked from a dropdown: a header line with its red zone plays,
 pass rate and the share of plays that scored, then every player with shares
 and the latest game beside the season. **Leaders** is three pre-sorted
 boards: carries inside the 5, targets inside the 10, opportunities inside
@@ -70,7 +70,7 @@ every variant. Tokens combine with a slash in any order.
 |---|---|
 | `#zone10`, `#zone5` | the yard-line toggle (inside the 20 is the default) |
 | `#qb` `#rb` `#wr` `#te` | the position pill |
-| `#kc` | the team filter; on the Teams tab, the team shown |
+| `#kc` | the team shown on the Teams tab; on its own it opens that tab |
 | `#teams`, `#leaders` | the tab |
 | `#w3-7`, `#w5`, `#w1-3,6,9` | the weeks picked: runs, single weeks, or both |
 | `#min10` | the minimum-opportunities filter (1, 5, 10 or 20) |
