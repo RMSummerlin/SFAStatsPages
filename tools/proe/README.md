@@ -2,7 +2,7 @@
 
 Three tabs. **Offense** and **Defense** rank the 32 teams on pass rate over
 expected (PROE) and on their last four games, with a season multi-select, a
-week range, and quarter and down multi-selects. Every team row expands to its
+week multi-select (tap each week to include it), and quarter and down multi-selects. Every team row expands to its
 week-by-week PROE across all 18 weeks, bye marked, unplayed weeks empty, one
 chart per selected season. **Matchups** is one table for the week, a row for
 every offense against the defense it faces, sortable on either side's PROE or
@@ -39,7 +39,7 @@ range and the pooled seasons recompute everything on the spot.
   the selected seasons and weeks. Positive means more pass calls than the
   situations warranted.
 - **Last 4**: the same figure over the team's last four played games in the
-  newest selected season, inside the week range. Early in a season it reads
+  newest selected season, among the weeks picked. Early in a season it reads
   what there is.
 - **Rank**: the team's standing on the sorted column, highest first. Sorting
   ascending counts 32 down to 1 rather than renumbering the rows.
@@ -118,5 +118,5 @@ the same set of plays, and the chip says so rather than counting.
 **Several seasons selected, one row per team.** Seasons pool into one figure,
 like the pace tool. The expansion shows one chart per season, newest first.
 
-**A dash in Last 4 with a number in PROE.** The week range excludes every game
+**A dash in Last 4 with a number in PROE.** The weeks picked exclude every game
 the team played in the newest season, but includes games from an older one.

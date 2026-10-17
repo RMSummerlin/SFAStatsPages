@@ -55,7 +55,7 @@ touchdowns for the season, updated after every game."
    filter and the show-all button.
 2. **NFL Red Zone Report: Week N Targets, Carries and Touchdowns.** The
    rotating block. Five to eight bullets with numbers: the week's most red
-   zone targets and carries (Leaders tab, week range set to the week), the
+   zone targets and carries (Leaders tab, with only that week picked), the
    biggest share changes, players with high usage and no touchdowns (buy),
    players with touchdowns on low usage (sell). Rewritten every Tuesday,
    no archive.

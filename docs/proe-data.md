@@ -175,7 +175,7 @@ midseason the two tables agree to the decimal on most teams.
 `data/proe_<season>.json` carries, per team and week, seven numbers:
 dropbacks, expected dropbacks and plays for the offense, the same three for
 the defense it faced, and the opponent. Everything in the tool is a sum of
-those: the season figure, the week range, the last four games, the per-week
+those: the season figure, the weeks picked, the last four games, the per-week
 chart and the pooled multi-season view.
 
 For the quarter and down filters the file also carries `twq`: the offense's
@@ -199,7 +199,7 @@ count for the footer.
 ## Decisions in the tool
 
 - **Last 4** is the team's last four played games in the newest selected
-  season, inside the week range. Early in a season it reads what there is,
+  season, among the weeks picked. Early in a season it reads what there is,
   so it equals PROE until week 5. Establish The Run publishes the same split
   and uses it to catch play-caller changes.
 - **Rank 1 is the most pass-heavy** on both tabs. PROE is a tendency, so the

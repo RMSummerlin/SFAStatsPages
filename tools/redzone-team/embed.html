@@ -6,7 +6,7 @@
   text-transform:none;letter-spacing:normal;text-shadow:none;box-shadow:none;
   vertical-align:middle;width:auto;height:auto}
 .pt-root.pt-rt{
-  --red:#cc0000; --ink:#111; --muted:#4e5154; --g1:#7f8c9a; --g2:#b0bec5;
+  --red:#cc0000; --ink:#111; --band:#222529; --muted:#4e5154; --g1:#7f8c9a; --g2:#b0bec5;
   --b1:#cdd5de; --b2:#dde2e8; --bg:#f4f5f7; --bg2:#f9fafb; --stripe:#f6f6f6; --w:#fff;
   font-family:'Interstate Condensed','Interstate','Roboto Condensed','Arial Narrow',
     'Helvetica Neue',Arial,sans-serif;
@@ -52,7 +52,6 @@
 .pt-root.pt-rt .pt-opt{min-height:38px;min-width:44px;padding:0 10px;border:1px solid var(--g1);
   font-size:13px;font-weight:700;background:var(--w)}
 .pt-root.pt-rt .pt-opt[aria-pressed="true"]{background:var(--ink);color:var(--w);border-color:var(--ink)}
-.pt-root.pt-rt .pt-opt[data-in="1"]{background:var(--bg);border-color:var(--ink)}
 .pt-root.pt-rt .pt-pophint{font-size:12px;color:var(--muted);margin-top:6px}
 .pt-root.pt-rt .pt-popfoot{display:flex;gap:6px;margin-top:8px;padding-top:8px;
   border-top:1px solid var(--b2)}
@@ -130,6 +129,39 @@
   .pt-root.pt-rt .pt-grid th:not(.pt-rank):not(.pt-team){min-width:64px}
   .pt-root.pt-rt .pt-card{flex:1 1 112px}
 }
+
+.pt-root.pt-rt{box-shadow:0 10px 30px rgba(17,17,17,.07)}
+.pt-root.pt-rt .pt-head{background:var(--band);color:#fff;padding:18px 14px 0;border-bottom:0;position:relative}
+.pt-root.pt-rt .pt-head::before{content:'';position:absolute;left:0;right:0;top:0;height:4px;background:var(--red)}
+.pt-root.pt-rt .pt-title{color:#fff;font-size:24px;letter-spacing:.02em}
+.pt-root.pt-rt .pt-sub{color:var(--g2)}
+.pt-root.pt-rt .pt-sub b{color:#fff}
+.pt-root.pt-rt .pt-modes{border:0;margin-top:14px;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.16) 0 1px,transparent 1px 10%) top left/100% 7px no-repeat}
+.pt-root.pt-rt .pt-mode{color:var(--g2);min-height:48px}
+.pt-root.pt-rt .pt-mode+.pt-mode{border-left:0}
+.pt-root.pt-rt .pt-mode:hover{color:#fff}
+.pt-root.pt-rt .pt-mode[aria-pressed="true"]{background:transparent;color:#fff;box-shadow:inset 0 -4px 0 var(--red)}
+.pt-root.pt-rt .pt-fb:hover{border-color:var(--ink)}
+.pt-root.pt-rt .pt-opt[aria-pressed="true"]{background:var(--red);border-color:var(--red)}
+.pt-root.pt-rt .pt-popfoot .go{background:var(--red);border-color:var(--red)}
+.pt-root.pt-rt .pt-grid tbody tr:not(.pt-det):hover td{background:rgba(204,0,0,.05)}
+.pt-root.pt-rt .pt-grid thead th[aria-sort]{background:rgba(204,0,0,.07)}
+.pt-root.pt-rt .pt-num.pt-dbar{background:linear-gradient(90deg,rgba(204,0,0,.18) 0 calc(var(--f)*100%),transparent 0) no-repeat}
+.pt-root.pt-rt .pt-rk{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+  border-radius:50%;font-weight:700}
+.pt-root.pt-rt .pt-rk.pt-top1{background:var(--red);color:#fff}
+.pt-root.pt-rt .pt-rk.pt-top2,.pt-root.pt-rt .pt-rk.pt-top3{background:var(--ink);color:#fff}
+.pt-root.pt-rt .pt-tm{display:inline-block;padding:1px 4px;font-size:11px;font-weight:700;
+  letter-spacing:.04em;line-height:1.35;border-radius:2px;min-width:30px;text-align:center}
+.pt-root.pt-rt .pt-teamcell .nm{white-space:nowrap}
+.pt-root.pt-rt .pt-grid tfoot th,.pt-root.pt-rt .pt-grid tfoot td{background:var(--bg)}
+.pt-root.pt-rt .pt-detin{background:var(--bg)}
+.pt-root.pt-rt .pt-detname{display:flex;align-items:center;gap:8px;font-size:19px;margin-bottom:10px}
+.pt-root.pt-rt .pt-detname .pt-tm{font-size:12px;padding:2px 6px}
+.pt-root.pt-rt .pt-card{border:0;border-top:3px solid var(--ink);padding:8px 10px}
+.pt-root.pt-rt .pt-card:nth-child(-n+2){border-top-color:var(--red)}
+.pt-root.pt-rt .pt-card .n{font-size:24px;line-height:1.15}
 </style>
 
 <div class="pt-root pt-rt">
@@ -225,16 +257,15 @@
 
   var STATE = {
     index: null, season: null, mode: 'off', sort: 'tdp', asc: null,
-    wkFrom: null, wkTo: null, open: null
+    weeks: null, open: null
   };
   var DB = {};
   function D(){ return STATE.season != null ? DB[STATE.season] : null; }
   function inRange(w){
-    if (STATE.wkFrom != null && w < STATE.wkFrom) return false;
-    if (STATE.wkTo != null && w > STATE.wkTo) return false;
+    if (STATE.weeks && STATE.weeks.indexOf(w) === -1) return false;
     return true;
   }
-  function anyFilter(){ return STATE.wkFrom != null || STATE.wkTo != null; }
+  function anyFilter(){ return STATE.weeks != null; }
 
   var SIDES = {};
   function sideCells(d, team){
@@ -371,6 +402,48 @@
     return cell;
   }
 
+  var COLORS = {
+    ARI:['#97233F','#97233F'], ATL:['#A71930','#A71930'], BAL:['#241773','#241773'],
+    BUF:['#00338D','#00338D'], CAR:['#0085CA','#0076B4'], CHI:['#0B162A','#C83803'],
+    CIN:['#FB4F14','#D03804'], CLE:['#FF3C00','#D43200'], DAL:['#041E42','#041E42'],
+    DEN:['#002244','#002244'], DET:['#0076B6','#0076B6'], GB:['#FFB612','#203731'],
+    HOU:['#03202F','#A6192E'], IND:['#002C5F','#002C5F'], JAX:['#006778','#006778'],
+    KC:['#E31837','#DD1736'], LAC:['#0080C6','#0076B7'], LAR:['#003594','#003594'],
+    LV:['#A5ACAF','#697276'], MIA:['#008E97','#007D85'], MIN:['#4F2683','#4F2683'],
+    NE:['#002244','#C60C30'], NO:['#D3BC8D','#886C34'], NYG:['#0B2265','#0B2265'],
+    NYJ:['#125740','#125740'], PHI:['#004C54','#004C54'], PIT:['#FFB612','#966800'],
+    SEA:['#002244','#002244'], SF:['#AA0000','#AA0000'], TB:['#D50A0A','#D50A0A'],
+    TEN:['#0C2340','#0C2340'], WAS:['#5A1414','#5A1414']
+  };
+  function teamFill(code){ return COLORS[code] ? COLORS[code][0] : '#111'; }
+  function badge(code){
+    var b = el('span', 'pt-tm', code);
+    b.style.background = COLORS[code] ? COLORS[code][1] : '#4e5154';
+    b.style.color = '#fff';
+    return b;
+  }
+  function rankCell(n){
+    var td = el('td', 'pt-rank');
+    var s = el('span', 'pt-rk', n == null ? '—' : String(n));
+    if (n != null && n <= 3) s.classList.add('pt-top' + n);
+    td.appendChild(s);
+    return td;
+  }
+  var HEAT = {tdp:1, scp:1, g2g:1, i10:1};
+  function deco(cell, c, v, rank, n, sorted, maxAbs){
+    var box = cell.firstChild;
+    if (v == null) return cell;
+    if (sorted){
+      if (!maxAbs) return cell;
+      box.classList.add('pt-dbar');
+      box.style.setProperty('--f', Math.min(1, Math.abs(v) / maxAbs).toFixed(3));
+    } else if (HEAT[c.key] && rank != null && n > 1){
+      var q = 1 - (rank - 1) / (n - 1);
+      if (q > 0.5) box.style.background = 'rgba(13,110,95,' + (0.3 * (q - 0.5) / 0.5 + 0.04).toFixed(3) + ')';
+    }
+    return cell;
+  }
+
   function sideLabel(){ return STATE.mode === 'def' ? 'Defense' : 'Offense'; }
 
   function render(){
@@ -380,7 +453,7 @@
     var rows = allRows(d);
     var wrap = $('wrap');
     if (!rows.length){
-      showStatus(anyFilter() ? 'No games in this week range.' : 'No red zone trips yet this season.');
+      showStatus(anyFilter() ? 'No games in these weeks.' : 'No red zone trips yet this season.');
       paintFoot(d, []);
       writeHash();
       return;
@@ -390,6 +463,8 @@
     rows.sort(byColumn(sortCol, asc));
     var ranks = {};
     COLUMNS.forEach(function(c){ ranks[c.key] = rankVals(rows, c); });
+    var maxAbs = 0;
+    rows.forEach(function(r){ var v = r[sortCol.key]; if (v != null && Math.abs(v) > maxAbs) maxAbs = Math.abs(v); });
 
     var table = el('table', 'pt-grid');
     var thead = el('thead'), hr = el('tr');
@@ -412,10 +487,12 @@
       if (STATE.open === r.team) cls += (cls ? ' ' : '') + 'pt-open';
       if (cls) tr.className = cls;
       var own = rankOf(r[sortCol.key], ranks[sortCol.key], betterHigh(sortCol));
-      tr.appendChild(el('td', 'pt-rank', own == null ? '—' : String(own)));
+      tr.appendChild(rankCell(own));
 
       var td = el('td', 'pt-team');
-      var btn = el('button', 'pt-teamcell', teamName(r.team));
+      var btn = el('button', 'pt-teamcell');
+      btn.appendChild(badge(r.team));
+      if (nameTier() > 0) btn.appendChild(el('span', 'nm', teamName(r.team)));
       btn.type = 'button';
       btn.title = fullName(r.team);
       btn.setAttribute('aria-expanded', STATE.open === r.team ? 'true' : 'false');
@@ -428,7 +505,7 @@
 
       COLUMNS.forEach(function(c){
         var rk = c.hi == null ? null : rankOf(r[c.key], ranks[c.key], betterHigh(c));
-        tr.appendChild(numCell(c, r[c.key], rk, ranks[c.key].length));
+        tr.appendChild(deco(numCell(c, r[c.key], rk, ranks[c.key].length), c, r[c.key], rk, ranks[c.key].length, c.key === sortCol.key, maxAbs));
       });
       tbody.appendChild(tr);
 
@@ -478,8 +555,12 @@
 
   function detail(d, r){
     var box = el('div', 'pt-detin');
-    box.appendChild(el('div', 'pt-detname', fullName(r.team) + ' — ' + sideLabel() + ' · ' + d.season +
+    var dn = el('div', 'pt-detname');
+    dn.appendChild(badge(r.team));
+    dn.appendChild(document.createTextNode(fullName(r.team) + ' — ' + sideLabel() + ' · ' + d.season +
       (anyFilter() ? ' · ' + weekLabel() : '')));
+    box.appendChild(dn);
+    box.style.boxShadow = 'inset 0 4px 0 ' + teamFill(r.team);
     var cards = el('div', 'pt-cards');
     function card(label, value, note){
       var c = el('div', 'pt-card');
@@ -577,11 +658,33 @@
     f.appendChild(document.createTextNode(' red zone trips in view · through week ' + d.latest_played_week +
       ' · a trip is a drive with a pass or rush snap inside the opponent’s 20, kneel-outs excluded; regular season'));
   }
+  function weekRuns(ws){
+    var runs = [];
+    ws.forEach(function(w){
+      var last = runs[runs.length - 1];
+      if (last && last[1] === w - 1) last[1] = w; else runs.push([w, w]);
+    });
+    return runs;
+  }
+  function weeksFrom(text){
+    var out = {};
+    String(text).split(',').forEach(function(part){
+      var m = /^(\d{1,2})(?:-(\d{1,2}))?$/.exec(part);
+      if (!m) return;
+      var a = Number(m[1]), b = Number(m[2] || m[1]);
+      if (b < a){ var t = a; a = b; b = t; }
+      for (var w = Math.max(1, a); w <= Math.min(WEEKS, b); w++) out[w] = 1;
+    });
+    var ws = Object.keys(out).map(Number).sort(function(x, y){ return x - y; });
+    return (ws.length === 0 || ws.length === WEEKS) ? null : ws;
+  }
   function weekLabel(){
-    if (STATE.wkFrom == null && STATE.wkTo == null) return 'All';
-    var a = STATE.wkFrom == null ? 1 : STATE.wkFrom;
-    var b = STATE.wkTo == null ? WEEKS : STATE.wkTo;
-    return a === b ? 'Week ' + a : 'Weeks ' + a + '–' + b;
+    if (!STATE.weeks) return 'All';
+    var runs = weekRuns(STATE.weeks);
+    if (runs.length > 3) return STATE.weeks.length + ' weeks';
+    return (STATE.weeks.length === 1 ? 'Week ' : 'Weeks ') + runs.map(function(r){
+      return r[0] === r[1] ? String(r[0]) : r[0] + '\u2013' + r[1];
+    }).join(', ');
   }
   function chip(label, value, on, onClick){
     var b = el('button', 'pt-fb');
@@ -604,7 +707,7 @@
       var reset = el('button', 'pt-reset', 'Reset');
       reset.type = 'button';
       reset.addEventListener('click', function(){
-        STATE.wkFrom = null; STATE.wkTo = null;
+        STATE.weeks = null;
         closePop(); buildBar(); render();
       });
       bar.appendChild(reset);
@@ -658,16 +761,12 @@
   function openWeeks(anchor){
     var p = openPop(anchor, 'weeks', 'Weeks');
     if (!p) return;
-    var from = STATE.wkFrom, to = STATE.wkTo, taps = 0;
+    var pick = STATE.weeks ? STATE.weeks.slice() : [];
     var box = el('div', 'pt-opts');
     var chips = [];
     function paint(){
       chips.forEach(function(b, i){
-        var w = i + 1;
-        var end = (w === from) || (w === to);
-        var inside = from != null && to != null && w > from && w < to;
-        b.setAttribute('aria-pressed', end ? 'true' : 'false');
-        b.setAttribute('data-in', inside ? '1' : '0');
+        b.setAttribute('aria-pressed', pick.indexOf(i + 1) > -1 ? 'true' : 'false');
       });
     }
     for (var w = 1; w <= WEEKS; w++){
@@ -675,9 +774,8 @@
         var b = el('button', 'pt-opt', String(w));
         b.type = 'button';
         b.addEventListener('click', function(){
-          if (taps % 2 === 0){ from = w; to = w; }
-          else { if (w < from){ to = from; from = w; } else { to = w; } }
-          taps++;
+          var at = pick.indexOf(w);
+          if (at > -1) pick.splice(at, 1); else pick.push(w);
           paint();
         });
         chips.push(b);
@@ -686,13 +784,13 @@
     }
     paint();
     p.appendChild(box);
-    p.appendChild(el('div', 'pt-pophint', 'Tap a first and a last week.'));
+    p.appendChild(el('div', 'pt-pophint', 'Tap each week to include it. Nothing picked means every week.'));
     popFoot(p, 'All', function(){
-      STATE.wkFrom = null; STATE.wkTo = null;
+      STATE.weeks = null;
       closePop(); buildBar(); render();
     }, function(){
-      if (from === 1 && to === WEEKS){ from = null; to = null; }
-      STATE.wkFrom = from; STATE.wkTo = to;
+      pick.sort(function(a, b){ return a - b; });
+      STATE.weeks = (pick.length === 0 || pick.length === WEEKS) ? null : pick;
       closePop(); buildBar(); render();
     });
     placePop(anchor);
@@ -737,7 +835,7 @@
       if (!t) return;
       if (t === 'defense' || t === 'def') out.mode = 'def';
       else if (t === 'offense' || t === 'off') out.mode = 'off';
-      else if ((m = /^w(\d{1,2})(?:-(\d{1,2}))?$/.exec(t))) { out.wkFrom = Number(m[1]); out.wkTo = Number(m[2] || m[1]); }
+      else if ((m = /^w([\d,-]+)$/.exec(t))) out.weeks = weeksFrom(m[1]);
       else if (/^(19|20)\d\d$/.test(t)) out.season = Number(t);
       else if (NAMES[t.toUpperCase()]) out.team = t.toUpperCase();
     });
@@ -747,19 +845,17 @@
     if (!h) return;
     if (h.mode){ STATE.mode = h.mode; setMode(h.mode); }
     if (h.team) STATE.open = h.team;
-    if (h.wkFrom && h.wkFrom >= 1 && h.wkFrom <= WEEKS){
-      STATE.wkFrom = Math.min(h.wkFrom, h.wkTo); STATE.wkTo = Math.min(WEEKS, Math.max(h.wkFrom, h.wkTo));
-      if (STATE.wkFrom === 1 && STATE.wkTo === WEEKS){ STATE.wkFrom = null; STATE.wkTo = null; }
-    }
+    if (h.weeks) STATE.weeks = h.weeks;
   }
   function writeHash(){
     if (!window.history || !history.replaceState) return;
     var t = [];
     if (STATE.index && STATE.season !== STATE.index.default) t.push(String(STATE.season));
     if (STATE.mode === 'def') t.push('defense');
-    if (STATE.wkFrom != null || STATE.wkTo != null){
-      var a = STATE.wkFrom == null ? 1 : STATE.wkFrom, b = STATE.wkTo == null ? WEEKS : STATE.wkTo;
-      t.push('w' + (a === b ? a : a + '-' + b));
+    if (STATE.weeks){
+      t.push('w' + weekRuns(STATE.weeks).map(function(r){
+        return r[0] === r[1] ? String(r[0]) : r[0] + '-' + r[1];
+      }).join(','));
     }
     if (STATE.open) t.push(STATE.open.toLowerCase());
     try {

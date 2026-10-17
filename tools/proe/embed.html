@@ -57,7 +57,6 @@
 .pt-root.pt-pr .pt-opt{min-height:38px;min-width:44px;padding:0 10px;border:1px solid var(--g1);
   font-size:13px;font-weight:700;background:var(--w)}
 .pt-root.pt-pr .pt-opt[aria-pressed="true"]{background:var(--ink);color:var(--w);border-color:var(--ink)}
-.pt-root.pt-pr .pt-opt[data-in="1"]{background:var(--bg);border-color:var(--ink)}
 .pt-root.pt-pr .pt-pophint{font-size:12px;color:var(--muted);margin-top:6px}
 .pt-root.pt-pr .pt-popfoot{display:flex;gap:6px;margin-top:8px;padding-top:8px;
   border-top:1px solid var(--b2)}
@@ -254,7 +253,7 @@
 
   var STATE = {
     seasons: [], mode: 'off', sort: 'proe', asc: false,
-    wkFrom: null, wkTo: null, qtrs: [], downs: [], open: null,
+    weeks: null, qtrs: [], downs: [], open: null,
     week: null, muSort: 'net', muAsc: false, index: null
   };
 
@@ -276,12 +275,11 @@
     return out.sort();
   }
   function inRange(w){
-    if (STATE.wkFrom != null && w < STATE.wkFrom) return false;
-    if (STATE.wkTo != null && w > STATE.wkTo) return false;
+    if (STATE.weeks && STATE.weeks.indexOf(w) === -1) return false;
     return true;
   }
   function narrowed(){ return STATE.qtrs.length > 0 || STATE.downs.length > 0; }
-  function anyFilter(){ return STATE.wkFrom != null || STATE.wkTo != null || narrowed(); }
+  function anyFilter(){ return STATE.weeks != null || narrowed(); }
   function splitsAvailable(){
     var sets = loaded();
     return sets.length > 0 && sets.every(function(D){ return !!D.twq; });
@@ -438,7 +436,7 @@
     if (!rows.length){
       wrap.innerHTML = '';
       wrap.appendChild(el('div', 'pt-status', narrowed() ? 'No plays match these filters.'
-                                                         : 'No games in this week range.'));
+                                                         : 'No games in these weeks.'));
       paintFoot([]);
       return;
     }
@@ -764,11 +762,33 @@
                                                               : pickLabel(STATE.downs, DOWN_OPTS) + ' down');
     return bits.length ? ' · ' + bits.join(' · ') : '';
   }
+  function weekRuns(ws){
+    var runs = [];
+    ws.forEach(function(w){
+      var last = runs[runs.length - 1];
+      if (last && last[1] === w - 1) last[1] = w; else runs.push([w, w]);
+    });
+    return runs;
+  }
+  function weeksFrom(text){
+    var out = {};
+    String(text).split(',').forEach(function(part){
+      var m = /^(\d{1,2})(?:-(\d{1,2}))?$/.exec(part);
+      if (!m) return;
+      var a = Number(m[1]), b = Number(m[2] || m[1]);
+      if (b < a){ var t = a; a = b; b = t; }
+      for (var w = Math.max(1, a); w <= Math.min(WEEKS, b); w++) out[w] = 1;
+    });
+    var ws = Object.keys(out).map(Number).sort(function(x, y){ return x - y; });
+    return (ws.length === 0 || ws.length === WEEKS) ? null : ws;
+  }
   function weekLabel(){
-    if (STATE.wkFrom == null && STATE.wkTo == null) return 'All';
-    var a = STATE.wkFrom == null ? 1 : STATE.wkFrom;
-    var b = STATE.wkTo == null ? WEEKS : STATE.wkTo;
-    return a === b ? 'Week ' + a : 'Weeks ' + a + '–' + b;
+    if (!STATE.weeks) return 'All';
+    var runs = weekRuns(STATE.weeks);
+    if (runs.length > 3) return STATE.weeks.length + ' weeks';
+    return (STATE.weeks.length === 1 ? 'Week ' : 'Weeks ') + runs.map(function(r){
+      return r[0] === r[1] ? String(r[0]) : r[0] + '\u2013' + r[1];
+    }).join(', ');
   }
 
   function buildBar(){
@@ -809,7 +829,7 @@
 
     var wb = el('button', 'pt-fb');
     wb.type = 'button';
-    wb.setAttribute('data-on', (STATE.wkFrom != null || STATE.wkTo != null) ? '1' : '0');
+    wb.setAttribute('data-on', (STATE.weeks != null) ? '1' : '0');
     wb.appendChild(el('span', 'l', 'Weeks'));
     wb.appendChild(el('span', 'v', weekLabel()));
     wb.addEventListener('click', function(){ openWeeks(wb); });
@@ -831,7 +851,7 @@
       var reset = el('button', 'pt-reset', 'Reset');
       reset.type = 'button';
       reset.addEventListener('click', function(){
-        STATE.wkFrom = null; STATE.wkTo = null; STATE.qtrs = []; STATE.downs = [];
+        STATE.weeks = null; STATE.qtrs = []; STATE.downs = [];
         closePop(); buildBar(); render();
       });
       bar.appendChild(reset);
@@ -934,16 +954,12 @@
     p.innerHTML = '';
     p.setAttribute('data-for', 'weeks');
     p.appendChild(el('div', 'h', 'Weeks'));
-    var from = STATE.wkFrom, to = STATE.wkTo, taps = 0;
+    var pick = STATE.weeks ? STATE.weeks.slice() : [];
     var box = el('div', 'pt-opts');
     var chips = [];
     function paint(){
       chips.forEach(function(b, i){
-        var w = i + 1;
-        var end = (w === from) || (w === to);
-        var inside = from != null && to != null && w > from && w < to;
-        b.setAttribute('aria-pressed', end ? 'true' : 'false');
-        b.setAttribute('data-in', inside ? '1' : '0');
+        b.setAttribute('aria-pressed', pick.indexOf(i + 1) > -1 ? 'true' : 'false');
       });
     }
     for (var w = 1; w <= WEEKS; w++){
@@ -951,9 +967,8 @@
         var b = el('button', 'pt-opt', String(w));
         b.type = 'button';
         b.addEventListener('click', function(){
-          if (taps % 2 === 0){ from = w; to = w; }
-          else { if (w < from){ to = from; from = w; } else { to = w; } }
-          taps++;
+          var at = pick.indexOf(w);
+          if (at > -1) pick.splice(at, 1); else pick.push(w);
           paint();
         });
         chips.push(b);
@@ -962,13 +977,13 @@
     }
     paint();
     p.appendChild(box);
-    p.appendChild(el('div', 'pt-pophint', 'Tap a first and a last week.'));
+    p.appendChild(el('div', 'pt-pophint', 'Tap each week to include it. Nothing picked means every week.'));
     popFoot(p, 'All', function(){
-      STATE.wkFrom = null; STATE.wkTo = null;
+      STATE.weeks = null;
       closePop(); buildBar(); render();
     }, function(){
-      if (from === 1 && to === WEEKS){ from = null; to = null; }
-      STATE.wkFrom = from; STATE.wkTo = to;
+      pick.sort(function(a, b){ return a - b; });
+      STATE.weeks = (pick.length === 0 || pick.length === WEEKS) ? null : pick;
       closePop(); buildBar(); render();
     });
     placePop(anchor);
