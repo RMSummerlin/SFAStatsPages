@@ -880,11 +880,11 @@
     var d = D(), when = '';
     if (d && d.generated_utc){
       var t = new Date(d.generated_utc.replace(' ', 'T') + 'Z');
-      if (!isNaN(t)) when = ' · updated ' + t.toLocaleDateString(undefined, {month:'short', day:'numeric'});
+      if (!isNaN(t)) when = ' · Updated ' + t.toLocaleDateString(undefined, {month:'short', day:'numeric'});
     }
     var sub = $('sub');
     sub.innerHTML = '';
-    sub.appendChild(el('b', null, d ? d.season + ' through week ' + d.latest_played_week : '—'));
+    sub.appendChild(el('b', null, d ? d.season + ' Through Week ' + d.latest_played_week : '—'));
     sub.appendChild(document.createTextNode(when));
   }
   function applySeason(y){
