@@ -74,7 +74,9 @@ for `kneel` also matches DE M. Kneeland, who appears in tackle credits from 2024
 real plays in the 2024 sheet. `PlayDesc` carries player surnames, so any future matcher on
 that column needs the same care. `scripts/test_dead_ball.py` guards the case. A skill-player count of 5 is
 standard and 4 is a six-OL look; anything else is incomplete data rather than a real
-grouping. Special teams never appear — `PlayType` is only ever `PASS` or `RUSH`.
+grouping. Special teams never reach the counts: `PlayType` was only ever `PASS` or
+`RUSH` through 2025, and the kickoff, punt and kick rows the 2026 sheet added are
+dropped at the `PlayType` filter.
 
 Every exclusion is counted in the `excluded` object of the output JSON, so the number is
 visible rather than silent.

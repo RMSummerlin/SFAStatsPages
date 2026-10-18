@@ -218,17 +218,20 @@ Two exclusions:
 but does not count punts, so it runs one high on field goal drives and exactly
 right on punts. The script counts surviving rows instead.
 
-## Special teams are absent
+## Special teams are dropped
 
-`PlayType` only ever holds `PASS` or `RUSH`, so punts, field goals and kickoffs
-have no rows. Consequences:
+Through 2025 `PlayType` only ever held `PASS` or `RUSH`, so punts, field goals
+and kickoffs had no rows. From the 2026 week 6 export they do (`KICKOFF`,
+`PUNT`, `FGA`, `XPA`, `TWOPOINTCONV`), and this pull drops them at its
+`PlayType` filter, so nothing it publishes changed. Consequences, unchanged:
 
 - Plays per game means *offensive scrimmage plays* per game.
 - Drive start field position is available via `DriveStartDist`, but the kickoff
-  or punt that produced it is not.
+  or punt that produced it is not used.
 
-If special teams rows are ever added to the export, plays per drive and time of
-possession get more accurate and drive-level content opens up considerably.
+The rows are there if a future version wants them for plays per drive or
+drive-level content; the box score pull already reads kickoff and punt rows for
+turnovers (`docs/boxscore-data.md`).
 
 ## Columns read
 

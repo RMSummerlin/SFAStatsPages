@@ -48,6 +48,19 @@ provider's export has no offense marker, so a sheet pasted from the wrong
 side would credit every play to the defense and nothing downstream would
 notice. If more than a fifth of the plays that can be checked say the row's
 team is the defense, the pull stops rather than publishing.
+
+Special teams rows. From the 2026 week 6 export the sheet also carries
+kickoffs, punts, field goal and extra point attempts and two-point tries
+(PlayType KICKOFF, PUNT, FGA, XPA, TWOPOINTCONV), each logged twice like
+every other play and each carrying the DriveNumber of the drive it belongs
+to: a kickoff opens the receiving team's drive, a punt or kick ends the
+kicking team's. So they fall into the right cluster by drive number and come
+out of the fold on the copy whose `team` owns that drive, with no special
+handling — except that they must not vote. A punt's "punts 58 yards to DAL
+21" is a spot on the receiving team's side that the formula below reads as
+the offense's own side, so spot_vote() ignores any row whose PlayType is not
+PASS or RUSH. Downstream, every pull drops these rows at its PlayType filter;
+only pull_boxscore.py reads them, for kickoff and punt turnovers.
 """
 
 from __future__ import annotations
@@ -120,6 +133,9 @@ def mirrored_pairs(rows):
 
 def spot_vote(row, home, away):
     """Which team the play description says had the ball, or None."""
+    ptype = _s(row, "PlayType").upper()
+    if ptype and ptype not in ("PASS", "RUSH"):
+        return None                      # a kick's spot is where it landed, not where the offense got to
     desc = row.get("PlayDesc") or ""
     if NO_VOTE_RE.search(desc):
         return None

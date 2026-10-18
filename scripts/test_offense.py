@@ -90,8 +90,20 @@ D7 = [
     play(90, 7, HOME, "(:05) 12-B.Ackup spiked the ball to stop the clock.",
          40, 0, PasserID="hqb2"),
 ]
+# Special teams rows, as the 2026 week 6 export added them: a punt that ends
+# Houston's drive 1 (its spot, "to BUF 21", is on the receiving team's side
+# and would read as a Buffalo offensive play if it were allowed to vote) and
+# the kickoff that opens Buffalo's drive 2, on the receiving team's drive.
+# Neither carries a player id; both must come out on their drive's offense.
+ST = [
+    play(25, 1, HOME, "(13:30) 7-P.Unter punts 54 yards to BUF 21 Center-46-L.Snap. 19-G.Dortch to BUF 30 for 9 yards.",
+         79, 0, PlayType="PUNT", down="4"),
+    play(5, 2, AWAY, "4-K.Icker kicks 65 yards from HST 35 to BUF 0. 19-G.Dortch to BUF 30 for 30 yards.",
+         70, 0, PlayType="KICKOFF", down="0"),
+]
 
-pairs = D1 + D2 + D3 + D4 + D6 + D7
+pairs = D1 + ST[:1] + D2 + D3 + D4 + D6 + D7
+pairs.insert(2, ST[1])        # kickoff sits between the punt and drive 2's first snap
 rows = []
 for o, d in pairs:
     rows += [d, o] if int(o["PlayId"]) % 20 == 0 else [o, d]   # mix the order up
@@ -112,6 +124,8 @@ check("interception drive follows its quarterback", by_id["30"]["team"], AWAY)
 check("incompletion drive follows its quarterback", by_id["50"]["team"], AWAY)
 check("orphan spike placed by alternation", by_id["90"]["team"], HOME)
 check("alternation is reported", "alternation" in note, True)
+check("punt stays on the punting team's drive", by_id["25"]["team"], HOME)
+check("kickoff stays on the receiving team's drive", by_id["5"]["team"], AWAY)
 
 
 # ------------------------------------------------------------- the votes
@@ -143,6 +157,15 @@ check("jersey numbers are not team codes", offense.spot_vote(
 check("provider codes fold before comparing", offense.spot_vote(
     {"PlayDesc": "kneels to ARZ 26 for -1 yards.", "los": "73", "yds": "-1"},
     "ARI", "LAC"), "ARI")
+check("a punt's landing spot does not vote", offense.spot_vote(
+    {"PlayDesc": "(9:08) 30-R.Eckley punts 58 yards to DAL 21 Center-46-N.Moore.",
+     "los": "79", "yds": "0", "PlayType": "PUNT"}, "NO", "DAL"), None)
+check("a kickoff does not vote", offense.spot_vote(
+    {"PlayDesc": "15-K.Fairbairn kicks 57 yards from HST 35 to BUF 35. 19-G.Dortch to BUF 34 for -1 yards.",
+     "los": "65", "yds": "0", "PlayType": "KICKOFF"}, "HOU", "BUF"), None)
+check("a rush still votes when PlayType is present", offense.spot_vote(
+    {"PlayDesc": "4-J.Cook left guard to BUF 43 for 9 yards.", "los": "66", "yds": "9",
+     "PlayType": "RUSH"}, "HOU", "BUF"), "BUF")
 
 
 # ------------------------------------------------- sheets that are not mirrored

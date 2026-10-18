@@ -4,6 +4,10 @@ Regression tests for scripts/pull_boxscore.py. Standard library, no network.
 
 Pins the parts of the box score that are easy to break silently:
   * a turnover is INT, FUMBLE LOST or DEF TD; a recovered fumble is not
+  * a kickoff or punt the receiving team fumbles or muffs to the kicking team
+    is a turnover charged to the receiver, with the sign of its EPA flipped;
+    one it gets back, one replay reverses, and a blocked kick are not, and
+    the special teams rows add nothing to plays, drives or EPA
   * first downs count FIRST DOWN and TD results, and a third down converts
     on either
   * counters whose column exists publish as 0, not as a gap
@@ -67,6 +71,63 @@ def test_turnovers_and_first_downs():
     assert c["third"] == 3 and c["third_conv"] == 2
     assert c["explo"] == 3, "12-yard run, 15-yard pass and 25-yard pass are all explosive"
     print("ok  turnovers, first downs and third downs")
+
+
+def test_special_teams_turnovers():
+    # After offense.offense_rows() a kickoff is on the receiving team's row and
+    # a punt on the punting team's. Descriptions are the 2026 gamebook shapes.
+    rows = [
+        row("AAA", "BBB", 1, "PASS", 0.1, 1, PlayId="1"),
+        row("BBB", "AAA", 1, "RUSH", 0.2, 1, PlayId="2"),
+        # AAA receives, fumbles, BBB recovers: AAA turnover. EPA is the kicker's view.
+        row("AAA", "BBB", 1, "KICKOFF", 4.6, 0, yds=0, PlayId="3", DriveNumber="2",
+            PlayDesc="4-K.Icker kicks 61 yards from BBB 35 to AAA 4. 9-K.Turpin to AAA 28 for 24 yards (29-M.Killebrew). FUMBLES (29-M.Killebrew) RECOVERED by BBB-38-K.Knowles at AAA 37."),
+        # AAA punts, BBB muffs, AAA recovers: BBB turnover, credited to the opponent of the row.
+        row("AAA", "BBB", 1, "PUNT", 5.2, 0, yds=0, PlayId="4", down="4",
+            PlayDesc="(7:07) 19-T.Taylor punts 48 yards to BBB 22 Center-45-B.Gardner. 15-Ji.Horn MUFFS catch RECOVERED by AAA-81-K.Davis at BBB 28."),
+        # Muffed and recovered by the receiving team: not a turnover.
+        row("AAA", "BBB", 1, "PUNT", 1.3, 0, yds=0, PlayId="5", down="4",
+            PlayDesc="(13:34) 19-D.Whelan punts 60 yards to BBB 8. 18-I.Williams MUFFS catch recovered by BBB-37-Q.Stiggers at BBB 2."),
+        # Fumbled and recovered by the returner's own team, no "by": not a turnover.
+        row("BBB", "AAA", 1, "KICKOFF", -0.3, 0, yds=0, PlayId="6",
+            PlayDesc="18-E.Pineiro kicks 62 yards from AAA 35 to BBB 3. 88-J.Whittington to BBB 27 for 24 yards (33-S.Neal). FUMBLES (33-S.Neal) and recovers at BBB 27."),
+        # Fumble recovered by the kicker, then overturned on replay: not a turnover.
+        row("BBB", "AAA", 1, "KICKOFF", -0.6, 0, yds=0, PlayId="7",
+            PlayDesc="8-R.Sanchez kicks 62 yards from AAA 35 to BBB 3. 11-T.Smith to BBB 32 for 29 yards. FUMBLES (55-C.Curry) RECOVERED by AAA-38-J.Owens at BBB 33. The Replay Official reviewed the runner was not down by contact ruling and the play was REVERSED. 8-R.Sanchez kicks 62 yards from AAA 35 to BBB 3. 11-T.Smith to BBB 32 for 29 yards."),
+        # Blocked punt returned for a score: a change of possession, not a turnover.
+        row("BBB", "AAA", 1, "PUNT", -5.6, 0, yds=0, PlayId="8", down="4", PlayResult="DEF TD",
+            PlayDesc="(10:25) 8-R.Sanchez punt is BLOCKED by 36-J.Chestnut RECOVERED by AAA-7-O.Oladejo at BBB 14. 7-O.Oladejo for 14 yards TOUCHDOWN."),
+        # Onside kick the kicking team recovers, on the kicker's own drive: no fumble, no turnover.
+        row("AAA", "BBB", 1, "KICKOFF", -0.4, 0, yds=0, PlayId="9",
+            PlayDesc="14-M.Gay kicks onside 20 yards from AAA 35 to BBB 45. 1-X.Worthy (didn't try to advance) to BBB 45 for no gain."),
+        # Field goals, extra points and two-point tries are dropped outright.
+        row("AAA", "BBB", 1, "FGA", 1.2, 0, yds=0, PlayId="10", PlayDesc="(7:32) 16-T.Bass 46 yard field goal is GOOD"),
+        row("AAA", "BBB", 1, "XPA", 0.1, 0, yds=0, PlayId="11", PlayDesc="16-T.Bass extra point is GOOD"),
+    ]
+    agg, opp_of, _, n, excluded = pb.aggregate(rows, PRESENT)
+    a, b = agg[("AAA", 1)], agg[("BBB", 1)]
+    assert n == 2 and excluded == {"special teams": 9}, (n, excluded)
+    assert a["to"] == 1 and a["fum_lost"] == 1 and a["st_to"] == 1 and a["int"] == 0, dict(a)
+    assert b["to"] == 1 and b["fum_lost"] == 1 and b["st_to"] == 1, dict(b)
+    assert abs(a["to_epa"] + 4.6) < 1e-9 and abs(b["to_epa"] + 5.2) < 1e-9, (a["to_epa"], b["to_epa"])
+    # Nothing else moved: one scrimmage play, one drive, its EPA alone.
+    assert a["plays"] == 1 and a["drives"] == 1 and abs(a["epa"] - 0.1) < 1e-9, dict(a)
+    assert b["plays"] == 1 and b["drives"] == 1 and abs(b["epa"] - 0.2) < 1e-9, dict(b)
+    assert opp_of[("AAA", 1)] == "BBB" and opp_of[("BBB", 1)] == "AAA"
+    # A sheet without kick rows (2021-2025) has no special teams counter at all;
+    # one with them publishes 0 for a team that lost nothing.
+    agg2, _, _, _, _ = pb.aggregate(rows[:2], PRESENT)
+    assert "st_to" not in agg2[("AAA", 1)] and agg2[("AAA", 1)]["to"] == 0
+    rows3 = rows[:2] + [rows[8]]
+    agg3, _, _, _, _ = pb.aggregate(rows3, PRESENT)
+    assert agg3[("AAA", 1)]["st_to"] == 0 and agg3[("BBB", 1)]["st_to"] == 0
+    # The provider's codes fold before comparing, and a kicker recovering on
+    # the receiver's row is read from the description.
+    assert pb.kick_turnover({"PlayDesc": "33-T.Loop kicks 61 yards from BLT 35 to IND 4. 20-S.McGowan to IND 30 for 26 yards. FUMBLES (48-C.Jones) RECOVERED by BLT-48-C.Jones at IND 30."},
+                            "KICKOFF", "IND", "BAL") == "IND"
+    assert pb.kick_turnover({"PlayDesc": "(:41) 12-B.Gillikin punts 46 yards to SF 30. 33-S.Neal MUFFS catch RECOVERED by ARZ-80-S.Fehoko at SF 28."},
+                            "PUNT", "ARI", "SF") == "SF"
+    print("ok  kickoff and punt turnovers charge the receiver and leave every other counter alone")
 
 
 def test_zero_fill():
@@ -177,6 +238,7 @@ def test_meetings():
 
 if __name__ == "__main__":
     test_turnovers_and_first_downs()
+    test_special_teams_turnovers()
     test_zero_fill()
     test_drive_points_and_clock()
     test_game_matching()
