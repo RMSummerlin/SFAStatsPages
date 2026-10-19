@@ -115,6 +115,21 @@ marker, a one-row-per-play sheet is spot-checked the same way, and the pull stop
 the descriptions say the rows are the defense's copy. Full reasoning in the module's
 docstring; regression fixture in `scripts/test_offense.py`.
 
+From the 2026 week 6 export the sheet also carries special teams rows — `PlayType`
+`KICKOFF`, `PUNT`, `FGA`, `XPA` and `TWOPOINTCONV` — logged twice like every other
+play. They need no extra folding: each carries the `DriveNumber` of the drive it
+belongs to (a kickoff opens the receiving team's drive; a punt, kick or try ends the
+kicking team's), so it lands in the right cluster and comes out on that drive's
+offense. The one rule they add is that they do not vote on the yard line, because a
+punt's landing spot reads like an offensive play by the receiving team. Every pull
+then drops them at its `PlayType` filter, so plays, drives, EPA and pass rate are
+unchanged from a pass-and-rush-only sheet (checked: the box score pull produces the
+same 11,010 plays, 1,958 drives and possession seconds from the week 6 export with
+and without the special teams rows). The one consumer is `pull_boxscore.py`, which
+reads kickoff and punt rows for a fumble or muff the kicking team recovered and
+counts it as a turnover, so the Turnovers line agrees with the official box score;
+see [`docs/boxscore-data.md`](docs/boxscore-data.md).
+
 ### What's in `data/`
 
 Not everything under `data/` is generated output, and the three kinds behave very

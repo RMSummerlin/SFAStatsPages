@@ -13,13 +13,21 @@ Outputs (all under data/):
   boxscore_preload.html    crawlable table for the latest played week
   schedule_<season>.json   cached nflverse schedule (shared with the matchup tool)
 
-What a "box score" is here. The sheet carries pass and rush plays only, so this
-is an offensive box score for each team: the official-looking counts (plays,
-yards, first downs, third downs, turnovers, drives, time of possession) plus the
-efficiency numbers the site is known for (EPA, success rate, explosives) and
-the charting fields a normal box score cannot show (pressure, blitz, play
-action, time to throw, coverage, yards before and after contact, personnel).
-Special teams and penalty-only plays are not in the data and are not faked.
+What a "box score" is here. Every count and rate is built from pass and rush
+plays, so this is an offensive box score for each team: the official-looking
+counts (plays, yards, first downs, third downs, turnovers, drives, time of
+possession) plus the efficiency numbers the site is known for (EPA, success
+rate, explosives) and the charting fields a normal box score cannot show
+(pressure, blitz, play action, time to throw, coverage, yards before and after
+contact, personnel). Penalty-only plays are not in the data and are not faked.
+
+Special teams rows (kickoffs, punts, field goals, extra points, two-point
+tries) arrived in the sheet with the 2026 week 6 export. They are read for one
+thing: a fumble or muff on a kickoff or punt that the kicking team recovered is
+a turnover, and without it the Turnovers line disagreed with the official box
+score. Everything else about them is dropped, so plays, drives and EPA stay
+offensive. The 2021-2025 sheets have no such rows, so their turnover counts
+are the offense's alone. See docs/boxscore-data.md.
 
 Everything is published as raw numerators and denominators. The tool divides,
 so the same counters serve the game line, the season-to-date column and the
@@ -85,6 +93,28 @@ CLOCK_RE = re.compile(r"^\s*(\d{1,2})?:?(\d{2})\s*$")
 # lost fumble, or either returned for a score (PlayResult DEF TD). A fumble the
 # offense recovered is PlayResult FUMBLE and is not one.
 GIVEAWAY_RESULTS = {"INT", "FUMBLE LOST", "DEF TD"}
+
+# Special teams rows, from the 2026 week 6 export on. A kickoff sits on the
+# receiving team's drive, so after offense.offense_rows() its `team` is the
+# receiver; a punt sits on the punting team's drive. Neither carries a
+# PlayResult, so a turnover is read from the gamebook text: a FUMBLES or MUFFS
+# whose last "recovered by XXX-" names the kicking team. Replay can erase one,
+# and the gamebook then restates the play after "REVERSED", so only the text
+# after the last reversal counts. Blocked kicks that the defense recovers are
+# changes of possession but not turnovers, as in the official box score, and
+# an onside kick the kicking team recovers is a kick, not a fumble. EPA on
+# these rows is from the kicking team's point of view (long returns negative,
+# fumbles the kicker recovers positive), so the offender gives away -EPA.
+KICK_TYPES = {"KICKOFF", "PUNT"}
+OTHER_SPECIAL_TYPES = {"FGA", "XPA", "TWOPOINTCONV"}
+LOOSE_BALL_RE = re.compile(r"\bFUMBLES\b|\bMUFFS\b")
+RECOVERED_RE = re.compile(r"\b(?:RECOVERED|recovered) by ([A-Z]{2,3})-")
+REVERSED_RE = re.compile(r"\bREVERSED\b")
+KICKER_RE = re.compile(r"\bkicks(?: onside)? -?\d+ yards? from ([A-Z]{2,3}) \d")
+# Pseudo-column: set in `present` once the sheet has shown a kickoff or punt
+# row, so the special teams turnover counter publishes as 0 for a team with
+# none and stays absent for a season whose sheet has no such rows.
+KICK_ROWS = "kickoff and punt rows"
 SCORING_DRIVES = {"Touchdown": 6, "Field Goal": 3}
 
 # The rows of the box score, in display order. Each is a rate (num over den)
@@ -218,6 +248,32 @@ def drive_duration(start_clock, end_clock):
 # ------------------------------------------------------------------- aggregate
 
 
+def kick_turnover(row, ptype, team, opp):
+    """The team that lost the ball on a kickoff or punt row, or None.
+
+    `team` and `opp` are the row's canonical codes after the fold. A loose
+    ball the receiving team got back, or that went out of bounds, is not a
+    turnover; nor is a fumble replay overturned.
+    """
+    desc = row.get("PlayDesc") or ""
+    final = REVERSED_RE.split(desc)[-1]
+    if not LOOSE_BALL_RE.search(final):
+        return None
+    recovered = [config.canonical_team(code) for code in RECOVERED_RE.findall(final)]
+    if not recovered:
+        return None
+    if ptype == "PUNT":
+        kicker = team
+    else:
+        m = KICKER_RE.search(desc)
+        kicker = config.canonical_team(m.group(1)) if m else None
+        if kicker not in (team, opp):
+            kicker = opp          # the usual case: a kickoff opens the receiver's drive
+    if recovered[-1] != kicker:
+        return None
+    return opp if kicker == team else team
+
+
 def aggregate(rows, present, final_scores=None):
     """Per (team, week) counters for every play and drive stat.
 
@@ -225,6 +281,7 @@ def aggregate(rows, present, final_scores=None):
     team's last drive of the game (see drive_points). Returns
     (counters, opp_of, passers, n_used, excluded).
     """
+    present = set(present)
     has = lambda c: c in present  # noqa: E731
     final_scores = final_scores or {}
     agg = defaultdict(lambda: defaultdict(float))
@@ -236,12 +293,29 @@ def aggregate(rows, present, final_scores=None):
 
     for row in rows:
         ptype = (row.get("PlayType") or "").strip().upper()
-        if ptype not in ("PASS", "RUSH"):
-            excluded["not pass or rush"] += 1
-            continue
         team = config.canonical_team(row.get("team"))
         opp = config.canonical_team(row.get("opponent"))
         week = parse_week(row.get("week"))
+        if ptype in KICK_TYPES and team and opp and week is not None:
+            # Read for a turnover and nothing else: the row is still excluded
+            # from every play, drive and EPA count below.
+            present.add(KICK_ROWS)
+            charged = kick_turnover(row, ptype, team, opp)
+            if charged:
+                c = agg[(charged, week)]
+                opp_of.setdefault((charged, week), opp if charged == team else team)
+                c["to"] += 1; c["fum_lost"] += 1; c["st_to"] += 1
+                epa = as_float(row.get("EPA"))
+                if epa is not None:
+                    c["to_epa"] -= epa
+            excluded["special teams"] += 1
+            continue
+        if ptype in OTHER_SPECIAL_TYPES:
+            excluded["special teams"] += 1
+            continue
+        if ptype not in ("PASS", "RUSH"):
+            excluded["not pass or rush"] += 1
+            continue
         if not team or not opp or week is None:
             excluded["missing team or week"] += 1
             continue
@@ -397,6 +471,7 @@ NEEDS = {
     "OffPers": ["p11", "p12", "pers_n"], "Shotgun": ["shotgun", "sg_n"], "Huddle": ["nh", "huddle_n"],
     "DriveNumber": ["drives", "drive_pts"], "DriveStartClock": ["top", "top_n"],
     "DriveStartDist": ["drive_start", "start_n"], "los": ["rz_trips", "rz_td"],
+    KICK_ROWS: ["st_to"],
 }
 
 
@@ -598,7 +673,8 @@ def preload_table(season, W, schedule, games, names):
         f'<table class="pt-pre"><caption>Week {W} NFL box scores for the {season} season: '
         "each offense's plays, yards, first downs, third downs, turnovers, time of possession, "
         "EPA per play, success rate, explosive plays, pressure rate allowed and points per drive. "
-        "Pass and rush plays only; kneels and spikes excluded.</caption>"
+        "Pass and rush plays, kneels and spikes excluded; turnovers also count the "
+        "ball lost on a kickoff or punt return.</caption>"
         '<thead><tr><th scope="col">Team</th><th scope="col">Opponent</th><th scope="col">Result</th>'
         + heads + "</tr></thead><tbody>" + "".join(rows) + "</tbody></table>"
     )
@@ -670,6 +746,10 @@ def build_season(season, rows, present, schedule, today):
             final_scores[(g["away"], g["w"])] = g["as"]
             final_scores[(g["home"], g["w"])] = g["hs"]
     agg, opp_of, passers, n_used, excluded = aggregate(rows, present, final_scores)
+    if excluded.get("special teams"):
+        st_to = sum(c.get("st_to", 0) for c in agg.values())
+        print(f"{season}: {excluded['special teams']:,} special teams rows; "
+              f"{int(st_to)} kickoff or punt turnovers added to the box score, nothing else read from them.")
     games, unmatched = game_lines(agg, opp_of, passers, schedule)
     for note in unmatched:
         print(f"{season}: NOTE {note}; not published")
