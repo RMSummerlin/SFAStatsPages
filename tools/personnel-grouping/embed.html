@@ -312,7 +312,8 @@
     mode:'usage', sort:11, dir:1, open:null
   };
   var DB = {}, META = null;
-  var LIMITS = { distMax:40, marginMin:-45, marginMax:45, weeks:[] };
+  var WEEKS = 18;
+  var LIMITS = { distMax:40, marginMin:-45, marginMax:45 };
   var LAST = null;
 
   function decode(d){
@@ -433,7 +434,6 @@
     BTNS = [];
 
     var first = DB[Array.from(S.seasons)[0]];
-    LIMITS.weeks = (first.weeks && first.weeks.length) ? first.weeks.slice() : [];
     LIMITS.distMax = Math.max(20, first.distMax || 40);
     LIMITS.marginMin = Math.min(-14, first.mMin || -45);
     LIMITS.marginMax = Math.max(14, first.mMax || 45);
@@ -445,7 +445,10 @@
         def.txt = def.dyn.map(String);
       }
       if (def.f === 'weeks'){
-        def.dyn = LIMITS.weeks.slice();
+        // Always the full regular season, whichever seasons are picked:
+        // a week nobody has played yet simply matches no plays.
+        def.dyn = [];
+        for (var w = 1; w <= WEEKS; w++) def.dyn.push(w);
         def.txt = def.dyn.map(String);
       }
       var b = el('button','pt-fb','<span class="l">'+def.l+'</span><span class="v"></span>');
