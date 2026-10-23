@@ -92,6 +92,10 @@
   align-items:center;justify-content:center}
 .pt-root.pt-pg .pt-chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--w)}
 .pt-root.pt-pg .pt-chips.wide .pt-chip{flex:1 0 auto}
+.pt-root.pt-pg .pt-wkrange{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;max-width:330px}
+.pt-root.pt-pg .pt-wksel{flex:1;min-height:44px;padding:0 8px;border:1px solid var(--g1);
+  background:var(--w);font-size:14px;font-weight:700}
+.pt-root.pt-pg .pt-pophint{font-size:12px;color:var(--muted);margin-top:6px;max-width:330px}
 .pt-root.pt-pg .pt-rval{font-size:14px;font-weight:700;margin-top:8px}
 .pt-root.pt-pg .pt-slot{position:relative;height:40px;width:270px;max-width:100%}
 .pt-root.pt-pg .pt-track{position:absolute;top:18px;left:0;right:0;height:4px;background:var(--b2)}
@@ -438,7 +442,7 @@
   /* ---------- filter definitions ---------- */
   var DEFS = [
     {f:'seasons', l:'Season', kind:'chips'},
-    {f:'weeks',   l:'Week',   kind:'chips'},
+    {f:'weeks',   l:'Week',   kind:'weeks'},
     {f:'qtrs',    l:'Quarter',kind:'chips', vals:[1,2,3,4,5], txt:['1','2','3','4','OT']},
     {f:'downs',   l:'Down',   kind:'chips', vals:[1,2,3,4], txt:['1st','2nd','3rd','4th']},
     {f:'play',    l:'Play type', kind:'chips', vals:['drop','run'],
@@ -454,6 +458,17 @@
 
   function summary(def){
     var v = S[def.f];
+    if (def.kind === 'weeks'){
+      // Runs, like the other tools' Weeks chip: "3\u20137", "3\u20134, 6\u20137",
+      // and a count past three runs.
+      if (!v.size) return 'All';
+      var ws = Array.from(v).sort(function(a, b){ return a - b; });
+      var runs = weekRuns(ws);
+      if (runs.length > 3) return ws.length + ' weeks';
+      return (ws.length === 1 ? 'Week ' : 'Weeks ') + runs.map(function(r){
+        return r[0] === r[1] ? String(r[0]) : r[0] + '\u2013' + r[1];
+      }).join(', ');
+    }
     if (def.kind === 'range'){
       if (v[0] === null) return 'Any';
       return def.unit === 'pts' ? sgn(v[0],0)+' to '+sgn(v[1],0) : v[0]+'\u2013'+v[1];
@@ -584,7 +599,8 @@
     });
     head.appendChild(reset);
     p.appendChild(head);
-    p.appendChild(def.kind === 'range' ? rangeBody(def) : chipBody(def));
+    p.appendChild(def.kind === 'range' ? rangeBody(def) :
+                  def.kind === 'weeks' ? weeksBody(def) : chipBody(def));
 
     p.classList.add('open');
     p.style.left = '0px';
@@ -625,6 +641,73 @@
       box.appendChild(b);
     });
     return box;
+  }
+
+  // Picked weeks as runs: [1,2,3,6,9] -> [[1,3],[6,6],[9,9]].
+  function weekRuns(ws){
+    var runs = [];
+    ws.forEach(function(w){
+      var last = runs[runs.length - 1];
+      if (last && last[1] === w - 1) last[1] = w; else runs.push([w, w]);
+    });
+    return runs;
+  }
+
+  // Weeks: a range to start from, then one tap per week to prune it. The two
+  // native selects paint every week between them (From on its own runs to
+  // week 18, To on its own starts at week 1) over the ordinary chip grid, and
+  // each chip still toggles one week, so the game a player missed comes out of
+  // a five-week run with a single tap. Native selects because three quarters
+  // of readers are on a phone, where the system picker beats anything drawn
+  // here. Same picker as the red zone, PROE and pace tools.
+  function weeksBody(def){
+    var wrap = el('div', null, '');
+    var from, to;
+    function sync(){
+      var ws = Array.from(S.weeks).sort(function(a, b){ return a - b; });
+      from.value = ws.length ? String(ws[0]) : '';
+      to.value = ws.length ? String(ws[ws.length - 1]) : '';
+    }
+    function weekSelect(label){
+      var s = document.createElement('select');
+      s.className = 'pt-wksel';
+      s.setAttribute('aria-label', label + ' week');
+      var blank = document.createElement('option');
+      blank.value = '';
+      blank.textContent = label;
+      s.appendChild(blank);
+      for (var w = 1; w <= WEEKS; w++){
+        var o = document.createElement('option');
+        o.value = String(w);
+        o.textContent = String(w);
+        s.appendChild(o);
+      }
+      s.addEventListener('change', function(){
+        var a = Number(from.value) || 1, b = Number(to.value) || WEEKS;
+        if (b < a){ var t = a; a = b; b = t; }
+        S.weeks = new Set();
+        for (var w = a; w <= b; w++) S.weeks.add(w);
+        chips.querySelectorAll('.pt-chip').forEach(function(c, i){
+          c.setAttribute('aria-pressed', S.weeks.has(i + 1) ? 'true' : 'false');
+        });
+        sync(); syncBar(); render();
+      });
+      return s;
+    }
+    var range = el('div', 'pt-wkrange', '');
+    from = weekSelect('From');
+    to = weekSelect('To');
+    range.appendChild(from);
+    range.appendChild(el('span', null, 'to'));
+    range.appendChild(to);
+    wrap.appendChild(range);
+    var chips = chipBody(def);
+    // A chip tap has already toggled the week by the time this runs.
+    chips.addEventListener('click', sync);
+    wrap.appendChild(chips);
+    wrap.appendChild(el('div', 'pt-pophint', 'Pick a range, then tap a week to drop it or add it back. Nothing picked means every week.'));
+    sync();
+    return wrap;
   }
 
   function rangeBody(def){

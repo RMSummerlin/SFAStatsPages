@@ -79,6 +79,9 @@
   font-size:13px;font-weight:700;background:var(--w)}
 .pt-root.pt-pr .pt-opt[aria-pressed="true"]{background:var(--ink);color:var(--w);border-color:var(--ink)}
 .pt-root.pt-pr .pt-pophint{font-size:12px;color:var(--muted);margin-top:6px}
+.pt-root.pt-pr .pt-wkrange{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px}
+.pt-root.pt-pr .pt-wksel{flex:1;min-height:44px;padding:0 8px;border:1px solid var(--g1);
+  background:var(--w);font-size:14px;font-weight:700}
 .pt-root.pt-pr .pt-popfoot{display:flex;gap:6px;margin-top:8px;padding-top:8px;
   border-top:1px solid var(--b2)}
 .pt-root.pt-pr .pt-popfoot button{flex:1;min-height:40px;font-size:12px;font-weight:700;
@@ -1009,12 +1012,12 @@
     p.style.left = Math.max(8, Math.min(left, maxLeft)) + 'px';
     p.style.top = (ab.bottom - rb.top + 4) + 'px';
   }
-  function popFoot(p, clearLabel, onClear, onApply){
+  function popFoot(p, clearLabel, onClear, onApply, applyLabel){
     var foot = el('div', 'pt-popfoot');
     var clear = el('button', null, clearLabel);
     clear.type = 'button';
     clear.addEventListener('click', onClear);
-    var go = el('button', 'go', 'Apply');
+    var go = el('button', 'go', applyLabel || 'Apply');
     go.type = 'button';
     go.addEventListener('click', onApply);
     foot.appendChild(clear);
@@ -1094,8 +1097,13 @@
     placePop(anchor);
   }
 
-  // Weeks: a multi-select. Each tap toggles one week, so a reader can leave
-  // out the games a player missed one at a time rather than cutting a range.
+  // Weeks: a range to start from, then one tap per week to prune it. The two
+  // native selects paint every week between them (From on its own runs to
+  // week 18, To on its own starts at week 1), and each chip toggles one week,
+  // so the game a player missed comes out of a five-week run with a single
+  // tap. Every change applies as it is made; Done only closes the popover.
+  // Native selects because three quarters of readers are on a phone, where
+  // the system picker beats anything drawn here.
   function openWeeks(anchor){
     var p = $('pop');
     if (!p.hidden && p.getAttribute('data-for') === 'weeks'){ closePop(); return; }
@@ -1103,13 +1111,51 @@
     p.setAttribute('data-for', 'weeks');
     p.appendChild(el('div', 'h', 'Weeks'));
     var pick = STATE.weeks ? STATE.weeks.slice() : [];
-    var box = el('div', 'pt-opts');
-    var chips = [];
+    var chips = [], from, to;
+    function apply(){
+      pick.sort(function(a, b){ return a - b; });
+      // Every week picked is the same as none, and the chip should say so.
+      STATE.weeks = (pick.length === 0 || pick.length === WEEKS) ? null : pick.slice();
+      buildBar(); render();
+    }
     function paint(){
       chips.forEach(function(b, i){
         b.setAttribute('aria-pressed', pick.indexOf(i + 1) > -1 ? 'true' : 'false');
       });
+      from.value = pick.length ? String(pick[0]) : '';
+      to.value = pick.length ? String(pick[pick.length - 1]) : '';
     }
+    function weekSelect(label){
+      var s = document.createElement('select');
+      s.className = 'pt-wksel';
+      s.setAttribute('aria-label', label + ' week');
+      var blank = document.createElement('option');
+      blank.value = '';
+      blank.textContent = label;
+      s.appendChild(blank);
+      for (var w = 1; w <= WEEKS; w++){
+        var o = document.createElement('option');
+        o.value = String(w);
+        o.textContent = String(w);
+        s.appendChild(o);
+      }
+      s.addEventListener('change', function(){
+        var a = Number(from.value) || 1, b = Number(to.value) || WEEKS;
+        if (b < a){ var t = a; a = b; b = t; }
+        pick = [];
+        for (var w = a; w <= b; w++) pick.push(w);
+        paint(); apply();
+      });
+      return s;
+    }
+    var range = el('div', 'pt-wkrange');
+    from = weekSelect('From');
+    to = weekSelect('To');
+    range.appendChild(from);
+    range.appendChild(el('span', null, 'to'));
+    range.appendChild(to);
+    p.appendChild(range);
+    var box = el('div', 'pt-opts');
     for (var w = 1; w <= WEEKS; w++){
       (function(w){
         var b = el('button', 'pt-opt', String(w));
@@ -1117,7 +1163,7 @@
         b.addEventListener('click', function(){
           var at = pick.indexOf(w);
           if (at > -1) pick.splice(at, 1); else pick.push(w);
-          paint();
+          paint(); apply();
         });
         chips.push(b);
         box.appendChild(b);
@@ -1125,16 +1171,11 @@
     }
     paint();
     p.appendChild(box);
-    p.appendChild(el('div', 'pt-pophint', 'Tap each week to include it. Nothing picked means every week.'));
+    p.appendChild(el('div', 'pt-pophint', 'Pick a range, then tap a week to drop it or add it back. Nothing picked means every week.'));
     popFoot(p, 'All', function(){
       STATE.weeks = null;
       closePop(); buildBar(); render();
-    }, function(){
-      pick.sort(function(a, b){ return a - b; });
-      // Every week picked is the same as none, and the chip should say so.
-      STATE.weeks = (pick.length === 0 || pick.length === WEEKS) ? null : pick;
-      closePop(); buildBar(); render();
-    });
+    }, closePop, 'Done');
     placePop(anchor);
   }
 
