@@ -69,10 +69,10 @@
   align-items:center;justify-content:center}
 .pt-root.pt-pg .pt-chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--w)}
 .pt-root.pt-pg .pt-chips.wide .pt-chip{flex:1 0 auto}
-.pt-root.pt-pg .pt-wkrange{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;max-width:330px}
-.pt-root.pt-pg .pt-wksel{flex:1;min-height:44px;padding:0 8px;border:1px solid var(--g1);
-  background:var(--w);font-size:14px;font-weight:700}
-.pt-root.pt-pg .pt-pophint{font-size:12px;color:var(--muted);margin-top:6px;max-width:330px}
+.pt-root.pt-pg .pt-wkrange{display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:13px;max-width:330px}
+.pt-root.pt-pg .pt-wksel{flex:0 1 auto;width:auto !important;height:38px !important;min-height:0;margin:0;
+  padding:0 6px !important;border:1px solid var(--g1);border-radius:0 !important;box-shadow:none !important;
+  background:var(--w);font-size:13px;font-weight:700;line-height:normal}
 .pt-root.pt-pg .pt-rval{font-size:14px;font-weight:700;margin-top:8px}
 .pt-root.pt-pg .pt-slot{position:relative;height:40px;width:270px;max-width:100%}
 .pt-root.pt-pg .pt-track{position:absolute;top:18px;left:0;right:0;height:4px;background:var(--b2)}
@@ -596,26 +596,22 @@
     var from, to;
     function sync(){
       var ws = Array.from(S.weeks).sort(function(a, b){ return a - b; });
-      from.value = ws.length ? String(ws[0]) : '';
-      to.value = ws.length ? String(ws[ws.length - 1]) : '';
+      from.value = String(ws.length ? ws[0] : 1);
+      to.value = String(ws.length ? ws[ws.length - 1] : WEEKS);
+      for (var i = 0; i < to.options.length; i++) to.options[i].disabled = i + 1 < Number(from.value);
     }
     function weekSelect(label){
       var s = document.createElement('select');
       s.className = 'pt-wksel';
       s.setAttribute('aria-label', label + ' week');
-      var blank = document.createElement('option');
-      blank.value = '';
-      blank.textContent = label;
-      s.appendChild(blank);
       for (var w = 1; w <= WEEKS; w++){
         var o = document.createElement('option');
         o.value = String(w);
-        o.textContent = String(w);
+        o.textContent = 'Week ' + w;
         s.appendChild(o);
       }
       s.addEventListener('change', function(){
-        var a = Number(from.value) || 1, b = Number(to.value) || WEEKS;
-        if (b < a){ var t = a; a = b; b = t; }
+        var a = Number(from.value), b = Math.max(a, Number(to.value));
         S.weeks = new Set();
         for (var w = a; w <= b; w++) S.weeks.add(w);
         chips.querySelectorAll('.pt-chip').forEach(function(c, i){
@@ -635,7 +631,6 @@
     var chips = chipBody(def);
     chips.addEventListener('click', sync);
     wrap.appendChild(chips);
-    wrap.appendChild(el('div', 'pt-pophint', 'Pick a range, then tap a week to drop it or add it back. Nothing picked means every week.'));
     sync();
     return wrap;
   }
