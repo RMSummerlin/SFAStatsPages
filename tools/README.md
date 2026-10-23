@@ -43,12 +43,12 @@ previewed on the same page without their styles colliding.
 ## The Weeks filter
 
 Five tools (personnel grouping, pace, PROE and both red zone tools) filter by week, and
-all five share one picker so a reader learns it once. The popover opens with a **From**
-and **To** pair of native selects over a grid of 18 week chips. Choosing either end
-paints every week between them (From on its own runs to week 18, To on its own starts
-at week 1), and each chip then toggles one week, so "weeks 3 to 7 without the week 5
-game he missed" is two picks and one tap. Every change applies as it is made; Done
-only closes the popover. Nothing picked, or every week picked, reads as All. The chip
+all five share one picker so a reader learns it once. The popover opens with a pair of
+native selects, reading Week 1 to Week 18 until something is picked, over a grid of 18
+week chips. Choosing either end paints every week between them, the second list starts
+at whatever the first says, and each chip then toggles one week, so "weeks 3 to 7
+without the week 5 game he missed" is two picks and one tap. Every change applies as it
+is made; Done only closes the popover. Nothing picked, or every week picked, reads as All. The chip
 shows the picks as runs (`Weeks 3–4, 6–7`) and falls back to a count past three runs;
 the two red zone tools write the same runs into the hash (`#w3-4,6-7`). The list is
 always the full 18 weeks whichever seasons are pooled, so a prior season's weeks can
