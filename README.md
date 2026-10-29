@@ -138,6 +138,7 @@ differently if one goes missing:
 | File | Kind | If you delete it |
 |---|---|---|
 | `<tool>_<season>.json`, `<tool>_index.json` | output | Rebuilt by the next pull. |
+| `boxscore_q_<season>.json` | output | Rebuilt by the next pull. The box score counters split by quarter, fetched by the tool only when a reader picks a quarter. |
 | `<tool>_preload.html`, `preloads.json` | output | Rebuilt by the next pull, via `preloads.write_manifest()`. |
 | `schedule_<season>.json` | cache of nflverse `games.csv` | Re-fetched next run. It exists so one bad fetch does not take the matchup or box score tool down. |
 | `proe_baseline.json` | cache of each completed season's situation-bucket counts | Rebuilt by the next `pull_proe.py` run, which then re-reads every season's sheet once to refill it. It also refills itself when a season rolls over, since the pool must hold exactly the completed seasons. |

@@ -113,6 +113,39 @@ incremented it: no turnovers is a number. A counter whose column is absent
 (older sheets lack `TTT`, the drive clocks and so on) is left out, and the
 tool shows a dash.
 
+## Quarters
+
+The box score tables can show one quarter (or overtime) instead of the whole
+game. The scoreline, the verdict and the header bars stay full game: the
+control sits between the bars and the tables because that is all it changes.
+
+* Every play adds to a per-quarter counter for its team-game through the same
+  statements that build the game line (`Tally` in the pull), so a quarter's
+  box score is exactly the game's arithmetic applied to that quarter's plays.
+  The quarter counters sum to the game line.
+* **A drive is credited to the quarter it started in.** Drives, points per
+  drive, average start, red zone trips and time of possession all follow the
+  drive, so a drive that crosses the quarter break sits wholly in the earlier
+  quarter and a second-quarter possession clock can exceed 15:00. The tool
+  does not say this; this document does.
+* A kickoff or punt turnover lands in the quarter of its row.
+* Every overtime period folds onto quarter 5, shown as OT. A game with no
+  overtime play by either team shows "No overtime in this game" instead of
+  tables.
+* The season column becomes the team's per-game average for that quarter:
+  the quarter totals carry the team's games played, so a team that never
+  reached overtime has no OT average.
+* The counters live in `boxscore_q_<season>.json`, which the tool fetches the
+  first time a reader picks a quarter and keeps for that season. They are
+  sparse: a counter the quarter never incremented is left out, and the tool
+  reads a missing key as 0 wherever the game line carries the key, so a quarter
+  without a sack reads 0% rather than a dash while a column the sheet lacks
+  stays a dash in every quarter. Five copies of every game line would have
+  tripled the season file, which every reader downloads; the quarter file is
+  about the same size again but only a reader who picks a quarter pays for it.
+* `quarters` in the season file says whether the sheet carried a `qtr`
+  column. Without it the tool shows no control and no quarter file is written.
+
 ## Header bar scales
 
 The difference that fills the whole half-track, set at the 99th percentile of

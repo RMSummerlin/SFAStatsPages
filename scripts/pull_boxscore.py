@@ -9,6 +9,10 @@ Outputs (all under data/):
                            header definitions the tool renders from, and
                            each game's earlier meetings of the same two teams,
                            read from the older season files on disk
+  boxscore_q_<season>.json the same counters split by quarter (1-4, 5 for
+                           overtime) for every game and every team's season,
+                           fetched by the tool only when a reader picks a
+                           quarter; see "Quarters" below
   boxscore_index.json      which seasons exist + which is the default
   boxscore_preload.html    crawlable table for the latest played week
   schedule_<season>.json   cached nflverse schedule (shared with the matchup tool)
@@ -32,6 +36,18 @@ are the offense's alone. See docs/boxscore-data.md.
 Everything is published as raw numerators and denominators. The tool divides,
 so the same counters serve the game line, the season-to-date column and the
 league average without three copies of the arithmetic.
+
+Quarters. Every play also adds to a per-quarter counter for its team-game,
+tallied by the same code as the game line (see Tally), so a quarter's box
+score is the game's arithmetic on a quarter's plays. A drive is credited to
+the quarter it started in: drives, points per drive, average start, red zone
+trips and possession time all follow the drive, so a drive that crosses the
+quarter break sits wholly in the earlier quarter. Overtime is quarter 5. The
+quarter counters are sparse (zeros left out, the tool reads a missing key as 0
+when the game line has it) and go in their own file, because five copies of
+every game line would triple the season file and only a reader who picks a
+quarter needs them. The tables in the tool are the only thing a quarter
+changes; the scoreline and the header bars stay full game.
 
 Standard library only.
 
@@ -75,7 +91,7 @@ OPTIONAL_COLUMNS = [
     "Scramble?", "Sacked", "PFFPrsrAlwd", "Blitz?", "PFFCoverageType", "PlayAct",
     "AirYds", "Att", "Cmp", "TTT", "YdsPreCt", "YdsPostCt", "OffPers", "Shotgun",
     "Huddle", "los", "DriveNumber", "DriveResult", "DriveStartClock", "DriveEndClock",
-    "DriveStartDist", "TeamCurrentScore", "PlayId", "PasserName",
+    "DriveStartDist", "TeamCurrentScore", "PlayId", "PasserName", "qtr",
 ]
 
 DEAD_BALL_RE = pm.DEAD_BALL_RE
@@ -88,6 +104,8 @@ WEEKS = pm.WEEKS
 RED_ZONE = 20              # yards to goal
 QUARTER_SECONDS = 900
 CLOCK_RE = re.compile(r"^\s*(\d{1,2})?:?(\d{2})\s*$")
+OVERTIME = 5               # every overtime period folds onto one "quarter"
+QUARTERS = [1, 2, 3, 4, OVERTIME]
 
 # A turnover is a play the offense ended without the ball: an interception, a
 # lost fumble, or either returned for a score (PlayResult DEF TD). A fumble the
@@ -248,6 +266,39 @@ def drive_duration(start_clock, end_clock):
 # ------------------------------------------------------------------- aggregate
 
 
+class Tally:
+    """One write, several counters.
+
+    `c["plays"] += 1` on a Tally adds 1 to every counter it wraps, so the game
+    line and the quarter line are counted by the same statements rather than
+    by two copies of them that could drift apart. Reads come from the first
+    counter. A None is skipped, so a row without a quarter tallies the game
+    line alone.
+    """
+    __slots__ = ("cs",)
+
+    def __init__(self, *cs):
+        self.cs = [c for c in cs if c is not None]
+
+    def __getitem__(self, k):
+        return self.cs[0][k]
+
+    def __setitem__(self, k, v):
+        delta = v - self.cs[0][k]
+        for c in self.cs:
+            c[k] += delta
+
+
+def quarter_of(row, has):
+    """1-4, or OVERTIME for any period past the fourth; None if unparseable."""
+    if not has("qtr"):
+        return None
+    q = as_int(row.get("qtr"))
+    if q is None or q < 1:
+        return None
+    return min(q, OVERTIME)
+
+
 def kick_turnover(row, ptype, team, opp):
     """The team that lost the ball on a kickoff or punt row, or None.
 
@@ -279,12 +330,14 @@ def aggregate(rows, present, final_scores=None):
 
     final_scores maps (team, week) -> that team's final score, used to price a
     team's last drive of the game (see drive_points). Returns
-    (counters, opp_of, passers, n_used, excluded).
+    (counters, quarter counters, opp_of, passers, n_used, excluded), the
+    quarter counters keyed (team, week, quarter) and left sparse.
     """
     present = set(present)
     has = lambda c: c in present  # noqa: E731
     final_scores = final_scores or {}
     agg = defaultdict(lambda: defaultdict(float))
+    aggq = defaultdict(lambda: defaultdict(float))
     opp_of = {}
     passers = defaultdict(lambda: defaultdict(int))
     drives = {}            # (team, week, drive) -> dict
@@ -296,13 +349,14 @@ def aggregate(rows, present, final_scores=None):
         team = config.canonical_team(row.get("team"))
         opp = config.canonical_team(row.get("opponent"))
         week = parse_week(row.get("week"))
+        qtr = quarter_of(row, has)
         if ptype in KICK_TYPES and team and opp and week is not None:
             # Read for a turnover and nothing else: the row is still excluded
             # from every play, drive and EPA count below.
             present.add(KICK_ROWS)
             charged = kick_turnover(row, ptype, team, opp)
             if charged:
-                c = agg[(charged, week)]
+                c = Tally(agg[(charged, week)], aggq[(charged, week, qtr)] if qtr else None)
                 opp_of.setdefault((charged, week), opp if charged == team else team)
                 c["to"] += 1; c["fum_lost"] += 1; c["st_to"] += 1
                 epa = as_float(row.get("EPA"))
@@ -338,7 +392,11 @@ def aggregate(rows, present, final_scores=None):
                         "score": as_int(row.get("TeamCurrentScore")) if has("TeamCurrentScore") else None,
                         "order": as_int(row.get("PlayId")) if has("PlayId") else None,
                         "rz": False,
+                        "qtr": qtr,
                     }
+                # The drive belongs to the quarter it started in.
+                if qtr is not None and (d["qtr"] is None or qtr < d["qtr"]):
+                    d["qtr"] = qtr
                 if has("los"):
                     los = as_float(row.get("los"))
                     if los is not None and los <= RED_ZONE:
@@ -364,7 +422,7 @@ def aggregate(rows, present, final_scores=None):
         is_pass = ptype == "PASS"
         converted = result in ("FIRST DOWN", "TD")
 
-        c = agg[key]
+        c = Tally(agg[key], aggq[key + (qtr,)] if qtr else None)
         c["plays"] += 1; c["yds"] += yds; c["epa"] += epa; c["succ"] += succ
         if is_pass:
             c["pass_plays"] += 1; c["pass_yds"] += yds
@@ -450,10 +508,10 @@ def aggregate(rows, present, final_scores=None):
             if name:
                 passers[key][name] += 1
 
-    fold_drives(agg, drives, final_scores)
+    fold_drives(agg, aggq, drives, final_scores)
     for c in agg.values():
         zero_fill(c, present)
-    return agg, opp_of, passers, n_used, dict(excluded)
+    return agg, aggq, opp_of, passers, n_used, dict(excluded)
 
 
 # Counters and the sheet column each depends on. A counter whose column is
@@ -511,18 +569,19 @@ def drive_points(ordered, final_score):
     return pts
 
 
-def fold_drives(agg, drives, final_scores):
+def fold_drives(agg, aggq, drives, final_scores):
     by_team = defaultdict(list)
     for (team, week, dno), d in drives.items():
         by_team[(team, week)].append((d["order"] if d["order"] is not None else dno, dno, d))
     for key, lst in by_team.items():
         lst.sort(key=lambda x: (x[0], x[1]))
         ordered = [d for _, _, d in lst]
-        c = agg[key]
-        c["drives"] += len(ordered)
-        for p in drive_points(ordered, final_scores.get(key)):
+        pts = drive_points(ordered, final_scores.get(key))
+        for d, p in zip(ordered, pts):
+            # Every drive stat follows the drive into its starting quarter.
+            c = Tally(agg[key], aggq[key + (d["qtr"],)] if d["qtr"] else None)
+            c["drives"] += 1
             c["drive_pts"] += p
-        for d in ordered:
             if d["seconds"] is not None and 0 <= d["seconds"] <= QUARTER_SECONDS * 4:
                 c["top"] += d["seconds"]; c["top_n"] += 1
             if d["start"] is not None:
@@ -546,6 +605,51 @@ def clean(c):
         elif isinstance(v, float):
             v = round(v, 3)
         out[k] = v
+    return out
+
+
+def sparse(c):
+    """clean() without the zeros. The tool reads a missing quarter counter as
+    0 whenever the game line carries the key, so publishing the zeros would
+    only repeat what the game line already says."""
+    return {k: v for k, v in clean(c).items() if v}
+
+
+def quarter_lines(aggq, games):
+    """Game id -> team -> quarter -> sparse counters, for the quarter file.
+    Only games the season file publishes, so the two files agree."""
+    out = {}
+    for gid, g in games.items():
+        teams = [t for t in g if isinstance(g[t], dict) and t != "qb"]
+        qs = {}
+        for t in teams:
+            per = {}
+            for q in QUARTERS:
+                c = aggq.get((t, g["w"], q))
+                if c:
+                    per[str(q)] = sparse(c)
+            if per:
+                qs[t] = per
+        if qs:
+            out[gid] = qs
+    return out
+
+
+def quarter_totals(qgames, totals):
+    """Team -> quarter -> sparse season counters plus `g`, the team's games
+    played, so the tool's per-game arithmetic gives a per-game quarter
+    average. `g` is the game count from season_totals: a team with no play
+    in overtime still played every game."""
+    tot = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
+    for gid, qs in qgames.items():
+        for t, per in qs.items():
+            for q, c in per.items():
+                for k, v in c.items():
+                    tot[t][q][k] += v
+    out = {}
+    for t, per in tot.items():
+        g = totals.get(t, {}).get("g", 0)
+        out[t] = {q: dict(sparse(c), g=g) for q, c in sorted(per.items(), key=lambda kv: int(kv[0]))}
     return out
 
 
@@ -745,7 +849,7 @@ def build_season(season, rows, present, schedule, today):
         if g["as"] is not None and g["hs"] is not None:
             final_scores[(g["away"], g["w"])] = g["as"]
             final_scores[(g["home"], g["w"])] = g["hs"]
-    agg, opp_of, passers, n_used, excluded = aggregate(rows, present, final_scores)
+    agg, aggq, opp_of, passers, n_used, excluded = aggregate(rows, present, final_scores)
     if excluded.get("special teams"):
         st_to = sum(c.get("st_to", 0) for c in agg.values())
         print(f"{season}: {excluded['special teams']:,} special teams rows; "
@@ -764,11 +868,17 @@ def build_season(season, rows, present, schedule, today):
     missing_cols = [c for c in OPTIONAL_COLUMNS if c not in present]
     if missing_cols:
         print(f"{season}: optional column(s) absent, those stats will show a dash: {', '.join(missing_cols)}")
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    totals = season_totals(games, teams)
+    qgames = quarter_lines(aggq, games) if "qtr" in present else {}
     blob = {
         "season": season, "tool": TOOL,
-        "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+        "generated_utc": stamp,
         "plays": n_used, "excluded": excluded,
         "current_week": cw, "latest_played_week": latest,
+        # True when the sheet carries a quarter column, so the tool offers the
+        # quarter control and fetches boxscore_q_<season>.json on demand.
+        "quarters": "qtr" in present,
         "teams": teams, "names": names,
         "groups": GROUPS,
         "stats": [{k: v for k, v in s.items()} for s in STATS],
@@ -777,11 +887,35 @@ def build_season(season, rows, present, schedule, today):
                    "deep_air": DEEP_AIR, "red_zone": RED_ZONE},
         "schedule": schedule,
         "games": games,
-        "season_totals": season_totals(games, teams),
+        "season_totals": totals,
         "league": league_totals(games),
     }
+    qblob = {
+        "season": season, "tool": TOOL, "generated_utc": stamp,
+        "games": qgames,
+        "season_totals": quarter_totals(qgames, totals),
+    }
     preload = preload_table(season, latest, schedule, games, names) if latest else ""
-    return blob, preload
+    return blob, qblob, preload
+
+
+def write_if_changed(out, blob):
+    """Write a season file unless only its timestamp would change, so a run
+    that found nothing new commits nothing. Returns the blob as written."""
+    stamp = blob.pop("generated_utc")
+    blob = json.loads(json.dumps(blob))
+    unchanged = False
+    if out.exists():
+        try:
+            previous = json.loads(out.read_text(encoding="utf-8"))
+            previous.pop("generated_utc", None)
+            unchanged = previous == blob
+        except (json.JSONDecodeError, OSError):
+            pass
+    blob["generated_utc"] = stamp
+    if not unchanged:
+        pm.write_json(out, blob)
+    return blob, unchanged
 
 
 def main():
@@ -826,26 +960,23 @@ def main():
                   f"The tool keeps whatever was published last.")
             continue
 
-        blob, preload = build_season(season, rows, present, schedule, today)
+        blob, qblob, preload = build_season(season, rows, present, schedule, today)
         blob["meetings"] = meetings(blob, earlier_games(season))
-        out =DATA_DIR / f"{TOOL}_{season}.json"
-        stamp = blob.pop("generated_utc")
-        blob = json.loads(json.dumps(blob))
-        unchanged = False
-        if out.exists():
-            try:
-                previous = json.loads(out.read_text(encoding="utf-8"))
-                previous.pop("generated_utc", None)
-                unchanged = previous == blob
-            except (json.JSONDecodeError, OSError):
-                pass
-        blob["generated_utc"] = stamp
+        out = DATA_DIR / f"{TOOL}_{season}.json"
+        blob, unchanged = write_if_changed(out, blob)
         if unchanged:
             print(f"{season}: no change ({blob['plays']:,} plays, {len(blob['games'])} games)")
         else:
-            pm.write_json(out, blob)
             print(f"{season}: wrote {out.name}: {blob['plays']:,} plays, {len(blob['games'])} games, "
                   f"latest played week {blob['latest_played_week']}, current week {blob['current_week']}")
+        qout = DATA_DIR / f"{TOOL}_q_{season}.json"
+        if blob["quarters"]:
+            qblob, qunchanged = write_if_changed(qout, qblob)
+            if not qunchanged:
+                print(f"{season}: wrote {qout.name}: quarter lines for {len(qblob['games'])} games")
+        elif qout.exists():
+            qout.unlink()
+            print(f"{season}: no quarter column; removed {qout.name}")
         if preload:
             built.append((season, preload))
 

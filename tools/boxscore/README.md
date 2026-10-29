@@ -4,7 +4,9 @@ One played game at a time: the scoreline, seven diverging bars showing which
 team was better in each category and by how much, and an offensive box score
 underneath in four groups (box score, efficiency, passing, rushing and
 tendencies) with each team's season average alongside once it has more than
-one game. Under the date line, up to three previous meetings of the same two
+one game. A segmented control between the bars and the tables shows one
+quarter, or overtime, instead of the whole game; it changes only the tables,
+and the season column becomes the per-game average for that quarter. Under the date line, up to three previous meetings of the same two
 teams (2021 on), each opening that game. Season select, week stepper and a
 game picker that doubles as the slate view: each game with its category count
 large and seven small swatches for who took which category. Opens on the newest season's latest played week.
@@ -26,6 +28,7 @@ Base URL `https://rmsummerlin.github.io/SFAStatsPages/data/`
 |---|---|
 | `boxscore_index.json` | on load: which seasons exist, which is default |
 | `boxscore_<season>.json` | on load for the default season, then on demand as a season is picked; cached after the first fetch. Schedule, every played game's counters, season totals, stat and header definitions |
+| `boxscore_q_<season>.json` | the first time a quarter is picked for a season; cached after that. The same counters per quarter (1 to 4, 5 for overtime) for every game and every team's season, sparse |
 
 Both written by `scripts/pull_boxscore.py`, which also needs the nflverse
 schedule (shared with the matchup tool).
@@ -67,6 +70,11 @@ schedule (shared with the matchup tool).
   swatch tooltips.
 * Stat rows, groups and header categories come from the data file, so adding
   a stat is a pull edit. The tool only knows how to format each `kind`.
+* The quarter control appears only when the season file says `quarters` is
+  true. The pick is kept across games and seasons, so stepping through a
+  week shows the same quarter of each game, and it is not in the hash. If
+  the quarter file fails to fetch the tables say so and the Game cell still
+  works.
 
 ## Things that look like bugs but are not
 
@@ -77,5 +85,7 @@ schedule (shared with the matchup tool).
 * **A game the sheet has but the schedule lacks, or where the two disagree on
   the opponent, does not appear.** The pull prints a NOTE naming it.
 * **No season column in week 1.** See the docs.
+* **A quarter's drives, possession time or points per drive look too big.**
+  A drive is credited to the quarter it started in, whole. See the docs.
 * **The verdict says the loser was better in more categories.** That is the
   point of the header.

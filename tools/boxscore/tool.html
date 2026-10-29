@@ -157,7 +157,18 @@
    two-column comparison is far easier to track across on a stripe, and the
    height meets the touch floor. */
 .pt-root.pt-bx .pt-groups{margin-top:14px}
+/* Quarter control. Segmented, and it sits between the bars and the tables
+   because it changes only the tables: the scoreline and the bars stay full
+   game. Six equal cells, so Game through OT fit one phone row at 44px tall,
+   and the chosen cell takes the masthead colour rather than red, which the
+   masthead and the FINAL flag already spend. */
+.pt-root.pt-bx .pt-qtr{display:flex;margin:0 0 10px;border:1px solid var(--g1);border-radius:4px;overflow:hidden;background:var(--w)}
+.pt-root.pt-bx .pt-qbtn{flex:1 1 0;min-width:0;min-height:44px;font-size:13px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--muted);border-left:1px solid var(--b1)}
+.pt-root.pt-bx .pt-qbtn:first-child{border-left:0}
+.pt-root.pt-bx .pt-qbtn.on{background:var(--head);color:var(--w)}
 .pt-root.pt-bx .pt-legend{font-size:12px;color:var(--muted);text-align:center;margin:0 0 8px;line-height:1.35}
+.pt-root.pt-bx .pt-groups .pt-status{padding:18px 14px}
 .pt-root.pt-bx .pt-box{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:12px}
 .pt-root.pt-bx .pt-box th,.pt-root.pt-bx .pt-box td{padding:5px 6px;border-bottom:1px solid var(--b2);text-align:center;color:var(--ink);font:inherit}
 /* On the live site's phone layout the theme drew a heavy box round every cell
@@ -253,7 +264,10 @@
   .pt-root.pt-bx .pt-brow .o,.pt-root.pt-bx .pt-brow .d{width:60px}
   .pt-root.pt-bx .pt-cols .o,.pt-root.pt-bx .pt-cols .d{width:60px}
   .pt-root.pt-bx .pt-groups{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;align-items:start}
-  .pt-root.pt-bx .pt-legend{grid-column:1 / -1}
+  .pt-root.pt-bx .pt-legend,.pt-root.pt-bx .pt-groups .pt-status{grid-column:1 / -1}
+  /* width rather than max-width: a grid item with auto margins shrink-wraps. */
+  .pt-root.pt-bx .pt-qtr{grid-column:1 / -1;width:420px;max-width:100%;margin:0 auto 10px}
+  .pt-root.pt-bx .pt-qbtn{min-height:38px}
   .pt-root.pt-bx .pt-box td.n{width:84px}
   .pt-root.pt-bx .pt-box th.gh .gt i{width:84px}
   /* At desktop widths the sheet sits in the middle of the viewport as a dialog
@@ -450,9 +464,17 @@
 
   var IX = null;                // boxscore_index.json
   var SEASONS = {};             // season -> boxscore_<season>.json, fetched on demand
+  // season -> boxscore_q_<season>.json, fetched the first time a quarter is
+  // picked for that season and kept; false once a fetch has failed, so the
+  // tool does not retry on every render.
+  var QUARTERS = {};
   var D = null;                 // the season currently shown
   var STAT = {};                // key -> stat definition, from D.stats
-  var STATE = { season: null, week: 1, game: null };
+  // qtr 0 is the full game; 1-4 a quarter; 5 overtime. It changes only the
+  // box score tables, and it is kept across games and seasons so a reader
+  // stepping through a week's games sees the same quarter of each.
+  var STATE = { season: null, week: 1, game: null, qtr: 0 };
+  var QTR_LABELS = ['Game', 'Q1', 'Q2', 'Q3', 'Q4', 'OT'];
 
   // ---- stats -----------------------------------------------------------------
 
@@ -582,23 +604,101 @@
     cats.forEach(function(c){ bars.appendChild(barRow(g, c, C)); });
     card.appendChild(bars);
 
-    // Box score tables.
+    // Box score tables, for the full game or for the quarter picked.
     var groups = el('div', 'pt-groups');
-    var sa = D.season_totals[g.away] || {}, sh = D.season_totals[g.home] || {};
-    var withSeason = (sa.g || 0) >= SEASON_MIN_GAMES || (sh.g || 0) >= SEASON_MIN_GAMES;
-    var legend = el('div', 'pt-legend');
-    legend.textContent = withSeason
-      ? 'Large figure is this game; the small one underneath is the team\u2019s per-game average this season. The better figure is bold.'
-      : 'The better figure is bold. Season averages appear once a team has played more than one game.';
-    groups.appendChild(legend);
-    D.groups.forEach(function(grp){
-      groups.appendChild(groupTable(g, grp, L, C, withSeason));
-    });
+    if (D.quarters) groups.appendChild(quarterBar());
+    var V = quarterView(g, L);
+    if (V.loading){
+      groups.appendChild(el('div', 'pt-status', 'Loading ' + QTR_LABELS[STATE.qtr] + '\u2026'));
+    } else if (V.failed){
+      groups.appendChild(el('div', 'pt-status', 'Couldn\u2019t load the quarter figures. Reload the page to try again.'));
+    } else if (V.empty){
+      groups.appendChild(el('div', 'pt-status', 'No overtime in this game.'));
+    } else {
+      var withSeason = (V.sa.g || 0) >= SEASON_MIN_GAMES || (V.sh.g || 0) >= SEASON_MIN_GAMES;
+      var what = STATE.qtr ? (STATE.qtr === 5 ? 'overtime' : QTR_LABELS[STATE.qtr]) : null;
+      var legend = el('div', 'pt-legend');
+      legend.textContent = withSeason
+        ? 'Large figure is ' + (what ? what + ' of this game' : 'this game') + '; the small one underneath is the team\u2019s per-game ' +
+          (what ? what + ' ' : '') + 'average this season. The better figure is bold.'
+        : 'The better figure is bold. Season averages appear once a team has played more than one game.';
+      groups.appendChild(legend);
+      D.groups.forEach(function(grp){
+        groups.appendChild(groupTable(g, grp, V, C, withSeason));
+      });
+    }
     card.appendChild(groups);
 
     wrap.appendChild(card);
     hideServerPreload();
     paintPick(g);
+  }
+
+  // ---- quarters ----------------------------------------------------------------
+
+  function quarterBar(){
+    var bar = el('div', 'pt-qtr');
+    bar.setAttribute('role', 'group');
+    bar.setAttribute('aria-label', 'Quarter');
+    QTR_LABELS.forEach(function(label, q){
+      var b = el('button', 'pt-qbtn' + (q === STATE.qtr ? ' on' : ''), label);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', q === STATE.qtr ? 'true' : 'false');
+      b.addEventListener('click', function(){ setQuarter(q); });
+      bar.appendChild(b);
+    });
+    return bar;
+  }
+  function setQuarter(q){
+    if (q === STATE.qtr) return;
+    STATE.qtr = q;
+    render();
+    // render() rebuilt the bar, so put focus back on the cell that was tapped.
+    var on = ROOT.querySelector('.pt-qbtn.on');
+    if (on) on.focus({ preventScroll:true });
+  }
+  function loadQuarters(season){
+    if (QUARTERS[season] !== undefined) return;
+    QUARTERS[season] = null;             // in flight
+    get(BASE + 'boxscore_q_' + season + '.json').then(function(blob){
+      QUARTERS[season] = blob;
+    }, function(err){
+      QUARTERS[season] = false;
+      if (window.console) console.error('[boxscore]', err);
+    }).then(function(){
+      if (D && D.season === season && STATE.qtr) render();
+    });
+  }
+  // The quarter file is sparse: a counter the quarter never incremented is
+  // left out. A missing key is read as 0 wherever the game line carries the
+  // key, so a quarter with no sack still says 0% rather than a dash, and a
+  // column the sheet lacks stays a dash in every quarter too.
+  function fromSparse(full, q){
+    if (!full) return null;
+    var out = {};
+    for (var k in full){
+      if (Object.prototype.hasOwnProperty.call(full, k)) out[k] = q && q[k] != null ? q[k] : 0;
+    }
+    return out;
+  }
+  // The counters the tables render from: the game line and season totals, or
+  // the chosen quarter's slice of each. Per-game season arithmetic keeps
+  // working because the quarter totals carry the team's games played.
+  function quarterView(g, L){
+    var full = { away: L[g.away], home: L[g.home],
+                 sa: D.season_totals[g.away] || {}, sh: D.season_totals[g.home] || {} };
+    if (!STATE.qtr || !D.quarters) return full;
+    var Q = QUARTERS[D.season];
+    if (Q === undefined || Q === null){ loadQuarters(D.season); return { loading:true }; }
+    if (Q === false) return { failed:true };
+    var q = String(STATE.qtr);
+    var gl = (Q.games || {})[g.id] || {};
+    var qa = (gl[g.away] || {})[q], qh = (gl[g.home] || {})[q];
+    if (!qa && !qh) return { empty:true };
+    var st = Q.season_totals || {};
+    return { away: fromSparse(full.away, qa), home: fromSparse(full.home, qh),
+             sa: fromSparse(full.sa, (st[g.away] || {})[q]) || {},
+             sh: fromSparse(full.sh, (st[g.home] || {})[q]) || {} };
   }
 
   function teamBlock(g, team, pts, oppPts, L, color){
@@ -706,7 +806,7 @@
     return row;
   }
 
-  function groupTable(g, grp, L, C, withSeason){
+  function groupTable(g, grp, V, C, withSeason){
     var t = el('table', 'pt-box');
     var thead = el('thead'), tr = el('tr');
     var th = el('th', 'gh');
@@ -724,17 +824,16 @@
     thead.appendChild(tr);
     t.appendChild(thead);
     var tb = el('tbody');
-    var sa = D.season_totals[g.away], sh = D.season_totals[g.home];
     D.stats.forEach(function(s){
       if (s.group !== grp.key) return;
       var r = el('tr');
       var lab = el('th', 'lab', s.label);
       lab.setAttribute('scope', 'row');
       r.appendChild(lab);
-      var va = value(s, L[g.away]), vh = value(s, L[g.home]);
+      var va = value(s, V.away), vh = value(s, V.home);
       var side = better(s, va, vh);
-      r.appendChild(cell(s, L[g.away], va, side > 0 ? 'best' : side === 0 && va != null ? 'same' : '', withSeason ? sa : null));
-      r.appendChild(cell(s, L[g.home], vh, side < 0 ? 'best' : side === 0 && vh != null ? 'same' : '', withSeason ? sh : null));
+      r.appendChild(cell(s, V.away, va, side > 0 ? 'best' : side === 0 && va != null ? 'same' : '', withSeason ? V.sa : null));
+      r.appendChild(cell(s, V.home, vh, side < 0 ? 'best' : side === 0 && vh != null ? 'same' : '', withSeason ? V.sh : null));
       tb.appendChild(r);
     });
     t.appendChild(tb);
