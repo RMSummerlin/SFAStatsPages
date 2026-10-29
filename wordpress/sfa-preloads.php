@@ -236,7 +236,8 @@ function sfa_preload_styles() {
 		. '.sfa-preload table thead tr th{background:#f4f5f7!important;font-weight:700!important;'
 		. 'text-align:center!important;border-bottom:2px solid #111!important}'
 		. '.sfa-preload table tbody tr th[scope=row]{text-align:left!important;font-weight:700!important}'
-		. '.sfa-preload table tr th:first-child{position:sticky!important;left:0!important;z-index:1!important}'
+		. '.sfa-preload table tr th:first-child{position:sticky!important;left:0!important;z-index:1!important;'
+		. 'box-shadow:1px 0 0 #dde2e8!important}'
 		. '.sfa-preload table tbody tr:nth-child(even) th,.sfa-preload table tbody tr:nth-child(even) td{'
 		. 'background:#f6f6f6!important}'
 		. '</style>';
