@@ -49,6 +49,7 @@ SFAStatsPages/
 │   ├── proe-data.md                ← data decisions and validation behind the pass rate over expected tool
 │   ├── redzone-data.md             ← data decisions behind the two red zone tools (player usage, team efficiency)
 │   ├── redzone-talking-points.md   ← page copy notes for the two red zone articles
+│   ├── firsttd-data.md             ← data decisions behind the two first touchdown tables
 │   ├── matchup-talking-points.md   ← page copy and method explanations for the matchup article
 │   └── metric-definitions.md       ← the wording every tool shares for success rate, EPA and explosives
 ├── data/                           ← served via Pages: generated JSON and preload tables,
@@ -63,6 +64,7 @@ SFAStatsPages/
 │   ├── pull_boxscore.py            ← pull + transform (auto-run by the workflow)
 │   ├── pull_proe.py                ← pull + transform (auto-run by the workflow)
 │   ├── pull_redzone.py             ← pull + transform, writes both red zone tools' files (auto-run by the workflow)
+│   ├── pull_firsttd.py             ← pull + transform, writes the two first touchdown tables (auto-run by the workflow)
 │   ├── offseason_changes.py        ← drafts data/offseason_changes_<season>.json once a year (never on the schedule)
 │   ├── derive_success_rule.py      ← re-derives the sheet's success flag from an export (never on the schedule)
 │   ├── test_pace.py                ← regression tests (auto-run by the workflow)
@@ -74,6 +76,7 @@ SFAStatsPages/
 │   ├── test_boxscore.py            ← regression tests (auto-run by the workflow)
 │   ├── test_proe.py                ← regression tests (auto-run by the workflow)
 │   ├── test_redzone.py             ← regression tests (auto-run by the workflow)
+│   ├── test_firsttd.py             ← regression tests (auto-run by the workflow)
 │   ├── lint_embed.py               ← checks a fragment against the embed rules
 │   ├── build_embed.py              ← strips the dev notes to produce embed.html
 │   └── preloads.py                 ← folds each tool's preload table into preloads.json
@@ -138,6 +141,7 @@ differently if one goes missing:
 | File | Kind | If you delete it |
 |---|---|---|
 | `<tool>_<season>.json`, `<tool>_index.json` | output | Rebuilt by the next pull. |
+| `boxscore_q_<season>.json` | output | Rebuilt by the next pull. The box score counters split by quarter, fetched by the tool only when a reader picks a quarter. |
 | `<tool>_preload.html`, `preloads.json` | output | Rebuilt by the next pull, via `preloads.write_manifest()`. |
 | `schedule_<season>.json` | cache of nflverse `games.csv` | Re-fetched next run. It exists so one bad fetch does not take the matchup or box score tool down. |
 | `proe_baseline.json` | cache of each completed season's situation-bucket counts | Rebuilt by the next `pull_proe.py` run, which then re-reads every season's sheet once to refill it. It also refills itself when a season rolls over, since the pool must hold exactly the completed seasons. |
@@ -199,6 +203,7 @@ python scripts/pull_matchup.py
 python scripts/pull_boxscore.py
 python scripts/pull_proe.py
 python scripts/pull_redzone.py               # writes both red zone tools' files
+python scripts/pull_firsttd.py               # writes the two first touchdown tables (current season only)
 
 # --- or from a downloaded CSV export, without touching the sheet ---
 python scripts/pull_personnel_grouping.py --csv ~/Downloads/export.csv --season 2025
@@ -209,6 +214,7 @@ python scripts/pull_boxscore.py --csv cur.csv --season 2026 --schedule data/sche
 python scripts/pull_proe.py --csv cur.csv --season 2026 --out /tmp/proe   # against data/proe_baseline.json if present
 python scripts/pull_proe.py --csv-dir exports/ --out /tmp/proe            # <dir>/<season>.csv, rebuilds the baseline too
 python scripts/pull_redzone.py --csv cur.csv --season 2026 --out /tmp/rz   # player and team files, no network at all
+python scripts/pull_firsttd.py --csv cur.csv --season 2026                 # no network at all
 
 # every season in config.py rather than just the current one
 python scripts/pull_pace.py --all
@@ -222,6 +228,7 @@ python scripts/test_matchup.py
 python scripts/test_boxscore.py
 python scripts/test_proe.py
 python scripts/test_redzone.py
+python scripts/test_firsttd.py
 
 # --- embeds ---
 python scripts/build_embed.py            # regenerate every embed.html from its tool.html
@@ -269,12 +276,17 @@ Five tools shipped:
   that runs around it in
   [`docs/matchup-talking-points.md`](docs/matchup-talking-points.md).
 - **`tools/boxscore/`** — one played game at a time: the scoreline, seven diverging bars
-  and an offensive box score with season averages. Data decisions in
-  [`docs/boxscore-data.md`](docs/boxscore-data.md).
+  and an offensive box score with season averages, by full game or by quarter. Data
+  decisions in [`docs/boxscore-data.md`](docs/boxscore-data.md).
 - **`tools/proe/`** — pass rate over expected for every offense and defense, with a
   last-four column, a week filter, pooled seasons, an 18-week chart per team and a
   matchups tab. Bucket definitions and the check against nflfastR in
   [`docs/proe-data.md`](docs/proe-data.md).
+
+Two tables with no tool over them, for the first and anytime touchdown article:
+`scripts/pull_firsttd.py` writes a team table (first touchdown rate) and a player table
+(first touchdown scorers) that reach the article through two shortcodes in
+`wordpress/sfa-preloads.php`. Data decisions in [`docs/firsttd-data.md`](docs/firsttd-data.md).
 
 The pace tool only offers seasons whose sheet carries the `TimeSinceSnap` column. Run the
 workflow with **Rebuild every season** ticked and read the log to find out which those are:

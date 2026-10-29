@@ -13,6 +13,8 @@
  *   [sharp_football_proe]        pass rate over expected, offense and defense, latest season
  *   [sharp_football_redzone]     red zone targets and carries by player, latest season
  *   [sharp_football_redzone_team] red zone offense and defense efficiency, latest season
+ *   [sharp_football_firsttd_team]   first touchdown rate by team, current season
+ *   [sharp_football_firsttd_player] first touchdown scorers, current season
  *
  * Paste this file into Code Snippets as a PHP (Functions) snippet, scope "Run
  * everywhere", omitting the opening PHP tag on line 1. Code Snippets supplies it.
@@ -304,6 +306,22 @@ function sfa_preload_redzone_team_shortcode() {
 	return sfa_preload_render( 'redzone_team' );
 }
 add_shortcode( 'sharp_football_redzone_team', 'sfa_preload_redzone_team_shortcode' );
+
+/*
+ * The first and anytime touchdown article: two tables, one pull, no
+ * interactive tool. Each shortcode goes in its own Text Block, so the article
+ * carries both without needing two code blocks. Nothing hides them, so they
+ * are the tables readers see, not just crawlers.
+ */
+function sfa_preload_firsttd_team_shortcode() {
+	return sfa_preload_render( 'firsttd_team' );
+}
+add_shortcode( 'sharp_football_firsttd_team', 'sfa_preload_firsttd_team_shortcode' );
+
+function sfa_preload_firsttd_player_shortcode() {
+	return sfa_preload_render( 'firsttd_player' );
+}
+add_shortcode( 'sharp_football_firsttd_player', 'sfa_preload_firsttd_player_shortcode' );
 
 /**
  * Keep only the rows of one game (row class g-<away>-<home>) in a table that

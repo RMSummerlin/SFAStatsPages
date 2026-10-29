@@ -22,9 +22,15 @@ It registers one shortcode per tool:
 | `[sharp_football_boxscore]` | Box scores — every game of the latest played week, two rows per game |
 | `[sharp_football_redzone]` | Red zone targets and carries — top 50 players by opportunities, then the top 20 by carries inside the 5 |
 | `[sharp_football_redzone_team]` | Red zone team stats — every offense, then every defense |
+| `[sharp_football_firsttd_team]` | First touchdown rate by team — all 32, ranked by how often they scored a game's first touchdown |
+| `[sharp_football_firsttd_player]` | First touchdown scorers — every player with a game's first touchdown, ranked by how many |
 
 Put the shortcode in an Avada **Text Block**, not a Code Block. Code Blocks output
 their contents raw and never run `do_shortcode`.
+
+The two first touchdown shortcodes have no interactive tool over them: they are the
+tables the reader sees. Put each in its own Text Block, with the article copy
+between them if wanted. They refresh on the same weekly schedule as the rest.
 
 `[sharp_football_matchup]` and `[sharp_football_boxscore]` take an attribute. A
 single-game preview or recap article can keep just its own two rows with

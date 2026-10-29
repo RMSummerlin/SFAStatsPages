@@ -19,6 +19,9 @@ Pins the parts of the box score that are easy to break silently:
     the schedule has the game
   * the better side of a stat is decided by hi_good, and the preload table
     carries one row per team-game with its game class
+  * the quarter counters are the game line's arithmetic on a quarter's plays,
+    a drive follows its starting quarter, overtime folds onto quarter 5, and
+    the quarter file is sparse with the game count carried for averages
 """
 
 from __future__ import annotations
@@ -40,7 +43,7 @@ def row(team, opp, week, ptype, epa, succ, yds=3, **extra):
          "TTT": "2.5s", "YdsPreCt": "1", "YdsPostCt": "2", "OffPers": "11", "Shotgun": "Yes",
          "Huddle": "Huddle", "los": "60", "DriveNumber": "1", "DriveResult": "Punt",
          "DriveStartClock": "15:00", "DriveEndClock": "12:00", "DriveStartDist": "70",
-         "TeamCurrentScore": "0", "PlayId": "1", "PasserName": "QB " + team}
+         "TeamCurrentScore": "0", "PlayId": "1", "PasserName": "QB " + team, "qtr": "1"}
     r.update(extra)
     return r
 
@@ -62,7 +65,7 @@ def test_turnovers_and_first_downs():
         row("AAA", "BBB", 1, "RUSH", -0.5, 0, yds=2, down="3", dist="7", PlayId="7"),
         row("AAA", "BBB", 1, "RUSH", -1.0, 0, yds=-1, PlayDesc="QB kneels", PlayId="8"),
     ]
-    agg, _, _, n, excluded = pb.aggregate(rows, PRESENT)
+    agg, _, _, _, n, excluded = pb.aggregate(rows, PRESENT)
     c = agg[("AAA", 1)]
     assert n == 7 and excluded == {"kneel or spike": 1}, (n, excluded)
     assert c["to"] == 3 and c["int"] == 2 and c["fum_lost"] == 1, dict(c)
@@ -104,7 +107,7 @@ def test_special_teams_turnovers():
         row("AAA", "BBB", 1, "FGA", 1.2, 0, yds=0, PlayId="10", PlayDesc="(7:32) 16-T.Bass 46 yard field goal is GOOD"),
         row("AAA", "BBB", 1, "XPA", 0.1, 0, yds=0, PlayId="11", PlayDesc="16-T.Bass extra point is GOOD"),
     ]
-    agg, opp_of, _, n, excluded = pb.aggregate(rows, PRESENT)
+    agg, _, opp_of, _, n, excluded = pb.aggregate(rows, PRESENT)
     a, b = agg[("AAA", 1)], agg[("BBB", 1)]
     assert n == 2 and excluded == {"special teams": 9}, (n, excluded)
     assert a["to"] == 1 and a["fum_lost"] == 1 and a["st_to"] == 1 and a["int"] == 0, dict(a)
@@ -116,10 +119,10 @@ def test_special_teams_turnovers():
     assert opp_of[("AAA", 1)] == "BBB" and opp_of[("BBB", 1)] == "AAA"
     # A sheet without kick rows (2021-2025) has no special teams counter at all;
     # one with them publishes 0 for a team that lost nothing.
-    agg2, _, _, _, _ = pb.aggregate(rows[:2], PRESENT)
+    agg2, _, _, _, _, _ = pb.aggregate(rows[:2], PRESENT)
     assert "st_to" not in agg2[("AAA", 1)] and agg2[("AAA", 1)]["to"] == 0
     rows3 = rows[:2] + [rows[8]]
-    agg3, _, _, _, _ = pb.aggregate(rows3, PRESENT)
+    agg3, _, _, _, _, _ = pb.aggregate(rows3, PRESENT)
     assert agg3[("AAA", 1)]["st_to"] == 0 and agg3[("BBB", 1)]["st_to"] == 0
     # The provider's codes fold before comparing, and a kicker recovering on
     # the receiver's row is read from the description.
@@ -132,12 +135,12 @@ def test_special_teams_turnovers():
 
 def test_zero_fill():
     rows = [row("AAA", "BBB", 1, "PASS", 0.1, 1)]
-    agg, _, _, _, _ = pb.aggregate(rows, PRESENT)
+    agg, _, _, _, _, _ = pb.aggregate(rows, PRESENT)
     c = agg[("AAA", 1)]
     for k in ("to", "to_epa", "sack", "prsr", "blitz", "pa", "deep", "rz_trips", "fourth"):
         assert c[k] == 0, f"{k} should publish as 0"
     # Without the pressure column the counter is absent, so the tool shows a dash.
-    agg2, _, _, _, _ = pb.aggregate(rows, PRESENT - {"PFFPrsrAlwd"})
+    agg2, _, _, _, _, _ = pb.aggregate(rows, PRESENT - {"PFFPrsrAlwd"})
     assert "prsr" not in agg2[("AAA", 1)]
     assert pb.fmt(pb.STAT_BY_KEY["prsr"], agg2[("AAA", 1)]) == "–"
     print("ok  counters publish as 0 when their column exists, and as a gap when it does not")
@@ -158,7 +161,7 @@ def test_drive_points_and_clock():
         row("AAA", "BBB", 1, "PASS", 3.0, 1, DriveNumber="4", DriveResult="Touchdown", TeamCurrentScore="17",
             DriveStartClock="2:00", DriveEndClock="0:30", DriveStartDist="60", PlayId="4", PlayResult="TD"),
     ]
-    agg, _, _, _, _ = pb.aggregate(rows, PRESENT, {("AAA", 1): 24})
+    agg, _, _, _, _, _ = pb.aggregate(rows, PRESENT, {("AAA", 1): 24})
     c = agg[("AAA", 1)]
     assert c["drives"] == 4
     assert c["drive_pts"] == 6 + 3 + 8 + 7, c["drive_pts"]
@@ -174,14 +177,14 @@ def test_drive_points_and_clock():
 def test_game_matching():
     rows = [row("AAA", "BBB", 1, "PASS", 0.1, 1), row("BBB", "AAA", 1, "PASS", 0.2, 1),
             row("CCC", "DDD", 1, "PASS", 0.3, 1)]
-    agg, opp_of, passers, _, _ = pb.aggregate(rows, PRESENT)
+    agg, _, opp_of, passers, _, _ = pb.aggregate(rows, PRESENT)
     games, unmatched = pb.game_lines(agg, opp_of, passers, schedule())
     assert list(games) == ["S_01_AAA_BBB"]
     assert games["S_01_AAA_BBB"]["qb"] == {"AAA": "QB AAA", "BBB": "QB BBB"}
     assert len(unmatched) == 1 and "CCC" in unmatched[0], unmatched
     # The sheet disagreeing with the schedule on who played whom is not published.
     rows2 = [row("AAA", "CCC", 1, "PASS", 0.1, 1), row("BBB", "AAA", 1, "PASS", 0.2, 1)]
-    agg, opp_of, passers, _, _ = pb.aggregate(rows2, PRESENT)
+    agg, _, opp_of, passers, _, _ = pb.aggregate(rows2, PRESENT)
     games, unmatched = pb.game_lines(agg, opp_of, passers, schedule())
     assert not games and unmatched, unmatched
     print("ok  games publish only when both sides and the schedule agree")
@@ -189,7 +192,7 @@ def test_game_matching():
 
 def test_preload_and_totals():
     rows = [row("AAA", "BBB", 1, "PASS", 0.1, 1, yds=10), row("BBB", "AAA", 1, "RUSH", -0.2, 0, yds=2)]
-    agg, opp_of, passers, _, _ = pb.aggregate(rows, PRESENT)
+    agg, _, opp_of, passers, _, _ = pb.aggregate(rows, PRESENT)
     games, _ = pb.game_lines(agg, opp_of, passers, schedule())
     html = pb.preload_table(2030, 1, schedule(), games, {"AAA": "Team A", "BBB": "Team B"})
     assert html.count('<tr class="g-aaa-bbb">') == 2
@@ -214,6 +217,61 @@ def test_definitions():
     groups = {g["key"] for g in pb.GROUPS}
     assert all(s["group"] in groups for s in pb.STATS)
     print("ok  stat, header and preload definitions agree")
+
+
+def test_quarters():
+    rows = [
+        # Q1: two plays, one explosive pass TD on a drive that starts in Q1 and
+        # ends in Q2 (its clock and points stay in Q1).
+        row("AAA", "BBB", 1, "PASS", 2.0, 1, yds=20, qtr="1", PlayId="1", DriveNumber="1",
+            DriveResult="Touchdown", DriveStartClock="3:00", DriveEndClock="14:00", TeamCurrentScore="0", PlayResult="TD"),
+        row("AAA", "BBB", 1, "RUSH", -0.5, 0, yds=2, qtr="2", PlayId="2", DriveNumber="1",
+            DriveResult="Touchdown", DriveStartClock="3:00", DriveEndClock="14:00", TeamCurrentScore="0"),
+        # Q3: an interception. Q4: nothing. OT (period 6 folds to 5): one run.
+        row("AAA", "BBB", 1, "PASS", -4.0, 0, yds=0, qtr="3", PlayId="3", DriveNumber="2", PlayResult="INT",
+            PlayDesc="pass INTERCEPTED by X", DriveStartClock="10:00", DriveEndClock="9:00", TeamCurrentScore="7"),
+        row("AAA", "BBB", 1, "RUSH", 0.3, 1, yds=4, qtr="6", PlayId="4", DriveNumber="3",
+            DriveStartClock="10:00", DriveEndClock="8:00", TeamCurrentScore="7"),
+        row("BBB", "AAA", 1, "RUSH", 0.1, 1, yds=3, qtr="1", PlayId="5"),
+        # A kickoff fumbled away in Q2 lands on the receiver's Q2 line.
+        row("AAA", "BBB", 1, "KICKOFF", 4.6, 0, yds=0, qtr="2", PlayId="6", DriveNumber="4",
+            PlayDesc="4-K.Icker kicks 61 yards from BBB 35 to AAA 4. 9-K.Turpin to AAA 28 for 24 yards. FUMBLES RECOVERED by BBB-38-K.Knowles at AAA 37."),
+    ]
+    agg, aggq, opp_of, passers, _, _ = pb.aggregate(rows, PRESENT, {("AAA", 1): 7})
+    c = agg[("AAA", 1)]
+    q1, q2, q3, q5 = (aggq[("AAA", 1, q)] for q in (1, 2, 3, 5))
+    assert ("AAA", 1, 4) not in aggq, "no play in Q4 means no Q4 counter"
+    # Plays split by quarter and sum to the game line.
+    assert q1["plays"] == 1 and q2["plays"] == 1 and q3["plays"] == 1 and q5["plays"] == 1 and c["plays"] == 4
+    assert q1["explo"] == 1 and q1["td"] == 1 and q1["pass_yds"] == 20
+    assert q3["to"] == 1 and q3["int"] == 1 and abs(q3["to_epa"] + 4.0) < 1e-9
+    assert sum(aggq[("AAA", 1, q)]["epa"] for q in (1, 2, 3, 5)) - c["epa"] < 1e-9
+    # Drive 1 straddles Q1 and Q2: its count, points and clock sit in Q1 only.
+    assert q1["drives"] == 1 and q1["drive_pts"] == 7 and q1["top"] == 240, dict(q1)
+    assert "drives" not in q2 and "top" not in q2, dict(q2)
+    assert q3["drives"] == 1 and q5["drives"] == 1 and c["drives"] == 3
+    # The fumbled kickoff is a Q2 turnover with the kicker's EPA sign flipped.
+    assert q2["to"] == 1 and q2["st_to"] == 1 and abs(q2["to_epa"] + 4.6) < 1e-9, dict(q2)
+    assert c["to"] == 2
+    # The quarter file is sparse, per game and per team, and carries games played.
+    games, _ = pb.game_lines(agg, opp_of, passers, schedule())
+    qg = pb.quarter_lines(aggq, games)
+    line = qg["S_01_AAA_BBB"]["AAA"]
+    assert sorted(line) == ["1", "2", "3", "5"], sorted(line)
+    assert "sack" not in line["1"] and line["1"]["plays"] == 1
+    assert qg["S_01_AAA_BBB"]["BBB"] == {"1": {"epa": 0.1, "plays": 1, "run": 1, "run_epa": 0.1, "run_succ": 1,
+                                               "rush_plays": 1, "rush_yds": 3, "succ": 1, "yds": 3,
+                                               "pers_n": 1, "p11": 1, "sg_n": 1, "shotgun": 1, "huddle_n": 1,
+                                               "early": 1, "early_succ": 1, "ybc": 1, "ybc_n": 1,
+                                               "yac_run": 2, "yac_n": 1, "drives": 1, "drive_start": 70,
+                                               "start_n": 1, "top": 180, "top_n": 1}}, qg["S_01_AAA_BBB"]["BBB"]
+    tot = pb.quarter_totals(qg, pb.season_totals(games, ["AAA", "BBB"]))
+    assert tot["AAA"]["1"]["g"] == 1 and tot["AAA"]["1"]["plays"] == 1 and tot["AAA"]["5"]["g"] == 1
+    assert list(tot["AAA"]) == ["1", "2", "3", "5"]
+    # Without the column there are no quarter counters at all.
+    agg2, aggq2, _, _, _, _ = pb.aggregate(rows, PRESENT - {"qtr"})
+    assert not aggq2 and agg2[("AAA", 1)]["plays"] == 4
+    print("ok  quarter counters split the game line and follow each drive's starting quarter")
 
 
 def test_meetings():
@@ -244,5 +302,6 @@ if __name__ == "__main__":
     test_game_matching()
     test_preload_and_totals()
     test_definitions()
+    test_quarters()
     test_meetings()
     print("all boxscore tests passed")
