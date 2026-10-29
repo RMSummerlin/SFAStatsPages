@@ -65,9 +65,11 @@ in time. Without a quarter and clock column the order is `PlayId` alone.
   defensive one is.
 * A defensive or special teams scorer only exists in the gamebook text, as
   `7-O.Oladejo`: the last player named before the word TOUCHDOWN in the text
-  that stood. The jersey number is required, so a team code is never read as
-  a name, and a second capitalised word is taken only for names like
-  `A.St. Brown`.
+  that stood, after dropping the parenthesised tacklers and fumble forcers.
+  The jersey number is required, so a team code is never read as a name, and
+  a second capitalised word is taken only for names like `A.St. Brown`.
+  Every touchdown read this way keeps the gamebook text as `text` in the
+  season file, so the read can be checked against the play.
 * An abbreviated name is matched against the full names the sheet carries
   for that team (every passer, rusher and target). Exactly one name with that
   initial and surname gives the full name; otherwise the abbreviated form is

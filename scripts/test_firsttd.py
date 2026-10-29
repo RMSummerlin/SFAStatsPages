@@ -71,9 +71,9 @@ def test_order_and_credit():
     assert n == 5 and excluded == {"special teams": 4}, (n, excluded)
     assert played == {"AAA": {1}, "BBB": {1}}
     assert rosters["AAA"] == {"Ray Unner", "Quinn Back", "Kai Davis"}, rosters["AAA"]
-    seq = [(td["team"], td["kind"], td["scorer"]) for td in pf.by_game(tds)[(1, "AAA", "BBB")]]
-    assert seq == [("BBB", "def", "J.Pitre"), ("AAA", "off", "Ray Unner"),
-                   ("AAA", "st", "K.Davis"), ("BBB", "off", "Jim Horn")], seq
+    seq = [(td["team"], td["kind"], td["scorer"], bool(td["text"])) for td in pf.by_game(tds)[(1, "AAA", "BBB")]]
+    assert seq == [("BBB", "def", "J.Pitre", True), ("AAA", "off", "Ray Unner", False),
+                   ("AAA", "st", "K.Davis", True), ("BBB", "off", "Jim Horn", False)], seq
     print("ok  touchdowns ordered by clock; DEF TD and kick returns credited to the right side")
 
 
@@ -83,6 +83,9 @@ def test_text_parsing():
     assert pf.text_scorer("to 11-J.Smith-Njigba for 60 yards, TOUCHDOWN.") == "J.Smith-Njigba"
     assert pf.text_scorer("to 14-S.Diggs. PENALTY on BBB, Holding. 22-R.Unner for 3 yards, TOUCHDOWN") == "R.Unner"
     assert pf.text_scorer("ran for 5 yards (33-S.Neal).") == ""
+    # The forcer in parentheses is not the scorer; the recoverer after it is.
+    assert pf.text_scorer("22-R.Unner FUMBLES (33-S.Neal), RECOVERED by AAA-77-O.Line at BBB 2. 77-O.Line for 2 yards, TOUCHDOWN.") == "O.Line"
+    assert pf.text_scorer("22-R.Unner to BBB 1 for 9 yards (33-S.Neal). TOUCHDOWN") == "R.Unner"
     assert pf.text_touchdown("22-R.Unner for 3 yards, TOUCHDOWN.")
     assert not pf.text_touchdown("9-K.Turpin for 100 yards, TOUCHDOWN NULLIFIED by Penalty.")
     assert not pf.text_touchdown("9-K.Turpin for 100 yards, TOUCHDOWN. REVERSED. 9-K.Turpin to BBB 40 for 40 yards.")

@@ -89,6 +89,9 @@ NULLIFIED_RE = re.compile(r"\bNULLIFIED\b|\bNo Play\b", re.IGNORECASE)
 # name, and the second word is only taken when it starts a capitalised
 # lower-case word, so "14-S.Diggs. PENALTY" stops at Diggs.
 NAME_RE = re.compile(r"\b\d{1,2}-([A-Z][a-z]{0,2}\.\s?[A-Z][A-Za-z'\-]+(?:\.\s?(?=[A-Z][a-z])[A-Z][a-z]+)?)")
+# Tacklers and the player who forced a fumble are written in parentheses,
+# "FUMBLES (33-S.Neal)", and are never the scorer.
+PAREN_RE = re.compile(r"\([^)]*\)")
 SUFFIX_RE = re.compile(r"\s+(?:Jr|Sr|II|III|IV|V)\.?$")
 
 # Fields published for every touchdown, in order.
@@ -136,7 +139,7 @@ def text_scorer(desc):
     i = final.find("TOUCHDOWN")
     if i < 0:
         return ""
-    names = NAME_RE.findall(final[:i])
+    names = NAME_RE.findall(PAREN_RE.sub(" ", final[:i]))
     return names[-1] if names else ""
 
 
@@ -220,26 +223,23 @@ def touchdowns(rows, present):
                     if name:
                         rosters[team].add(name)
             if result == "TD":
-                scored, kind = team, "off"
-                if "FUMBLE" in desc.upper():
-                    scorer = text_scorer(desc)          # a teammate fell on it
-                elif ptype == "PASS":
-                    scorer = (row.get("TargetName") or "").strip() if has("TargetName") else ""
-                else:
-                    scorer = (row.get("RusherName") or "").strip() if has("RusherName") else ""
-                    if not scorer and has("PasserName") and has("Scramble?") and truthy(row.get("Scramble?")):
-                        scorer = (row.get("PasserName") or "").strip()
-                if not scorer:
-                    scorer = text_scorer(desc)
+                scored, kind, scorer = team, "off", ""
+                if "FUMBLE" not in desc.upper():        # else a teammate fell on it: read the text
+                    if ptype == "PASS":
+                        scorer = (row.get("TargetName") or "").strip() if has("TargetName") else ""
+                    else:
+                        scorer = (row.get("RusherName") or "").strip() if has("RusherName") else ""
+                        if not scorer and has("PasserName") and has("Scramble?") and truthy(row.get("Scramble?")):
+                            scorer = (row.get("PasserName") or "").strip()
             elif result == "DEF TD":
-                scored, kind, scorer = opp, "def", text_scorer(desc)
+                scored, kind, scorer = opp, "def", ""
             else:
                 continue
         elif ptype in KICK_TYPES:
             excluded["special teams"] += 1
             if not text_touchdown(desc):
                 continue
-            scored, kind, scorer = kick_scorer_team(ptype, desc, team, opp), "st", text_scorer(desc)
+            scored, kind, scorer = kick_scorer_team(ptype, desc, team, opp), "st", ""
         elif ptype in NO_TD_TYPES:
             excluded["special teams"] += 1
             continue
@@ -247,6 +247,12 @@ def touchdowns(rows, present):
             excluded["not pass or rush"] += 1
             continue
 
+        # Only the text names a defensive or special teams scorer. It is kept
+        # on those touchdowns in the season file so an editor can check the
+        # read against the gamebook.
+        from_text = not scorer
+        if from_text:
+            scorer = text_scorer(desc)
         qtr = as_int(row.get("qtr")) if has("qtr") else None
         clock = parse_clock(row.get("GameClock")) if has("GameClock") else None
         pid = as_int(row.get("PlayId")) if has("PlayId") else None
@@ -254,6 +260,7 @@ def touchdowns(rows, present):
             "game": (week,) + tuple(sorted((team, opp))),
             "week": week, "team": scored, "opp": team if scored == opp else opp,
             "scorer": scorer, "kind": kind,
+            "text": final_text(desc).strip() if from_text else "",
             "qtr": qtr, "clock": clock,
             # Quarter and clock first, PlayId as the tie-break, row order last.
             "order": (qtr if qtr is not None else 0,
@@ -373,8 +380,9 @@ def build_season(season, rows, present):
     games = []
     for key, lst in sorted(by_game(tds).items()):
         games.append({"week": key[0], "teams": list(key[1:]),
-                      "tds": [{"team": td["team"], "scorer": td["scorer"], "kind": td["kind"],
-                               "qtr": td["qtr"], "clock": td["clock"]} for td in lst]})
+                      "tds": [dict({"team": td["team"], "scorer": td["scorer"], "kind": td["kind"],
+                                    "qtr": td["qtr"], "clock": td["clock"]},
+                                   **({"text": td["text"]} if td["text"] else {})) for td in lst]})
     blob = {
         "season": season, "tool": TOOL,
         "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
