@@ -201,24 +201,45 @@ function sfa_preload_styles() {
 	$done = true;
 	/*
 	 * Every property is declared on the table elements themselves rather than
-	 * left to inherit. Inheritance loses to any theme rule matching th or td
-	 * directly, which is how Avada's red heading colour was reaching the team
-	 * column. Deliberately plain: only crawlers and no-JS visitors see this.
+	 * left to inherit, with !important and the full element path. Inheritance
+	 * loses to any theme rule matching th or td directly, and Avada's do: on
+	 * the live site its th rule painted the row headers dark on dark and the
+	 * column headers in the red condensed heading face. The other tables are
+	 * hidden by their tool before a reader sees them; the first touchdown
+	 * tables are the article, so they have to win outright.
+	 *
+	 * Brand values from docs/avada-embed-rules.md: text #111, header band
+	 * #f4f5f7, borders #dde2e8, stripe #f6f6f6, white cells. The font is the
+	 * article's own, inherited from the page rather than from the theme's th.
+	 *
+	 * The caption stays in the markup for crawlers and screen readers but is
+	 * clipped off screen: readers get the article copy instead. The first
+	 * column stays put while a phone pans across the figures.
 	 */
 	return '<style>'
-		. '.sfa-preload{margin:0 0 18px;overflow-x:auto}'
-		. '.sfa-preload table,.sfa-preload thead,.sfa-preload tbody,'
-		. '.sfa-preload tfoot,.sfa-preload tr,.sfa-preload th,.sfa-preload td,'
-		. '.sfa-preload caption,.sfa-preload abbr{'
-		. 'font:inherit;color:#111;background:none;border:0;text-align:left;'
-		. 'text-transform:none;letter-spacing:normal;text-decoration:none;'
-		. 'text-shadow:none;box-shadow:none;vertical-align:middle;margin:0}'
-		. '.sfa-preload table{border-collapse:collapse;width:100%;font-size:12px}'
-		. '.sfa-preload caption{padding:10px 12px;color:#555;font-size:12px}'
-		. '.sfa-preload th,.sfa-preload td{border:1px solid #dde2e8;'
-		. 'padding:5px 7px;text-align:center;color:#111}'
-		. '.sfa-preload th[scope=row]{text-align:left;font-weight:700;color:#111}'
-		. '.sfa-preload thead th{background:#f4f5f7;font-weight:700;color:#111}'
+		. '.sfa-preload{margin:0 0 18px;overflow-x:auto;-webkit-overflow-scrolling:touch}'
+		. '.sfa-preload table,.sfa-preload table thead,.sfa-preload table tbody,'
+		. '.sfa-preload table tfoot,.sfa-preload table tr,.sfa-preload table th,'
+		. '.sfa-preload table td,.sfa-preload table caption,.sfa-preload table abbr{'
+		. 'font-family:inherit!important;font-size:14px!important;font-weight:400!important;'
+		. 'font-style:normal!important;line-height:1.3!important;color:#111!important;'
+		. 'background:#fff!important;border:0!important;text-align:left!important;'
+		. 'text-transform:none!important;letter-spacing:normal!important;'
+		. 'text-decoration:none!important;text-shadow:none!important;box-shadow:none!important;'
+		. 'vertical-align:middle!important;margin:0!important;padding:0!important}'
+		. '.sfa-preload table{border-collapse:collapse!important;width:100%!important}'
+		. '.sfa-preload table caption{position:absolute!important;width:1px!important;height:1px!important;'
+		. 'overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;'
+		. 'white-space:nowrap!important}'
+		. '.sfa-preload table th,.sfa-preload table td{border:1px solid #dde2e8!important;'
+		. 'padding:7px 9px!important;text-align:center!important;white-space:nowrap!important}'
+		. '.sfa-preload table thead tr th{background:#f4f5f7!important;font-weight:700!important;'
+		. 'text-align:center!important;border-bottom:2px solid #111!important}'
+		. '.sfa-preload table tbody tr th[scope=row]{text-align:left!important;font-weight:700!important}'
+		. '.sfa-preload table tr th:first-child{position:sticky!important;left:0!important;z-index:1!important;'
+		. 'box-shadow:1px 0 0 #dde2e8!important}'
+		. '.sfa-preload table tbody tr:nth-child(even) th,.sfa-preload table tbody tr:nth-child(even) td{'
+		. 'background:#f6f6f6!important}'
 		. '</style>';
 }
 

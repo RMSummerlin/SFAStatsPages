@@ -92,6 +92,15 @@ fixed string, and see whether `[sfa_test]` resolves.
 - **Styles are printed inline on first render**, scoped entirely under `.sfa-preload`.
   The tool fragment's own CSS is scoped under `.pt-root` and cannot reach the
   shortcode output, so without this the table would render unstyled.
+- **Every table property is pinned with `!important`** and the full element path.
+  Avada's own `th` and `td` rules otherwise win: on the live site they painted the
+  row headers dark on dark and the column headers in the red heading face. That
+  went unnoticed while every table was hidden by its tool, and showed the moment
+  the first touchdown tables, which nothing hides, went up.
+- **The caption is clipped off screen**, not removed. Crawlers and screen readers
+  still get the sentence that says what the table is; readers get the article copy.
+- **The first column is sticky**, so a phone pans across the figures with the team
+  or player still in view.
 
 ## Cache window
 
