@@ -744,7 +744,17 @@
                                  .map(function(w){ return centred(D, cells[w], false); });
     return proeOf(list, off);
   }
-  function maxWeek(D){ return D.current_week || 1; }
+  // Two different weeks, which used to be one. The tab opens on the current
+  // week: the first with a game still to play, set by the pull, so it flips
+  // the day after Monday night. The stepper runs on to the last week on the
+  // schedule, so every remaining game of the season can be read against the
+  // two units as they stand today.
+  function curWeek(D){ return D.current_week || 1; }
+  function lastWeek(D){
+    var m = curWeek(D);
+    (D.schedule || []).forEach(function(g){ if (g.w > m) m = g.w; });
+    return m;
+  }
   function gamesIn(D, W){
     return D.schedule.filter(function(g){ return g.w === W; });
   }
@@ -790,7 +800,10 @@
       paintFoot([]);
       return;
     }
-    if (STATE.week == null || STATE.week > maxWeek(D)) STATE.week = maxWeek(D);
+    // No week picked yet (first paint, or the season changed) opens on the
+    // current week. A picked week is only held inside the schedule.
+    if (STATE.week == null) STATE.week = curWeek(D);
+    STATE.week = Math.max(1, Math.min(lastWeek(D), STATE.week));
     buildBar();
     var games = gamesIn(D, STATE.week);
     wrap.innerHTML = '';
@@ -960,10 +973,10 @@
       var next = el('button', 'pt-wkbtn', '›');
       next.type = 'button';
       next.setAttribute('aria-label', 'Next week');
-      // Future weeks would only repeat the current figures, so the stepper
-      // stops at the current week, which flips the day after Monday night.
-      next.disabled = !D || STATE.week >= maxWeek(D);
-      next.addEventListener('click', function(){ STATE.week = Math.min(maxWeek(newest()), STATE.week + 1); render(); });
+      // Runs past the current week to the end of the schedule. Future weeks
+      // carry the same season-to-date figures against a different opponent.
+      next.disabled = !D || STATE.week >= lastWeek(D);
+      next.addEventListener('click', function(){ STATE.week = Math.min(lastWeek(newest()), STATE.week + 1); render(); });
       nav.appendChild(prev);
       nav.appendChild(el('span', 'pt-week', 'Week ' + (STATE.week || 1)));
       nav.appendChild(next);

@@ -76,8 +76,14 @@ opens sorted on Matchup, highest first, and any of the three figure columns
 sorts; shading and ranks work as on the team tables. The team cells' tooltip
 carries the game, with the final score once played. Figures are always the
 season to date, whichever week the stepper shows, and the quarter, down and
-week filters do not apply here. The stepper stops at the current week, which
-flips the day after Monday night, same as the matchup tool.
+week filters do not apply here.
+
+The stepper covers the whole schedule, week 1 to the last week published, so
+every remaining game of the season is there. The tab opens on the current
+week, which is `current_week` in the season file: the first week with a game
+still to play, so it flips the day after Monday night. Changing the season
+returns it to that season's current week; switching tabs and coming back
+keeps the week that was showing.
 
 ## Embedding
 
@@ -103,9 +109,15 @@ or two when other teams play, because the league mean moved.
 **Last 4 equals PROE for the first month.** A team with three games played has
 three games in both columns.
 
-**A past week on the Matchups tab shows today's numbers.** By design. Figures
-are season to date and never frozen per week; only the schedule belongs to
-the week shown.
+**A past or future week on the Matchups tab shows today's numbers.** By
+design. Figures are season to date, never frozen per week and never
+projected forward; only the schedule belongs to the week shown. The footer
+says which week the figures run through.
+
+**The Matchups stepper goes further than the matchup tool's.** That one stops
+at the current week because its ratings are built for one week. These are
+plain season-to-date sums, so pairing them with a later opponent is the same
+arithmetic.
 
 **No Quarter or Down chip on the bar.** Every selected season has to carry the
 split cells (schema 2 of the season file). The pull rebuilds every season the
