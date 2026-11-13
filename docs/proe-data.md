@@ -211,7 +211,11 @@ count for the footer.
   by default and sortable on either input, so a 32-row week ranks every unit
   pairing at once. Figures are always season to date and never narrowed by
   quarter or down; past weeks are not snapshotted, because the point of the
-  tab is to pair this week's games with what the two units are now.
+  tab is to pair a week's games with what the two units are now. For the
+  same reason the stepper runs past the current week to the end of the
+  schedule: a later week is the same two season-to-date figures against a
+  different opponent, with nothing projected. The tab opens on the current
+  week and only the upper limit moved.
 - **Quarter and down narrow everything on the team tabs,** and the league
   centring is recomputed on the narrowed plays, so the NFL Average row reads
   0.0 under any filter. A fourth-quarter figure therefore says how a team

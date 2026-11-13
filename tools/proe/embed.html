@@ -621,7 +621,12 @@
                                  .map(function(w){ return centred(D, cells[w], false); });
     return proeOf(list, off);
   }
-  function maxWeek(D){ return D.current_week || 1; }
+  function curWeek(D){ return D.current_week || 1; }
+  function lastWeek(D){
+    var m = curWeek(D);
+    (D.schedule || []).forEach(function(g){ if (g.w > m) m = g.w; });
+    return m;
+  }
   function gamesIn(D, W){
     return D.schedule.filter(function(g){ return g.w === W; });
   }
@@ -660,7 +665,8 @@
       paintFoot([]);
       return;
     }
-    if (STATE.week == null || STATE.week > maxWeek(D)) STATE.week = maxWeek(D);
+    if (STATE.week == null) STATE.week = curWeek(D);
+    STATE.week = Math.max(1, Math.min(lastWeek(D), STATE.week));
     buildBar();
     var games = gamesIn(D, STATE.week);
     wrap.innerHTML = '';
@@ -822,8 +828,8 @@
       var next = el('button', 'pt-wkbtn', '›');
       next.type = 'button';
       next.setAttribute('aria-label', 'Next week');
-      next.disabled = !D || STATE.week >= maxWeek(D);
-      next.addEventListener('click', function(){ STATE.week = Math.min(maxWeek(newest()), STATE.week + 1); render(); });
+      next.disabled = !D || STATE.week >= lastWeek(D);
+      next.addEventListener('click', function(){ STATE.week = Math.min(lastWeek(newest()), STATE.week + 1); render(); });
       nav.appendChild(prev);
       nav.appendChild(el('span', 'pt-week', 'Week ' + (STATE.week || 1)));
       nav.appendChild(next);
